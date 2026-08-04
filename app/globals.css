@@ -1,0 +1,567 @@
+/* ================================================================
+   LA VEILLÉE — விழிப்பு  ·  Tailwind design system
+   Everything expressible as utilities lives in the components;
+   this file keeps only atmosphere (grain, flame), JS-driven state
+   (.reveal/.in), third-party skins (Mapbox) and language overrides.
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+Tamil:ital,wght@0,300..700;1,300..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ————— the vigil, by lamplight (default) ————— */
+  :root {
+    --c-night: 7 6 5;
+    --c-night-2: 13 10 8;
+    --c-soot: 23 18 14;
+    --c-soot-2: 34 26 20;
+    --c-bone: 236 227 211;
+    --c-bone-dim: 207 196 176;
+    --c-ash: 151 137 122;
+    --c-ash-dim: 95 86 75;
+    --c-ember: 214 79 51;
+    --c-blood: 143 35 24;
+    --c-flame: 237 166 61;
+    --c-flame-hot: 247 212 136;
+    --c-gold: 201 155 47;
+
+    /* atmosphere hooks the components read through arbitrary values */
+    --grain-opacity: 0.5;
+    --grain-blend: overlay;
+    --ink-veil: 0;
+
+    /* per-chapter grounds: each chapter has its own air */
+    --ch-void: 3 3 3;        /* Mullivaikkal, the disappeared — nothing left */
+    --ch-void-2: 12 11 10;
+    --ch-cold: 11 11 13;     /* the vice: the blue cold of statute law */
+    --ch-ink: 5 4 3;         /* Black July */
+    --ch-dawn-1: 25 16 7;    /* dawn in diaspora warms toward the end */
+    --ch-dawn-2: 36 23 8;
+    --ch-sand: 216 189 138;  /* the strip of sand at Mullivaikkal */
+    --ch-clay: 216 201 166;  /* the kanji bowl */
+    --ch-clay-2: 36 26 18;
+    --map-claimed: 232 208 82;
+    --map-partial: 224 138 60;
+  }
+
+  /* ————— the archive, on aged paper ————— */
+  [data-theme='paper'] {
+    --c-night: 232 220 195;      /* the leaf itself */
+    --c-night-2: 223 209 181;
+    --c-soot: 209 192 160;
+    --c-soot-2: 196 177 143;
+    --c-bone: 43 33 24;          /* iron-gall ink */
+    --c-bone-dim: 74 60 45;
+    --c-ash: 105 89 70;          /* small mono labels need the contrast */
+    --c-ash-dim: 129 112 89;
+    --c-ember: 163 55 32;
+    --c-blood: 122 29 20;
+    --c-flame: 176 106 24;
+    --c-flame-hot: 206 150 56;
+    --c-gold: 138 105 31;
+
+    --grain-opacity: 0.38;
+    --grain-blend: multiply;
+    --ink-veil: 1;
+
+    /* the same chapters, read by daylight: shades of the same leaf */
+    --ch-void: 205 188 156;  /* the page darkens where the story does */
+    --ch-void-2: 214 199 169;
+    --ch-cold: 214 208 194;  /* a cooler, official stock */
+    --ch-ink: 210 194 164;
+    --ch-dawn-1: 238 225 197; /* dawn: the leaf lightens toward the end */
+    --ch-dawn-2: 245 234 210;
+    --ch-sand: 150 112 58;   /* sand drawn in ink, not lit by the sun */
+    --ch-clay: 168 133 78;
+    --ch-clay-2: 61 44 28;
+    --map-claimed: 186 152 30;
+    --map-partial: 178 96 28;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  html, body {
+    @apply bg-night text-bone font-body;
+    /* clip, not hidden: overflow-x hidden on html+body turns the body into
+       the scroll container and breaks position:sticky descendants */
+    overflow-x: clip;
+    font-optical-sizing: auto;
+  }
+
+  /* the leaf turns over: colours cross-fade instead of snapping */
+  html.theming, html.theming body, html.theming * {
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, fill 0.5s ease, stroke 0.5s ease;
+  }
+
+  ::selection { @apply bg-blood text-bone; }
+  [data-theme='paper'] ::selection { background: rgb(var(--c-flame) / 0.35); color: rgb(var(--c-bone)); }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { @apply bg-night; }
+  ::-webkit-scrollbar-thumb { @apply bg-soot-2 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ash-dim; }
+
+  /* film grain by night, paper fibre by day */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 90;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* aged sheet: laid-paper fibre, foxing at the corners, a shadow at the fold */
+  [data-theme='paper'] body::after {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.016 0.34' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.33 0 0 0 0 0.2 0 0 0 0.34 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.26 0 0 0 0 0.15 0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 420px 420px, 220px 220px;
+  }
+
+  /* the sheet's own body: warm centre, tea-stained rims */
+  [data-theme='paper'] body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 89;
+    mix-blend-mode: multiply;
+    background:
+      radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(150, 116, 66, 0.20) 100%),
+      radial-gradient(90% 70% at 8% 92%, rgba(150, 116, 66, 0.16), transparent 60%),
+      radial-gradient(70% 60% at 96% 30%, rgba(138, 100, 52, 0.14), transparent 62%);
+  }
+}
+
+@layer components {
+  /* ————— scroll-reveal (class toggled by useReveal) ————— */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1), transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal.d1 { transition-delay: 0.15s; }
+  .reveal.d2 { transition-delay: 0.3s; }
+  .reveal.d3 { transition-delay: 0.45s; }
+  .reveal.d4 { transition-delay: 0.6s; }
+
+  /* word-stagger for chapter titles (spans injected by ChapterOpen):
+     each word rises out of a cinematic blur */
+  .stagger .w {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.55em) rotate(1.4deg) scale(1.04);
+    filter: blur(10px);
+    transition:
+      opacity 1.05s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1.05s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--wi) * 0.14s);
+  }
+  .stagger.in .w { opacity: 1; transform: none; filter: blur(0); }
+
+  /* letter cascade (prologue) */
+  .lt {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.5em);
+    filter: blur(8px);
+    animation: letter-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(0.9s + var(--li) * 0.055s);
+  }
+
+  /* kicker: italic line that settles its letterspacing */
+  .kicker { letter-spacing: 0.14em; transition: letter-spacing 1.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 1.1s, transform 1.1s; }
+  .kicker.in { letter-spacing: 0.02em; }
+
+  /* archival seal: stamped onto the act once revealed */
+  .seal {
+    opacity: 0;
+    transform: scale(2) rotate(-18deg);
+    transition: opacity 0.4s ease 0.5s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+  }
+  .reveal.in .seal { opacity: 0.85; transform: scale(1) rotate(8deg); }
+
+  /* ————— the flame (composite element) ————— */
+  /* --draught is written each frame by <Lamp>: scrolling bends every flame */
+  .flame {
+    position: relative;
+    width: var(--fs, 28px);
+    height: calc(var(--fs, 28px) * 1.6);
+    filter: blur(0.4px);
+    transform: skewX(calc(var(--draught, 0) * 9deg));
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .flame .f-outer {
+    position: absolute; inset: 0;
+    background: radial-gradient(50% 62% at 50% 78%, rgb(var(--c-ember)) 0%, rgb(var(--c-ember) / 0.45) 55%, transparent 75%);
+    border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+    transform-origin: 50% 92%;
+    animation: flicker-outer 2.7s ease-in-out infinite;
+  }
+  .flame .f-inner {
+    position: absolute; left: 22%; right: 22%; top: 22%; bottom: 8%;
+    background: radial-gradient(50% 60% at 50% 75%, rgb(var(--c-flame-hot)) 0%, rgb(var(--c-flame)) 48%, rgb(var(--c-flame) / 0.25) 78%, transparent 92%);
+    border-radius: 50% 50% 50% 50% / 66% 66% 34% 34%;
+    transform-origin: 50% 92%;
+    animation: flicker-inner 1.9s ease-in-out infinite;
+  }
+  .flame .f-core {
+    position: absolute; left: 38%; right: 38%; top: 48%; bottom: 12%;
+    background: radial-gradient(circle at 50% 70%, #fff8e6 0%, rgb(var(--c-flame-hot)) 60%, transparent 95%);
+    border-radius: 50%;
+    animation: flicker-core 1.3s ease-in-out infinite;
+  }
+  /* on paper the core is drawn, not emitted: ink instead of light */
+  [data-theme='paper'] .flame .f-core {
+    background: radial-gradient(circle at 50% 70%, rgb(var(--c-flame-hot)) 0%, rgb(var(--c-flame) / 0.85) 60%, transparent 95%);
+  }
+  .flame .f-glow {
+    position: absolute; inset: -120%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 60%, rgb(var(--c-flame) / 0.22) 0%, rgb(var(--c-ember) / 0.08) 45%, transparent 70%);
+    animation: glow-pulse 3.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  [data-theme='paper'] .flame .f-glow { opacity: 0.45; }
+  .flame.unlit .f-outer, .flame.unlit .f-inner, .flame.unlit .f-core, .flame.unlit .f-glow {
+    animation: none; opacity: 0; transform: scale(0.2); transition: all 0.9s ease;
+  }
+  /* the shared WebGL layer took over: keep the space, drop the CSS painting */
+  .flame-gl .f-outer, .flame-gl .f-inner, .flame-gl .f-core, .flame-gl .f-glow {
+    opacity: 0;
+    animation: none;
+  }
+
+  /* ————— the Tamil word standing behind each chapter ————— */
+  .ghost-word {
+    -webkit-text-stroke: 1px rgb(var(--c-bone) / 0.08);
+  }
+  /* on paper it is an impression in the sheet, so it can carry more weight */
+  [data-theme='paper'] .ghost-word {
+    -webkit-text-stroke: 1px rgb(var(--c-bone) / 0.12);
+  }
+  /* thicker strokes would smear at small sizes on dense scripts */
+  @media (min-width: 1024px) {
+    .ghost-word { -webkit-text-stroke-width: 1.4px; }
+  }
+
+  /* ————— homeland border: marching golden dashes ————— */
+  .ants { animation: ants 22s linear infinite; }
+
+  /* ————— the vignette: darkness by night, a worn rim by day ————— */
+  .vignette {
+    background: radial-gradient(130% 130% at 50% 45%, transparent 58%, rgba(0, 0, 0, 0.42) 100%);
+    animation: vignette-breathe 13s ease-in-out infinite;
+  }
+  [data-theme='paper'] .vignette {
+    background: radial-gradient(128% 128% at 50% 45%, transparent 62%, rgba(96, 72, 38, 0.22) 100%);
+  }
+
+  /* ————— the lamp the reader carries ————— */
+  .lamp {
+    --lx: 50%;
+    --ly: 42%;
+    --lr: 1;
+    background: radial-gradient(
+      calc(34vmax * var(--lr)) calc(30vmax * var(--lr)) at var(--lx) var(--ly),
+      rgb(var(--c-flame) / 0.075) 0%,
+      rgb(var(--c-flame) / 0.032) 34%,
+      rgb(var(--c-ember) / 0.014) 58%,
+      transparent 78%
+    );
+    mix-blend-mode: screen;
+    will-change: background;
+  }
+  /* on paper the lamp does not add light, it warms the sheet */
+  [data-theme='paper'] .lamp {
+    background: radial-gradient(
+      calc(32vmax * var(--lr)) calc(28vmax * var(--lr)) at var(--lx) var(--ly),
+      rgba(148, 112, 58, 0.09) 0%,
+      rgba(148, 112, 58, 0.045) 40%,
+      transparent 74%
+    );
+    mix-blend-mode: multiply;
+  }
+
+  /* ————— violence effects (Black July / Mullivaikkal) ————— */
+
+  /* bullet impact: hidden until the chapter reveals, then punches in */
+  .bullet {
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .reveal.in .bullet {
+    animation: impact 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+    animation-delay: var(--bd, 0.8s);
+  }
+  .bullet::after {
+    /* muzzle-flash bloom at the moment of impact */
+    content: "";
+    position: absolute;
+    inset: -60%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(var(--c-flame-hot) / 0.9) 0%, rgb(var(--c-ember) / 0.5) 35%, transparent 70%);
+    opacity: 0;
+  }
+  .reveal.in .bullet::after {
+    animation: impact-flash 0.5s ease-out both;
+    animation-delay: var(--bd, 0.8s);
+  }
+
+  /* the year takes the hits: one restrained jolt as the wall is struck */
+  .reveal.in .shot-target {
+    animation:
+      shake-once 0.55s ease-out 1s 1 both,
+      blood-pulse 5s ease-in-out 1.6s infinite;
+  }
+
+  /* blood running down from the numerals: it gathers, lets go, then dries */
+  .drip {
+    transform-origin: top;
+    transform: scaleY(0);
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--c-blood) / 0.92) 0%,
+      rgb(var(--c-blood) / 0.62) 55%,
+      rgb(var(--c-blood) / 0.3) 84%,
+      transparent 100%
+    );
+    border-radius: 0 0 40% 40% / 0 0 8px 8px;
+  }
+  .reveal.in .drip {
+    animation:
+      drip var(--dt, 7s) cubic-bezier(0.45, 0, 0.2, 1) both,
+      drip-dry calc(var(--dt, 7s) * 1.7) ease-out both;
+    animation-delay: var(--bd, 1.4s);
+  }
+  .drip::after {
+    /* the bead at the tip: surface tension holds it, then it falls */
+    content: "";
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    width: 5px;
+    height: 7px;
+    transform: translateX(-50%);
+    transform-origin: 50% 20%;
+    border-radius: 50% 50% 60% 60% / 40% 40% 60% 60%;
+    background: radial-gradient(circle at 38% 30%, rgb(var(--c-ember) / 0.7), rgb(var(--c-blood)) 62%);
+  }
+  .reveal.in .drip::after {
+    animation: bead var(--dt, 7s) cubic-bezier(0.45, 0, 0.2, 1) both;
+    animation-delay: var(--bd, 1.4s);
+  }
+
+  /* ————— cultural & emotional visuals ————— */
+
+  /* kolam: the sacred threshold pattern draws itself in gold */
+  .kolam path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 3.2s cubic-bezier(0.4, 0, 0.3, 1);
+    transition-delay: var(--kd, 0s);
+  }
+  .reveal.in .kolam path { stroke-dashoffset: 0; }
+  .kolam circle { opacity: 0; transition: opacity 1.2s ease; transition-delay: calc(var(--kd, 0s) + 0.4s); }
+  .reveal.in .kolam circle { opacity: 1; }
+
+  /* burning pages rising from the library fire */
+  .page-ash {
+    position: absolute;
+    width: 26px;
+    height: 34px;
+    background:
+      linear-gradient(155deg, rgb(var(--c-bone) / 0.28) 0%, rgb(var(--c-bone) / 0.14) 55%, rgb(var(--c-ember) / 0.5) 78%, rgb(var(--c-night) / 0.9) 96%);
+    clip-path: polygon(6% 0, 94% 4%, 100% 62%, 84% 100%, 12% 94%, 0 38%);
+    animation: float-page var(--pt, 11s) linear infinite;
+    animation-delay: var(--pd, 0s);
+    opacity: 0;
+    filter: blur(0.3px);
+  }
+
+  /* burning skyline windows */
+  .window-fire {
+    animation: window-flicker 2.8s ease-in-out infinite;
+    animation-delay: var(--wd, 0s);
+  }
+
+  /* a human silhouette in the crowd on the strip of sand */
+  .figure {
+    position: absolute;
+    bottom: 0;
+    width: 3px;
+    border-radius: 45% 45% 20% 20%;
+    background: rgb(var(--c-ash) / 0.55);
+  }
+  .figure::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 3.5px;
+    height: 3.5px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: rgb(var(--c-ash) / 0.6);
+  }
+
+  /* a name written in ink, bleeding into skin */
+  .ink-name {
+    animation: ink-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--id, 0s);
+  }
+
+  /* steam rising off the kanji */
+  .steam {
+    stroke-dasharray: 42;
+    animation: steam-rise 4.2s ease-in-out infinite;
+    animation-delay: var(--sd, 0s);
+  }
+
+  /* a diaspora flame lights up */
+  .light-up {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+  .reveal.in .light-up {
+    animation: light-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--ld, 0s);
+  }
+
+  /* artillery streaks over the no-fire zone */
+  .shell {
+    position: absolute;
+    top: 0;
+    width: 1.5px;
+    height: 16vh;
+    background: linear-gradient(to bottom, transparent, rgb(var(--c-flame-hot) / 0.7) 55%, rgb(var(--c-ember) / 0.9));
+    transform: translateY(-20vh) rotate(9deg);
+    animation: shell-fall var(--st, 2.8s) linear infinite;
+    animation-delay: var(--sd, 0s);
+  }
+}
+
+/* ————— Tamil language adjustments ————— */
+html[lang="ta"] .lang-title {
+  font-family: 'Noto Serif Tamil', serif;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+html[lang="ta"] body { line-height: 1.95; }
+html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0; color: inherit; }
+
+/* editorial drop cap */
+.drop-cap::first-letter {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 3.4em;
+  line-height: 0.8;
+  float: left;
+  margin: 0.06em 0.12em 0 0;
+  color: rgb(var(--c-gold));
+}
+
+@keyframes letter-in {
+  from { opacity: 0; transform: translateY(0.5em); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes ants {
+  to { stroke-dashoffset: -220; }
+}
+@keyframes impact {
+  0% { opacity: 0; transform: scale(2.4); }
+  35% { opacity: 1; }
+  100% { opacity: 0.92; transform: scale(1); }
+}
+@keyframes impact-flash {
+  0% { opacity: 0.95; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes shake-once {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(3px, -2px) rotate(0.25deg); }
+  30% { transform: translate(-3px, 2px) rotate(-0.2deg); }
+  45% { transform: translate(2px, 1px); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(1px, 0); }
+}
+@keyframes drip {
+  0%   { transform: scaleY(0); }
+  12%  { transform: scaleY(0.05); }   /* it gathers at the edge */
+  22%  { transform: scaleY(0.08); }   /* and holds, heavier */
+  50%  { transform: scaleY(0.58); }   /* then lets go and runs */
+  74%  { transform: scaleY(0.87); }   /* thickening, slowing */
+  100% { transform: scaleY(1); }
+}
+@keyframes bead {
+  0%   { transform: translateX(-50%) scale(0.15); }
+  16%  { transform: translateX(-50%) scale(1.3, 1.15); }  /* swollen */
+  24%  { transform: translateX(-50%) scale(0.7, 1.35); }  /* stretched, released */
+  52%  { transform: translateX(-50%) scale(0.85); }
+  100% { transform: translateX(-50%) scale(1.05); }
+}
+@keyframes drip-dry {
+  0%, 40% { filter: saturate(1.1) brightness(1); }
+  100%    { filter: saturate(0.68) brightness(0.7); }
+}
+@keyframes shell-fall {
+  0% { transform: translateY(-20vh) rotate(9deg); opacity: 0; }
+  8% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(115vh) rotate(9deg); opacity: 0; }
+}
+@keyframes float-page {
+  0% { transform: translateY(20vh) rotate(0deg); opacity: 0; }
+  12% { opacity: 0.9; }
+  55% { transform: translateY(-38vh) rotate(160deg) translateX(30px); opacity: 0.7; }
+  100% { transform: translateY(-95vh) rotate(340deg) translateX(-16px); opacity: 0; }
+}
+@keyframes window-flicker {
+  0%, 100% { opacity: 0.25; }
+  18% { opacity: 0.95; }
+  34% { opacity: 0.45; }
+  52% { opacity: 1; }
+  71% { opacity: 0.35; }
+  86% { opacity: 0.8; }
+}
+@keyframes light-up {
+  from { opacity: 0; transform: translateY(8px) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lamp-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.86; }
+}
+@keyframes ink-in {
+  0% { opacity: 0; filter: blur(7px); transform: translateY(7px) scale(1.04); }
+  100% { filter: blur(0.2px); }
+}
+@keyframes steam-rise {
+  0% { stroke-dashoffset: 42; opacity: 0; }
+  25% { opacity: 0.75; }
+  100% { stroke-dashoffset: -42; opacity: 0; }
+}
+
+/* ————— reduced motion ————— */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+  }
+  .reveal, .stagger .w, .lt { opacity: 1; transform: none; filter: none; }
+}

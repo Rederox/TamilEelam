@@ -1,0 +1,53 @@
+# ————— dependencies —————
+/node_modules
+/.pnp
+.pnp.*
+
+# ————— build output —————
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# ————— secrets —————
+# .env.local holds NEXT_PUBLIC_MAPBOX_TOKEN: never commit it.
+# Commit .env.example instead, with empty values, so the keys stay documented.
+.env
+.env*.local
+.env.production
+
+# ————— macOS on this exFAT volume —————
+# The drive cannot store extended attributes, so macOS writes a `._name`
+# sidecar beside every file. They are binary junk, they appear by the
+# hundred, and Next.js reads them back as if they were real assets.
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.DocumentRevisions-V100
+
+# ————— editors —————
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# ————— logs & local debris —————
+*.log
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# ————— hosting —————
+.vercel
+.netlify
+
+# ————— kept on purpose —————
+# public/symbols/*  — the flag, leopard, coucal and glory lily are site
+# content, not build artefacts. They belong in the repository.
