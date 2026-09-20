@@ -5,83 +5,113 @@
    (.reveal/.in), third-party skins (Mapbox) and language overrides.
    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+Tamil:ital,wght@0,300..700;1,300..700&display=swap');
+/* Fonts are requested once, from <head> in app/layout.tsx. An @import here
+   would fetch the same four families a second time and block on the CSS. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* ————— the vigil, by lamplight (default) ————— */
+  /* ————— flag palette: yellow, red, black and white ————— */
   :root {
-    --c-night: 7 6 5;
-    --c-night-2: 13 10 8;
-    --c-soot: 23 18 14;
-    --c-soot-2: 34 26 20;
-    --c-bone: 236 227 211;
-    --c-bone-dim: 207 196 176;
-    --c-ash: 151 137 122;
-    --c-ash-dim: 95 86 75;
-    --c-ember: 214 79 51;
-    --c-blood: 143 35 24;
-    --c-flame: 237 166 61;
-    --c-flame-hot: 247 212 136;
-    --c-gold: 201 155 47;
+    --flag-yellow: 255 212 0;
+    --flag-red: 222 1 39;
+    --flag-black: 0 0 0;
+    --flag-white: 255 255 255;
+    --c-night: 0 0 0;
+    --c-night-2: 10 10 10;
+    --c-soot: 20 20 20;
+    --c-soot-2: 32 32 32;
+    --c-bone: 255 255 255;
+    --c-bone-dim: 215 215 215;
+    --c-ash: 171 171 171;
+    --c-ash-dim: 130 130 130;
+    --c-ember: 239 23 36;
+    --c-blood: 222 1 39;
+    --c-flame: 255 212 0;
+    --c-flame-hot: 255 235 133;
+    --c-flame-core: 255 255 255;
+    --c-gold: 255 212 0;
+    --c-shade: 0 0 0;
+    --c-foxing: 100 100 100;
+
+    /* One vocabulary of movement. The vigil decelerates; it never overshoots,
+       because nothing in a still room springs back. `vigil` is the house
+       curve (also exposed to Tailwind as ease-vigil); `draw` is for strokes
+       that are being laid down, which start slow and finish slow. */
+    --e-vigil: cubic-bezier(0.22, 1, 0.36, 1);  /* ease-out-quint */
+    --e-expo: cubic-bezier(0.16, 1, 0.3, 1);    /* ease-out-expo, for impacts */
+    --e-draw: cubic-bezier(0.4, 0, 0.3, 1);     /* a hand drawing a line */
+    --e-run: cubic-bezier(0.45, 0, 0.2, 1);     /* something gathering, then falling */
 
     /* atmosphere hooks the components read through arbitrary values */
     --grain-opacity: 0.5;
     --grain-blend: overlay;
     --ink-veil: 0;
+    --vignette-strength: 0.42;
+    --press: 1.18;             /* a pressed control brightens in the dark */
+
+    /* how heavy the chapter under the reader is right now, 0..1 — written
+       by <Ordeal> from the shared signal in lib/ordeal.ts. Zero everywhere
+       except inside the vice, the fire, Black July and Mullivaikkal. */
+    --ordeal: 0;
 
     /* per-chapter grounds: each chapter has its own air */
     --ch-void: 3 3 3;        /* Mullivaikkal, the disappeared — nothing left */
-    --ch-void-2: 12 11 10;
-    --ch-cold: 11 11 13;     /* the vice: the blue cold of statute law */
-    --ch-ink: 5 4 3;         /* Black July */
-    --ch-dawn-1: 25 16 7;    /* dawn in diaspora warms toward the end */
-    --ch-dawn-2: 36 23 8;
+    --ch-void-2: 12 12 12;
+    --ch-cold: 11 11 11;     /* the vice: the blue cold of statute law */
+    --ch-ink: 6 0 1;         /* Black July */
+    --ch-dawn-1: 20 18 4;    /* dawn in diaspora warms toward the end */
+    --ch-dawn-2: 28 24 5;
     --ch-sand: 216 189 138;  /* the strip of sand at Mullivaikkal */
     --ch-clay: 216 201 166;  /* the kanji bowl */
     --ch-clay-2: 36 26 18;
-    --map-claimed: 232 208 82;
-    --map-partial: 224 138 60;
+    --map-claimed: 255 212 0;
+    --map-partial: 239 23 36;
   }
 
-  /* ————— the archive, on aged paper ————— */
+  /* ————— light reading: white paper, black text ————— */
   [data-theme='paper'] {
-    --c-night: 232 220 195;      /* the leaf itself */
-    --c-night-2: 223 209 181;
-    --c-soot: 209 192 160;
-    --c-soot-2: 196 177 143;
-    --c-bone: 43 33 24;          /* iron-gall ink */
-    --c-bone-dim: 74 60 45;
-    --c-ash: 105 89 70;          /* small mono labels need the contrast */
-    --c-ash-dim: 129 112 89;
-    --c-ember: 163 55 32;
-    --c-blood: 122 29 20;
-    --c-flame: 176 106 24;
-    --c-flame-hot: 206 150 56;
-    --c-gold: 138 105 31;
+    --c-night: 255 255 255;
+    --c-night-2: 246 246 246;
+    --c-soot: 235 235 235;
+    --c-soot-2: 220 220 220;
+    --c-bone: 14 14 14;
+    --c-bone-dim: 48 48 48;
+    --c-ash: 82 82 82;
+    --c-ash-dim: 104 104 104;
+    --c-ember: 200 0 35;
+    --c-blood: 180 0 30;
+    --c-flame: 112 88 0;
+    --c-flame-hot: 160 126 0;
+    --c-flame-core: 222 1 39;
+    --c-gold: 112 88 0;
+    --c-shade: 90 90 90;
+    --c-foxing: 120 120 120;
 
-    --grain-opacity: 0.38;
+    --grain-opacity: 0.12;
     --grain-blend: multiply;
     --ink-veil: 1;
+    --vignette-strength: 0.22;
+    --press: 0.93;             /* on the sheet it darkens instead */
 
     /* the same chapters, read by daylight: shades of the same leaf */
-    --ch-void: 205 188 156;  /* the page darkens where the story does */
-    --ch-void-2: 214 199 169;
-    --ch-cold: 214 208 194;  /* a cooler, official stock */
-    --ch-ink: 210 194 164;
-    --ch-dawn-1: 238 225 197; /* dawn: the leaf lightens toward the end */
-    --ch-dawn-2: 245 234 210;
+    --ch-void: 230 230 230;  /* the page darkens where the story does */
+    --ch-void-2: 240 240 240;
+    --ch-cold: 235 235 235;  /* a cooler, official stock */
+    --ch-ink: 242 234 235;
+    --ch-dawn-1: 255 253 239; /* dawn: the leaf lightens toward the end */
+    --ch-dawn-2: 255 255 255;
     --ch-sand: 150 112 58;   /* sand drawn in ink, not lit by the sun */
     --ch-clay: 168 133 78;
     --ch-clay-2: 61 44 28;
-    --map-claimed: 186 152 30;
-    --map-partial: 178 96 28;
+    --map-claimed: 112 88 0;
+    --map-partial: 200 0 35;
   }
 
   html { scroll-behavior: smooth; }
+  section[id] { scroll-margin-top: 76px; }
 
   html, body {
     @apply bg-night text-bone font-body;
@@ -96,13 +126,35 @@
     transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, fill 0.5s ease, stroke 0.5s ease;
   }
 
-  ::selection { @apply bg-blood text-bone; }
-  [data-theme='paper'] ::selection { background: rgb(var(--c-flame) / 0.35); color: rgb(var(--c-bone)); }
+  /* the reader's own mark on the page: lamplight, not blood.
+     Red belongs to the massacre chapters and is never decoration. */
+  ::selection { background: rgb(var(--c-flame) / 0.3); color: rgb(var(--c-bone)); }
+
+  /* one focus ring for the whole vigil: a struck match, visible on both grounds */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-flame));
+    outline-offset: 3px;
+  }
+  /* the pointer never sees it; the keyboard always does */
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* Every control acknowledges being pressed. This is a filter and not a
+     transform on purpose: half the controls here are positioned with
+     translate, and a press rule that overwrote that would throw them across
+     the page. --press flips direction on paper, where brightening washes out. */
+  button:active,
+  [role='button']:active,
+  a:active {
+    filter: brightness(var(--press, 1.18));
+  }
+  button, [role='button'], a { transition: filter 0.12s var(--e-vigil); }
 
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { @apply bg-night; }
   ::-webkit-scrollbar-thumb { @apply bg-soot-2 rounded-full; }
   ::-webkit-scrollbar-thumb:hover { @apply bg-ash-dim; }
+  /* Firefox has no ::-webkit- pseudo-elements */
+  html { scrollbar-width: thin; scrollbar-color: rgb(var(--c-soot-2)) rgb(var(--c-night)); }
 
   /* film grain by night, paper fibre by day */
   body::after {
@@ -119,7 +171,7 @@
   /* aged sheet: laid-paper fibre, foxing at the corners, a shadow at the fold */
   [data-theme='paper'] body::after {
     background-image:
-      url("data:image/svg+xml;utf8,<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.016 0.34' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.33 0 0 0 0 0.2 0 0 0 0.34 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"),
+      url("data:image/svg+xml;utf8,<svg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.016 0.34' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.3 0 0 0 0 0.3 0 0 0 0.34 0'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"),
       url("data:image/svg+xml;utf8,<svg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.26 0 0 0 0 0.15 0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     background-size: 420px 420px, 220px 220px;
   }
@@ -133,18 +185,22 @@
     z-index: 89;
     mix-blend-mode: multiply;
     background:
-      radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(150, 116, 66, 0.20) 100%),
-      radial-gradient(90% 70% at 8% 92%, rgba(150, 116, 66, 0.16), transparent 60%),
-      radial-gradient(70% 60% at 96% 30%, rgba(138, 100, 52, 0.14), transparent 62%);
+      radial-gradient(120% 90% at 50% 0%, transparent 55%, rgb(var(--c-foxing) / 0.20) 100%),
+      radial-gradient(90% 70% at 8% 92%, rgb(var(--c-foxing) / 0.16), transparent 60%),
+      radial-gradient(70% 60% at 96% 30%, rgb(var(--c-foxing) / 0.14), transparent 62%);
   }
 }
 
 @layer components {
   /* ————— scroll-reveal (class toggled by useReveal) ————— */
+  /* inside a heavy chapter, --ordeal makes the arrival itself slower: not a
+     lock on the scroll, just a text that comes up reluctantly rather than
+     eagerly. Elsewhere --ordeal is 0 and this is exactly the 1.1s it always was. */
   .reveal {
     opacity: 0;
     transform: translateY(28px);
-    transition: opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1), transform 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity calc(1.1s + var(--ordeal, 0) * 0.9s) var(--e-vigil),
+      transform calc(1.1s + var(--ordeal, 0) * 0.9s) var(--e-vigil);
   }
   .reveal.in { opacity: 1; transform: none; }
   .reveal.d1 { transition-delay: 0.15s; }
@@ -160,9 +216,9 @@
     transform: translateY(0.55em) rotate(1.4deg) scale(1.04);
     filter: blur(10px);
     transition:
-      opacity 1.05s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 1.05s cubic-bezier(0.22, 1, 0.36, 1),
-      filter 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 1.05s var(--e-vigil),
+      transform 1.05s var(--e-vigil),
+      filter 1.05s var(--e-vigil);
     transition-delay: calc(var(--wi) * 0.14s);
   }
   .stagger.in .w { opacity: 1; transform: none; filter: blur(0); }
@@ -173,19 +229,20 @@
     opacity: 0;
     transform: translateY(0.5em);
     filter: blur(8px);
-    animation: letter-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: letter-in 0.9s var(--e-vigil) both;
     animation-delay: calc(0.9s + var(--li) * 0.055s);
   }
 
   /* kicker: italic line that settles its letterspacing */
-  .kicker { letter-spacing: 0.14em; transition: letter-spacing 1.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 1.1s, transform 1.1s; }
+  .kicker { letter-spacing: 0.14em; transition: letter-spacing 1.4s var(--e-vigil), opacity 1.1s, transform 1.1s; }
   .kicker.in { letter-spacing: 0.02em; }
 
   /* archival seal: stamped onto the act once revealed */
   .seal {
     opacity: 0;
     transform: scale(2) rotate(-18deg);
-    transition: opacity 0.4s ease 0.5s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+    /* a stamp lands, it does not spring back: decelerate hard, no overshoot */
+    transition: opacity 0.4s var(--e-vigil) 0.5s, transform 0.55s var(--e-expo) 0.5s;
   }
   .reveal.in .seal { opacity: 0.85; transform: scale(1) rotate(8deg); }
 
@@ -197,7 +254,7 @@
     height: calc(var(--fs, 28px) * 1.6);
     filter: blur(0.4px);
     transform: skewX(calc(var(--draught, 0) * 9deg));
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.5s var(--e-vigil);
   }
   .flame .f-outer {
     position: absolute; inset: 0;
@@ -215,13 +272,13 @@
   }
   .flame .f-core {
     position: absolute; left: 38%; right: 38%; top: 48%; bottom: 12%;
-    background: radial-gradient(circle at 50% 70%, #fff8e6 0%, rgb(var(--c-flame-hot)) 60%, transparent 95%);
+    background: radial-gradient(circle at 50% 70%, rgb(var(--c-flame-core)) 0%, rgb(var(--c-flame-hot)) 60%, transparent 95%);
     border-radius: 50%;
     animation: flicker-core 1.3s ease-in-out infinite;
   }
   /* on paper the core is drawn, not emitted: ink instead of light */
   [data-theme='paper'] .flame .f-core {
-    background: radial-gradient(circle at 50% 70%, rgb(var(--c-flame-hot)) 0%, rgb(var(--c-flame) / 0.85) 60%, transparent 95%);
+    background: radial-gradient(circle at 50% 70%, rgb(var(--c-flame-core)) 0%, rgb(var(--c-flame) / 0.85) 60%, transparent 95%);
   }
   .flame .f-glow {
     position: absolute; inset: -120%;
@@ -240,6 +297,60 @@
     animation: none;
   }
 
+  /* ————— the singed print (chapter III) ————— */
+  /* char at the corners of the archive photo, torn along a noisy edge by
+     the #ragged-edge filter the chapter defines; over it, the thin line
+     where the char is still glowing, breathing on its own. Two elements,
+     not one: the rim only animates opacity, so the displacement map is
+     rasterised once and the breathing costs the compositor alone. */
+  .scorch,
+  .scorch-rim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    filter: url(#ragged-edge);
+  }
+  .scorch {
+    background:
+      radial-gradient(58% 46% at 100% 100%, rgb(var(--c-shade)) 0%, rgb(var(--c-shade) / 0.9) 28%, rgb(var(--c-shade) / 0.5) 44%, transparent 60%),
+      radial-gradient(36% 30% at 0% 100%, rgb(var(--c-shade) / 0.92) 0%, rgb(var(--c-shade) / 0.4) 40%, transparent 62%),
+      radial-gradient(26% 20% at 100% 0%, rgb(var(--c-shade) / 0.75) 0%, transparent 60%);
+  }
+  .scorch-rim {
+    background:
+      radial-gradient(58% 46% at 100% 100%, transparent 55%, rgb(var(--c-ember) / 0.7) 59%, rgb(var(--c-flame) / 0.35) 62%, transparent 67%),
+      radial-gradient(36% 30% at 0% 100%, transparent 57%, rgb(var(--c-ember) / 0.6) 61%, transparent 68%),
+      radial-gradient(26% 20% at 100% 0%, transparent 55%, rgb(var(--c-ember) / 0.45) 60%, transparent 67%);
+    mix-blend-mode: screen;
+    animation: scorch-breathe 3.6s ease-in-out infinite;
+    will-change: opacity;
+  }
+  /* by daylight the char is a brown stain and the glow has long gone cold */
+  [data-theme='paper'] .scorch { opacity: 0.8; mix-blend-mode: multiply; }
+  [data-theme='paper'] .scorch-rim { mix-blend-mode: multiply; opacity: 0.35; animation: none; }
+
+  /* ————— the blood running down the veil (chapter V) ————— */
+  /* a thread gathers at the top edge, lets go, runs, and is gone; each one
+     on its own clock (--vd), starting when it likes (--vs), forever */
+  .veil-run {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    transform-origin: top;
+    transform: scaleY(0);
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--c-blood) / 0.85) 0%,
+      rgb(var(--c-blood) / 0.55) 60%,
+      rgb(var(--c-blood) / 0.2) 88%,
+      transparent 100%
+    );
+    border-radius: 0 0 40% 40% / 0 0 6px 6px;
+    animation: veil-run var(--vd, 20s) var(--e-run) var(--vs, 0s) infinite;
+    will-change: transform, opacity;
+  }
+  [data-theme='paper'] .veil-run { opacity: 0.6; }
+
   /* ————— the Tamil word standing behind each chapter ————— */
   .ghost-word {
     -webkit-text-stroke: 1px rgb(var(--c-bone) / 0.08);
@@ -253,16 +364,45 @@
     .ghost-word { -webkit-text-stroke-width: 1.4px; }
   }
 
+  /* ————— the atlas draws itself, the way a map is made ————— */
+  /* the coastline is traced first, in one continuous stroke */
+  /* --len is measured from the path itself once mounted (getTotalLength),
+     because the real coastline is far longer than the sketch it replaced and
+     a hard-coded dash length would leave the stroke half-drawn. */
+  .coast {
+    stroke-dasharray: var(--len, 3000);
+    stroke-dashoffset: var(--len, 3000);
+    transition: stroke-dashoffset 4.6s var(--e-draw) 0.3s;
+  }
+  .reveal.in .coast { stroke-dashoffset: 0; }
+  /* then each zone is washed in, one after another */
+  .zone-ink {
+    opacity: 0;
+    transition: opacity 1.5s ease-out;
+    transition-delay: var(--zd, 1.5s);
+  }
+  .reveal.in .zone-ink { opacity: 1; }
+
   /* ————— homeland border: marching golden dashes ————— */
   .ants { animation: ants 22s linear infinite; }
 
   /* ————— the vignette: darkness by night, a worn rim by day ————— */
+  /* --ordeal pulls the rim in and darkens it: the room does not get bigger
+     at the worst of a chapter, it gets smaller. */
   .vignette {
-    background: radial-gradient(130% 130% at 50% 45%, transparent 58%, rgba(0, 0, 0, 0.42) 100%);
+    background: radial-gradient(
+      calc(130% - var(--ordeal, 0) * 18%) calc(130% - var(--ordeal, 0) * 18%) at 50% 45%,
+      transparent calc(58% - var(--ordeal, 0) * 10%),
+      rgb(var(--c-shade) / calc(var(--vignette-strength) + var(--ordeal, 0) * 0.22)) 100%
+    );
     animation: vignette-breathe 13s ease-in-out infinite;
   }
   [data-theme='paper'] .vignette {
-    background: radial-gradient(128% 128% at 50% 45%, transparent 62%, rgba(96, 72, 38, 0.22) 100%);
+    background: radial-gradient(
+      calc(128% - var(--ordeal, 0) * 16%) calc(128% - var(--ordeal, 0) * 16%) at 50% 45%,
+      transparent calc(62% - var(--ordeal, 0) * 9%),
+      rgb(var(--c-shade) / calc(var(--vignette-strength) + var(--ordeal, 0) * 0.16)) 100%
+    );
   }
 
   /* ————— the lamp the reader carries ————— */
@@ -284,8 +424,8 @@
   [data-theme='paper'] .lamp {
     background: radial-gradient(
       calc(32vmax * var(--lr)) calc(28vmax * var(--lr)) at var(--lx) var(--ly),
-      rgba(148, 112, 58, 0.09) 0%,
-      rgba(148, 112, 58, 0.045) 40%,
+      rgb(var(--c-foxing) / 0.09) 0%,
+      rgb(var(--c-foxing) / 0.045) 40%,
       transparent 74%
     );
     mix-blend-mode: multiply;
@@ -299,7 +439,7 @@
     will-change: transform, opacity;
   }
   .reveal.in .bullet {
-    animation: impact 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+    animation: impact 0.4s var(--e-expo) both;
     animation-delay: var(--bd, 0.8s);
   }
   .bullet::after {
@@ -315,49 +455,106 @@
     animation: impact-flash 0.5s ease-out both;
     animation-delay: var(--bd, 0.8s);
   }
+  /* the wave passing through the wall: a ring thrown out and gone */
+  .bullet-shock {
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    border: 1.5px solid rgb(var(--c-bone) / 0.45);
+    opacity: 0;
+  }
+  .reveal.in .bullet-shock {
+    animation: shock-ring 0.42s ease-out both;
+    animation-delay: var(--bd, 0.8s);
+  }
+  /* the wisp the impact leaves, drifting off on its own */
+  .bullet-smoke {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 46%;
+    height: 46%;
+    transform: translate(-50%, -50%) scale(0.35);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(var(--c-ash) / 0.55) 0%, rgb(var(--c-soot) / 0.35) 45%, transparent 75%);
+    filter: blur(2.5px);
+    opacity: 0;
+  }
+  .reveal.in .bullet-smoke {
+    animation: smoke-wisp 1.7s ease-out both;
+    animation-delay: calc(var(--bd, 0.8s) + 0.05s);
+  }
+  /* chips knocked loose: they pop into view already settled where they fell */
+  .bullet-debris circle {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .reveal.in .bullet-debris circle {
+    animation: debris-fly 0.5s var(--e-expo) both;
+    animation-delay: var(--bd, 0.8s);
+  }
+  /* the burst: sparks drawn outward, not faded in, so the shot has a direction */
+  .bullet-sparks line {
+    opacity: 0;
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+  }
+  .reveal.in .bullet-sparks line {
+    animation: spark-shot 0.36s ease-out both;
+    animation-delay: var(--bd, 0.8s);
+  }
 
-  /* the year takes the hits: one restrained jolt as the wall is struck */
+  /* the year takes the hits: one jolt per impact, then it settles, and the
+     wound glows faintly once every shot has landed */
   .reveal.in .shot-target {
     animation:
-      shake-once 0.55s ease-out 1s 1 both,
-      blood-pulse 5s ease-in-out 1.6s infinite;
+      shake-riddled 2.4s var(--e-expo) 0.95s 1 both;
   }
 
-  /* blood running down from the numerals: it gathers, lets go, then dries */
-  .drip {
-    transform-origin: top;
-    transform: scaleY(0);
-    background: linear-gradient(
-      to bottom,
-      rgb(var(--c-blood) / 0.92) 0%,
-      rgb(var(--c-blood) / 0.62) 55%,
-      rgb(var(--c-blood) / 0.3) 84%,
-      transparent 100%
-    );
-    border-radius: 0 0 40% 40% / 0 0 8px 8px;
+  /* the fine spray a shot throws: instant, brief, and it leaves its mark */
+  .spatter {
+    width: 2.6px;
+    height: 2.6px;
+    border-radius: 50%;
+    background: rgb(var(--c-blood) / 0.85);
+    opacity: 0;
   }
-  .reveal.in .drip {
-    animation:
-      drip var(--dt, 7s) cubic-bezier(0.45, 0, 0.2, 1) both,
-      drip-dry calc(var(--dt, 7s) * 1.7) ease-out both;
-    animation-delay: var(--bd, 1.4s);
+  .reveal.in .spatter {
+    animation: spatter-fly 0.55s var(--e-expo) both;
+    animation-delay: var(--bd, 1s);
   }
-  .drip::after {
-    /* the bead at the tip: surface tension holds it, then it falls */
-    content: "";
-    position: absolute;
-    bottom: -3px;
-    left: 50%;
-    width: 5px;
-    height: 7px;
-    transform: translateX(-50%);
-    transform-origin: 50% 20%;
-    border-radius: 50% 50% 60% 60% / 40% 40% 60% 60%;
-    background: radial-gradient(circle at 38% 30%, rgb(var(--c-ember) / 0.7), rgb(var(--c-blood)) 62%);
+
+  /* blood running down the wall: drawn downward along its own course
+     rather than stretched, so the wander stays a wander. See BloodDrip. */
+  .drip-path {
+    stroke-dasharray: var(--len, 200);
+    stroke-dashoffset: var(--len, 200);
   }
-  .reveal.in .drip::after {
-    animation: bead var(--dt, 7s) cubic-bezier(0.45, 0, 0.2, 1) both;
-    animation-delay: var(--bd, 1.4s);
+  .reveal.in .drip-path {
+    animation: drip-flow var(--dt, 8s) var(--e-run) both;
+    animation-delay: var(--bd, 1.2s);
+  }
+  /* the bead where it runs out: surface tension holds it */
+  .drip-bead {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .reveal.in .drip-bead {
+    animation: bead-form calc(var(--dt, 8s) * 0.32) var(--e-run) both;
+    animation-delay: calc(var(--bd, 1.2s) + var(--dt, 8s) * 0.98);
+  }
+  /* and a little after, one drop lets go and falls on past it */
+  .drip-fall-drop {
+    fill: rgb(var(--c-blood) / 0.85);
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .reveal.in .drip-fall-drop {
+    animation: drop-release calc(var(--dt, 8s) * 0.3) var(--e-run) both;
+    animation-delay: calc(var(--bd, 1.2s) + var(--dt, 8s) * 1.02);
   }
 
   /* ————— cultural & emotional visuals ————— */
@@ -366,32 +563,34 @@
   .kolam path {
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
-    transition: stroke-dashoffset 3.2s cubic-bezier(0.4, 0, 0.3, 1);
+    transition: stroke-dashoffset 3.2s var(--e-draw);
     transition-delay: var(--kd, 0s);
   }
   .reveal.in .kolam path { stroke-dashoffset: 0; }
   .kolam circle { opacity: 0; transition: opacity 1.2s ease; transition-delay: calc(var(--kd, 0s) + 0.4s); }
   .reveal.in .kolam circle { opacity: 1; }
 
-  /* burning pages rising from the library fire */
-  .page-ash {
-    position: absolute;
-    width: 26px;
-    height: 34px;
-    background:
-      linear-gradient(155deg, rgb(var(--c-bone) / 0.28) 0%, rgb(var(--c-bone) / 0.14) 55%, rgb(var(--c-ember) / 0.5) 78%, rgb(var(--c-night) / 0.9) 96%);
-    clip-path: polygon(6% 0, 94% 4%, 100% 62%, 84% 100%, 12% 94%, 0 38%);
-    animation: float-page var(--pt, 11s) linear infinite;
-    animation-delay: var(--pd, 0s);
-    opacity: 0;
-    filter: blur(0.3px);
+  /* ————— the symbols (chapter IX) ————— */
+
+  /* the flag: cloth caught by air, not a picture snapping into place.
+     It unfurls from the pole edge, then keeps the faintest breath of sway
+     — the same slow register as the vigil's own flame, never a flap. */
+  .unfurl {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 1.5s var(--e-vigil);
+  }
+  .reveal.in .unfurl {
+    clip-path: inset(0 0% 0 0);
+    animation: flag-sway 9s ease-in-out 1.5s infinite;
   }
 
-  /* burning skyline windows */
-  .window-fire {
-    animation: window-flicker 2.8s ease-in-out infinite;
-    animation-delay: var(--wd, 0s);
+  /* the leopard: found rather than shown — the frame opens like an eye
+     adjusting to the underbrush, centred slightly high, where a gaze lands */
+  .iris {
+    clip-path: circle(0% at 50% 38%);
+    transition: clip-path 1.3s var(--e-vigil);
   }
+  .reveal.in .iris { clip-path: circle(150% at 50% 38%); }
 
   /* a human silhouette in the crowd on the strip of sand */
   .figure {
@@ -415,7 +614,7 @@
 
   /* a name written in ink, bleeding into skin */
   .ink-name {
-    animation: ink-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: ink-in 1.6s var(--e-vigil) both;
     animation-delay: var(--id, 0s);
   }
 
@@ -432,7 +631,7 @@
     transform: translateY(8px) scale(0.6);
   }
   .reveal.in .light-up {
-    animation: light-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: light-up 0.9s var(--e-vigil) both;
     animation-delay: var(--ld, 0s);
   }
 
@@ -486,32 +685,66 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
   0% { opacity: 0.95; transform: scale(0.4); }
   100% { opacity: 0; transform: scale(1.6); }
 }
-@keyframes shake-once {
-  0%, 100% { transform: translate(0, 0); }
-  15% { transform: translate(3px, -2px) rotate(0.25deg); }
-  30% { transform: translate(-3px, 2px) rotate(-0.2deg); }
-  45% { transform: translate(2px, 1px); }
-  60% { transform: translate(-2px, -1px); }
-  80% { transform: translate(1px, 0); }
+@keyframes shake-riddled {
+  /* four jolts, one per impact (delays 1.0/1.3/1.6/1.9s against a 0.95s
+     start), each smaller than the last as the wall gives up its energy */
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  2%   { transform: translate(3.5px, -2.5px) rotate(0.35deg); }
+  6%   { transform: translate(-1.5px, 1px) rotate(-0.1deg); }
+  14.5% { transform: translate(-3px, 2px) rotate(-0.3deg); }
+  18%  { transform: translate(1px, -1px); }
+  27%  { transform: translate(2.5px, -1.5px) rotate(0.22deg); }
+  31%  { transform: translate(-1px, 0.5px); }
+  39.5% { transform: translate(-2px, 1.2px) rotate(-0.18deg); }
+  44%  { transform: translate(0.8px, -0.5px); }
+  55%  { transform: translate(0.3px, -0.2px); }
+  70%  { transform: translate(0, 0); }
 }
-@keyframes drip {
-  0%   { transform: scaleY(0); }
-  12%  { transform: scaleY(0.05); }   /* it gathers at the edge */
-  22%  { transform: scaleY(0.08); }   /* and holds, heavier */
-  50%  { transform: scaleY(0.58); }   /* then lets go and runs */
-  74%  { transform: scaleY(0.87); }   /* thickening, slowing */
-  100% { transform: scaleY(1); }
+@keyframes shock-ring {
+  0%   { opacity: 0.75; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(2.1); }
 }
-@keyframes bead {
-  0%   { transform: translateX(-50%) scale(0.15); }
-  16%  { transform: translateX(-50%) scale(1.3, 1.15); }  /* swollen */
-  24%  { transform: translateX(-50%) scale(0.7, 1.35); }  /* stretched, released */
-  52%  { transform: translateX(-50%) scale(0.85); }
-  100% { transform: translateX(-50%) scale(1.05); }
+@keyframes smoke-wisp {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  12%  { opacity: 0.55; transform: translate(-50%, -50%) scale(0.7); }
+  100% { opacity: 0; transform: translate(-58%, -145%) scale(1.7); }
 }
-@keyframes drip-dry {
-  0%, 40% { filter: saturate(1.1) brightness(1); }
-  100%    { filter: saturate(0.68) brightness(0.7); }
+@keyframes debris-fly {
+  0%   { opacity: 0; transform: scale(0); }
+  55%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+@keyframes spark-shot {
+  0%   { opacity: 1; stroke-dashoffset: 20; }
+  22%  { opacity: 1; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}
+@keyframes spatter-fly {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  30%  { opacity: 1; transform: translate(var(--sx, 8px), var(--sy, 10px)) scale(1); }
+  100% { opacity: 0.65; transform: translate(calc(var(--sx, 8px) * 1.3), calc(var(--sy, 10px) * 1.5 + 3px)) scale(0.8); }
+}
+@keyframes drip-flow {
+  /* it wells at the wound, holds heavier, then lets go and runs — the same
+     shape the old scaleY drip had, now tracing a real course instead of
+     stretching a straight one */
+  0%   { stroke-dashoffset: var(--len, 200); }
+  10%  { stroke-dashoffset: calc(var(--len, 200) * 0.94); }
+  22%  { stroke-dashoffset: calc(var(--len, 200) * 0.88); }
+  55%  { stroke-dashoffset: calc(var(--len, 200) * 0.32); }
+  80%  { stroke-dashoffset: calc(var(--len, 200) * 0.06); }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes bead-form {
+  0%   { opacity: 0; transform: scale(0.2); }
+  35%  { opacity: 1; transform: scale(1.25, 1.05); }
+  62%  { opacity: 1; transform: scale(0.72, 1.3); }
+  100% { opacity: 1; transform: scale(1, 1.05); }
+}
+@keyframes drop-release {
+  0%   { opacity: 0; transform: translateY(0) scale(0.4, 0.6); }
+  15%  { opacity: 1; transform: translateY(2px) scale(1, 1.2); }
+  100% { opacity: 0; transform: translateY(44px) scale(0.7, 1.6); }
 }
 @keyframes shell-fall {
   0% { transform: translateY(-20vh) rotate(9deg); opacity: 0; }
@@ -519,23 +752,22 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
   85% { opacity: 1; }
   100% { transform: translateY(115vh) rotate(9deg); opacity: 0; }
 }
-@keyframes float-page {
-  0% { transform: translateY(20vh) rotate(0deg); opacity: 0; }
-  12% { opacity: 0.9; }
-  55% { transform: translateY(-38vh) rotate(160deg) translateX(30px); opacity: 0.7; }
-  100% { transform: translateY(-95vh) rotate(340deg) translateX(-16px); opacity: 0; }
-}
-@keyframes window-flicker {
-  0%, 100% { opacity: 0.25; }
-  18% { opacity: 0.95; }
-  34% { opacity: 0.45; }
-  52% { opacity: 1; }
-  71% { opacity: 0.35; }
-  86% { opacity: 0.8; }
-}
 @keyframes light-up {
   from { opacity: 0; transform: translateY(8px) scale(0.6); }
   to { opacity: 1; transform: none; }
+}
+@keyframes veil-run {
+  0%   { transform: scaleY(0); opacity: 0; }
+  6%   { transform: scaleY(0.04); opacity: 1; }   /* it gathers at the edge */
+  14%  { transform: scaleY(0.07); }               /* and holds, heavier */
+  48%  { transform: scaleY(0.72); }               /* then lets go and runs */
+  72%  { transform: scaleY(1); opacity: 0.9; }
+  88%  { transform: scaleY(1); opacity: 0; }      /* and dries into the wall */
+  100% { transform: scaleY(1); opacity: 0; }
+}
+@keyframes scorch-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 @keyframes lamp-breathe {
   0%, 100% { opacity: 0.55; }
@@ -554,14 +786,86 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
   25% { opacity: 0.75; }
   100% { stroke-dashoffset: -42; opacity: 0; }
 }
+@keyframes flag-sway {
+  0%, 100% { transform: skewY(0deg) scaleY(1); }
+  50% { transform: skewY(0.35deg) scaleY(1.004); }
+}
 
 /* ————— reduced motion ————— */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* belt and suspenders: <Ordeal> and useOrdeal already refuse to run under
+     reduced motion, so this is never actually written, but nothing here
+     should depend on JS getting there first. */
+  :root { --ordeal: 0 !important; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.2s !important;
+    /* delays must go too. An `animation-fill-mode: both` holds the from-state
+       through its delay, so a staggered title stays invisible for seconds
+       even once its duration is nulled. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
   .reveal, .stagger .w, .lt { opacity: 1; transform: none; filter: none; }
+  /* things that only exist as motion: hold them at their resting state */
+  .coast { stroke-dashoffset: 0; }
+  .zone-ink, .bullet, .seal, .light-up { opacity: 1; transform: none; }
+  /* the blood and the crater still mark the wall; only their motion goes.
+     Everything with a fill-mode of both already settles on its own at its
+     drawn/settled end state once its duration collapses to 0.01ms — these
+     four exist only as motion, so they get no end state worth keeping. */
+  .bullet-shock, .bullet-smoke, .bullet-sparks line, .drip-fall-drop { display: none; }
+  /* this carries no meaning beyond its movement */
+  .shell { display: none; }
+}
+
+/* Editorial rhythm: a landscape, documents, absence, then a shared vigil. */
+.reveal:not(.reveal-ready) { opacity: 1; transform: none; }
+.mv-scenery { margin-bottom: -100svh; }
+.mv-passage { border-bottom: 1px solid rgb(var(--c-bone) / .08); }
+.mv-passage:last-child { border-bottom: 0; }
+.archive-act { background-image: linear-gradient(110deg, rgb(var(--c-bone) / .025), transparent 70%); }
+.resolution-sheet {
+  position: relative;
+  border: 1px solid rgb(var(--c-bone) / .2);
+  border-top: 3px solid rgb(var(--c-gold) / .6);
+  background: linear-gradient(135deg, rgb(var(--c-gold) / .07), transparent 70%);
+  padding: clamp(26px, 4vw, 64px);
+}
+.empty-frame { background: radial-gradient(ellipse at 50% 100%, rgb(var(--c-gold) / .025), transparent 80%); }
+.source-notes summary { cursor: pointer; min-height: 44px; padding-block: 12px; }
+.source-notes[open] summary { color: rgb(var(--c-flame)); }
+html[lang="ta"] .lang-title { overflow-wrap: anywhere; }
+html[data-reading="quiet"] { scroll-behavior: auto; --ordeal: 0 !important; }
+html[data-reading="quiet"] *, html[data-reading="quiet"] *::before, html[data-reading="quiet"] *::after {
+  animation-duration: .01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  transition-delay: 0s !important;
+}
+html[data-reading="quiet"] .reveal,
+html[data-reading="quiet"] .stagger .w,
+html[data-reading="quiet"] .lt { opacity: 1; transform: none; filter: none; }
+html[data-reading="quiet"] .coast { stroke-dashoffset: 0; }
+html[data-reading="quiet"] .shell { display: none; }
+.mv-sequence[data-quiet="true"] .mv-scenery { display: none; }
+.mv-sequence[data-quiet="true"] .mv-passage { min-height: 0; padding-block: 64px; margin-left: 0; max-width: 780px; }
+@media (max-width: 1023px) {
+  .mv-passages { background: linear-gradient(90deg, rgb(var(--ch-void) / .82), rgb(var(--ch-void) / .45)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-scenery { display: none; }
+  .mv-passage { min-height: 0 !important; padding-block: 64px; margin-left: 0 !important; }
+}
+@media print {
+  nav, header, canvas, .mv-scenery, [aria-hidden="true"], button { display: none !important; }
+  html, body, main, section, footer, article { background: white !important; color: #222 !important; }
+  * { color: #222 !important; text-shadow: none !important; box-shadow: none !important; animation: none !important; }
+  section, [data-chapter-open], .mv-passage { min-height: 0 !important; padding-block: 24px !important; }
+  .reveal, .stagger .w, .lt { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .mv-passage { margin-left: 0 !important; break-inside: avoid; }
+  .sticky, .fixed { position: static !important; }
 }

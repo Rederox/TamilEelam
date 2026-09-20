@@ -2,90 +2,55 @@
 
 import { useLang } from '@/context/LanguageContext'
 import { prologue } from '@/data/narrative'
-import Flame from './Flame'
-import GhostWord from './GhostWord'
-import GlEmbers from './gl/GlEmbers'
+import EmptyHome from './EmptyHome'
+import styles from './Prologue.module.css'
 
-/** Split into grapheme clusters (safe for Tamil combining signs). */
-function graphemes(text: string): string[] {
-  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
-    return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), (s) => s.segment)
-  }
-  return Array.from(text)
-}
+const STAGES = [
+  { year: '1981', href: '#feu' },
+  { year: '1983', href: '#juillet' },
+  { year: '2009', href: '#mullivaikkal' },
+]
 
 export default function Prologue() {
   const { lang } = useLang()
   const p = prologue[lang]
-
-  // letter cascade for latin scripts, word cascade for Tamil (shaping safety)
-  const units =
-    lang === 'ta'
-      ? `${p.line1} ${p.line2}`.split(' ').map((w, i, arr) => ({ t: w, sp: i < arr.length - 1, accent: i >= p.line1.split(' ').length }))
-      : [
-          ...graphemes(p.line1).map((g) => ({ t: g, sp: false, accent: false })),
-          { t: ' ', sp: false, accent: false },
-          ...graphemes(p.line2).map((g) => ({ t: g, sp: false, accent: true })),
-        ]
-
   return (
-    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-6 pb-20 pt-24 text-center" id="prologue">
-      <GlEmbers density={80} intensity={0.7} fallbackDensity={12} />
+    <section id="prologue" className={`${styles.opening} min-h-[100dvh] px-6 pb-10 pt-28 sm:px-[9vw] lg:flex lg:flex-col lg:justify-center lg:pt-32`}>
+      <div className="mx-auto w-full max-w-[1280px]">
+        <div className={styles.panorama}>
+          <div className={`${styles.openingCopy} ${styles.arrival}`}>
+            <p className="mb-7 flex items-center gap-3 font-mono text-[9px] uppercase leading-relaxed tracking-[0.2em] text-ash sm:text-[10px]">
+              <span aria-hidden="true" className="h-px w-7 shrink-0 bg-blood" />{p.whisper}
+            </p>
+            <div className={styles.memoryTitle}>
+              <span aria-hidden="true" className={styles.memoryThread} />
+              <h1 className={`lang-title font-display font-light ${styles.title}`}>
+                <span className={styles.titlePrelude}>{p.line1}</span>
+                <em className={styles.absence}>{p.line2}</em>
+              </h1>
+            </div>
+          </div>
+          <div className={`${styles.panoramaImage} ${styles.arrival}`} style={{ animationDelay: '180ms' }}>
+            <EmptyHome caption={p.scene} />
+          </div>
+        </div>
+            <div className={styles.readingNote}>
+              <p className="max-w-[42ch] text-[15px] leading-[1.85] text-bone-dim sm:text-[16px]">{p.sub}</p>
+              <a href="#terre" className={`group ${styles.enter}`}>
+                <span aria-hidden="true" className={styles.entryArrow}>↓</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{p.enter}</span>
+              </a>
+              <a href="#sources" className="inline-flex min-h-11 items-center text-[13px] italic text-ash underline decoration-bone/20 underline-offset-4 transition-colors hover:text-bone">{p.sources}</a>
+            </div>
 
-      {/* the lamp's breathing light over the room */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 animate-[lamp-breathe_4.5s_ease-in-out_infinite] bg-[radial-gradient(60%_45%_at_50%_38%,rgb(var(--c-flame)/0.09),transparent_70%)] motion-reduce:animate-none"
-      />
-
-      {/* ghosted Tamil watermark */}
-      <GhostWord
-        word="தமிழீழம்"
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-ghost-drift motion-reduce:animate-none"
-        fill={0.88}
-        maxPx={340}
-      />
-
-      <div className="relative z-[2] mb-11 animate-rise-in" style={{ animationDuration: '2.2s' }}>
-        <Flame size={34} />
-      </div>
-
-      <p className="relative z-[2] animate-rise-in font-body text-[clamp(15px,2vw,19px)] italic tracking-[0.04em] text-ash" style={{ animationDelay: '0.5s' }}>
-        {p.whisper}
-      </p>
-
-      <h1 className="lang-title relative z-[2] mt-6 font-display text-[clamp(52px,10.5vw,150px)] font-[340] leading-[0.98] tracking-[-0.02em]">
-        {units.map((u, i) =>
-          u.t === ' ' ? (
-            ' '
-          ) : (
-            <span key={i}>
-              <span
-                className={u.accent ? 'lt italic text-ember' : 'lt'}
-                style={{ ['--li' as string]: i }}
-              >
-                {u.t}
-              </span>
-              {u.sp && ' '}
-            </span>
-          )
-        )}
-      </h1>
-
-      <div className="relative z-[2] mt-5 animate-rise-in font-tamil text-[clamp(22px,3.4vw,40px)] font-semibold text-flame" style={{ animationDelay: '2s' }}>
-        தமிழீழம் — Tamil Eelam
-      </div>
-
-      <p className="relative z-[2] mt-7 max-w-[560px] animate-rise-in text-[clamp(15px,1.8vw,18px)] leading-[1.7] text-bone-dim" style={{ animationDelay: '2.4s' }}>
-        {p.sub}
-      </p>
-
-      <div
-        className="absolute bottom-16 left-1/2 z-[2] flex -translate-x-1/2 animate-rise-in flex-col items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-ash lg:bottom-9"
-        style={{ animationDelay: '3s' }}
-      >
-        {p.enter}
-        <span className="block h-11 w-px animate-cue-drop bg-gradient-to-b from-flame to-transparent motion-reduce:animate-none" />
+        <nav aria-label={p.enter} className="mt-10 grid grid-cols-1 border-t border-bone/15 sm:grid-cols-3 lg:mt-12">
+          {STAGES.map((stage, i) => (
+            <a key={stage.year} href={stage.href} className="group flex min-h-20 items-center justify-between gap-4 border-b border-bone/10 py-5 sm:border-b-0 sm:pr-6 sm:pl-6 sm:first:pl-0 sm:last:pr-0">
+              <span><span className="block font-mono text-[10px] tracking-[0.16em] text-gold">{stage.year}</span><span className="mt-2 block font-display text-[20px] text-bone-dim transition-colors group-hover:text-bone">{p.stages[i]}</span></span>
+              <span aria-hidden="true" className="text-ash transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none">↗</span>
+            </a>
+          ))}
+        </nav>
       </div>
     </section>
   )

@@ -11,4 +11,11 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = (phase) => ({
+  ...nextConfig,
+  // Concurrent previews must not overwrite one another's JS chunks/manifests.
+  // Next sets PORT to the actual listening port before loading this config.
+  distDir: phase === 'phase-development-server'
+    ? `.next-dev-${process.env.PORT || '3000'}`
+    : '.next',
+})

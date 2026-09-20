@@ -54,7 +54,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // the browser chrome follows the page
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', next === 'paper' ? '#e8dcc3' : '#070605')
+      ?.setAttribute('content', next === 'paper' ? '#ffffff' : '#000000')
     try {
       localStorage.setItem(STORAGE_KEY, next)
     } catch {

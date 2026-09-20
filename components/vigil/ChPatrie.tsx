@@ -1,11 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLang } from '@/context/LanguageContext'
+import { COASTLINE } from '@/data/coastline'
+import { districts } from '@/data/districts'
+import styles from './PatrieMap.module.css'
 import { locations, type LocationKey } from '@/data/locations'
+import { experience } from '@/data/experience'
 import { vigil } from '@/data/narrative'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useReveal } from '@/hooks/useReveal'
+import Air from './Air'
 import ChapterOpen from './ChapterOpen'
+import ChapterEnd from './ChapterEnd'
 
 // ————— Stylised cartography (equirectangular projection) —————
 const project = (lon: number, lat: number): [number, number] => [
@@ -13,87 +20,20 @@ const project = (lon: number, lat: number): [number, number] => [
   (10.05 - lat) * 165,
 ]
 
-// Simplified island coastline, clockwise from Point Pedro
-const COAST: [number, number][] = [
-  [80.23, 9.83], [80.45, 9.60], [80.72, 9.42], [80.82, 9.27], [80.95, 8.95],
-  [81.20, 8.60], [81.24, 8.44], [81.36, 8.28], [81.55, 7.90], [81.70, 7.70],
-  [81.85, 7.40], [81.88, 7.00], [81.85, 6.55], [81.62, 6.28], [81.25, 6.10],
-  [80.90, 6.03], [80.58, 5.93], [80.24, 6.02], [79.98, 6.35], [79.86, 6.80],
-  [79.83, 7.20], [79.80, 7.60], [79.72, 7.98], [79.80, 8.26], [79.73, 8.62],
-  [79.86, 8.88], [79.92, 9.00], [79.70, 9.06], [79.68, 9.14], [80.06, 9.28],
-  [79.87, 9.60], [80.00, 9.68], [80.10, 9.76],
-]
+/** Natural Earth shoreline; this is a locator, not a political or military map. */
+const ISLAND_PATH = COASTLINE
 
-// ————— Control zones at the 2002 ceasefire —————
-// Polygons overshoot into the sea on their coastal sides; the island
-// clip-path trims them back to the shoreline.
-
-// LTTE-controlled: the Vanni, from the Mannar coast to the Mullaitivu coast
-const VANNI: [number, number][] = [
-  [79.55, 9.58], [80.08, 9.50], [80.42, 9.56], [80.60, 9.50], [80.80, 9.42],
-  [81.00, 9.30], [80.95, 9.00], [80.72, 8.92], [80.55, 8.70], [80.20, 8.60],
-  [79.95, 8.55], [79.55, 8.80],
-]
-// GOSL-controlled, claimed for Tamil Eelam
-const JAFFNA_Y: [number, number][] = [
-  [79.40, 10.00], [80.55, 10.00], [80.55, 9.62], [80.42, 9.56], [80.08, 9.52],
-  [79.95, 9.58], [79.80, 9.42], [79.60, 9.30], [79.40, 9.28],
-]
-const MANNAR_Y: [number, number][] = [
-  [79.55, 9.10], [79.95, 9.10], [79.98, 8.94], [79.60, 8.88],
-]
-const VAVUNIYA_Y: [number, number][] = [
-  [80.28, 8.92], [80.62, 8.94], [80.74, 8.76], [80.60, 8.58], [80.34, 8.56], [80.20, 8.74],
-]
-const WEST_Y: [number, number][] = [
-  [79.55, 8.58], [80.00, 8.58], [80.02, 8.42], [80.06, 8.06], [79.92, 7.80], [79.55, 7.80],
-]
-// Partially GOSL-controlled, LTTE pockets: the eastern coastal belt
-const EAST_O: [number, number][] = [
-  [80.98, 8.92], [81.60, 8.88], [82.10, 8.20], [82.10, 7.40], [82.00, 6.80],
-  [81.70, 6.78], [81.45, 6.95], [81.28, 7.25], [81.10, 7.62], [81.02, 8.02],
-  [80.92, 8.40], [80.88, 8.65],
-]
-
-const toPath = (pts: [number, number][]) =>
-  'M' + pts.map(([lon, lat]) => project(lon, lat).map((n) => n.toFixed(1)).join(',')).join(' L') + ' Z'
-
-const ISLAND_PATH = toPath(COAST)
-
-const ZONE_STYLE = {
-  ltte: { fill: 'rgb(var(--c-ember)/0.45)', stroke: 'rgb(var(--c-ember))' },
-  claimed: { fill: 'rgb(var(--c-gold)/0.28)', stroke: 'rgb(var(--map-claimed))' },
-  partial: { fill: 'rgb(var(--c-flame)/0.36)', stroke: 'rgb(var(--map-partial))' },
-} as const
-
-const ZONES: { d: string; kind: keyof typeof ZONE_STYLE }[] = [
-  { d: toPath(VANNI), kind: 'ltte' },
-  { d: toPath(EAST_O), kind: 'partial' },
-  { d: toPath(JAFFNA_Y), kind: 'claimed' },
-  { d: toPath(MANNAR_Y), kind: 'claimed' },
-  { d: toPath(VAVUNIYA_Y), kind: 'claimed' },
-  { d: toPath(WEST_Y), kind: 'claimed' },
-]
-
-const LEGEND: Record<'fr' | 'en' | 'ta', { claimed: string; ltte: string; partial: string; caption: string }> = {
-  fr: {
-    claimed: 'Contrôlé par le GOSL, revendiqué pour le Tamil Eelam',
-    ltte: 'Contrôlé par le LTTE',
-    partial: 'Partiellement contrôlé par le GOSL, poches LTTE',
-    caption: 'Zones de contrôle au cessez-le-feu de 2002',
-  },
-  en: {
-    claimed: 'Controlled by GOSL, claimed for Tamil Eelam',
-    ltte: 'Controlled by LTTE',
-    partial: 'Partially controlled by GOSL, LTTE pockets',
-    caption: 'Zones of control at the 2002 ceasefire',
-  },
-  ta: {
-    claimed: 'அரசுக் கட்டுப்பாட்டில், தமிழீழத்திற்கு கோரப்பட்டது',
-    ltte: 'விடுதலைப் புலிகளின் கட்டுப்பாட்டில்',
-    partial: 'பகுதி அரசுக் கட்டுப்பாடு, புலிகளின் பகுதிகள்',
-    caption: '2002 போர்நிறுத்தத்தின் கட்டுப்பாட்டு எல்லைகள்',
-  },
+const districtPlaces: Record<string, LocationKey> = {
+  jaffna: 'jaffna', kilinochchi: 'kilinochchi', mannar: 'mannar',
+  mullaitivu: 'mullaitivu', vavuniya: 'vavuniya', trincomalee: 'trincomalee',
+  batticaloa: 'batticaloa', ampara: 'amparai', puttalam: 'puttalam',
+}
+type Selection = { kind: 'place'; key: LocationKey } | { kind: 'district'; id: string }
+const districtForPlace = (key: LocationKey) => key === 'mullivaikkal' ? 'mullaitivu' : key === 'amparai' ? 'ampara' : key
+const mapCopy = {
+  fr: { zones: 'Districts mis en évidence', other: 'Autres districts', district: 'District', source: 'Limites des districts', places: 'Villes et lieux', districts: 'Districts', place: 'Lieu du récit', within: 'Lieux du récit dans ce district', hint: 'Une zone désigne un district. Un point désigne une ville ou un lieu.', coordinates: 'Coordonnées du lieu', districtHint: 'Sélectionnez un lieu ci-dessous pour découvrir son histoire.', belonging: 'Dans le district' },
+  en: { zones: 'Highlighted districts', other: 'Other districts', district: 'District', source: 'District boundaries', places: 'Towns and places', districts: 'Districts', place: 'Story location', within: 'Story locations in this district', hint: 'An area represents a district. A point represents a town or place.', coordinates: 'Location coordinates', districtHint: 'Select a place below to discover its story.', belonging: 'In the district' },
+  ta: { zones: 'நிறமிடப்பட்ட மாவட்டங்கள்', other: 'பிற மாவட்டங்கள்', district: 'மாவட்டம்', source: 'மாவட்ட எல்லைகள்', places: 'நகரங்களும் இடங்களும்', districts: 'மாவட்டங்கள்', place: 'கதையின் இடம்', within: 'இந்த மாவட்டத்தில் உள்ள இடங்கள்', hint: 'நிறப்பகுதி ஒரு மாவட்டம். புள்ளி ஒரு நகரம் அல்லது இடம்.', coordinates: 'இடத்தின் ஆயத்தொலைவுகள்', districtHint: 'வரலாற்றை அறிய கீழே ஓர் இடத்தைத் தேர்ந்தெடுக்கவும்.', belonging: 'மாவட்டம்' },
 }
 
 // Chapter VII — the homeland: a hand-drawn night atlas of Tamil Eelam.
@@ -101,27 +41,47 @@ export default function ChPatrie() {
   const { lang } = useLang()
   const v = vigil[lang]
   const ref = useReveal()
-  const [selected, setSelected] = useState<LocationKey>('jaffna')
-  const loc = locations[selected]
-  const [selX, selY] = project(loc.coords[0], loc.coords[1])
+  const stillness = useReducedMotion()
+  const [selection, setSelection] = useState<Selection>({ kind: 'place', key: 'jaffna' })
+  const [mode, setMode] = useState<'place' | 'district'>('place')
+  const selectPlace = (key: LocationKey) => { setSelection({ kind: 'place', key }); setMode('place') }
+  const selectDistrict = (id: string) => { setSelection({ kind: 'district', id }); setMode('district') }
+  const coastRef = useRef<SVGPathElement>(null)
+
+  // the dash length is the path's own length, whatever the coastline becomes
+  useEffect(() => {
+    const el = coastRef.current
+    if (!el) return
+    el.style.setProperty('--len', String(Math.ceil(el.getTotalLength())))
+  }, [])
+  const selectedDistrict = selection.kind === 'district' ? selection.id : districtForPlace(selection.key)
+  const c = mapCopy[lang]
+  const loc = selection.kind === 'place' ? locations[selection.key] : null
+  const districtName = locations[districtPlaces[selectedDistrict]].name[lang]
+  const selectedGeometry = districts.find(district => district.id === selectedDistrict)!
+  const districtLocations = (Object.keys(locations) as LocationKey[]).filter(key => districtForPlace(key) === selectedDistrict)
+  const [selX, selY] = loc ? project(loc.coords[0], loc.coords[1]) : [0, 0]
+  const selectionKey = selection.kind === 'place' ? `place-${selection.key}` : `district-${selection.id}`
 
   return (
     <section id="patrie" className="relative bg-night-2">
       <ChapterOpen id="patrie" lede={v.patrieLede} />
       <div
         ref={ref as React.RefObject<HTMLDivElement>}
-        className="grid max-w-[1300px] grid-cols-1 gap-8 px-5 pb-24 sm:px-[6vw] lg:grid-cols-[1.2fr_1fr] lg:gap-[4vw] lg:pb-28"
+        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 pb-24 sm:px-[9vw] lg:grid-cols-[1.2fr_1fr] lg:gap-[4vw] lg:pb-28"
       >
         {/* ——— the atlas ——— */}
-        <div className="reveal relative border border-bone/20 bg-[rgb(var(--c-night-2))] px-3 py-4 sm:px-6 sm:py-6">
-          <div className="pointer-events-none absolute left-4 top-4 font-mono text-[9px] uppercase tracking-[0.28em] text-ash-dim sm:left-6 sm:top-5">
+        <div className={`reveal relative border border-bone/20 bg-[rgb(var(--c-night-2))] px-3 py-4 sm:px-6 sm:py-6 ${styles.atlas}`}>
+          {/* relief under the drawing: a map is a claim about ground */}
+          <Air kind="ground" intensity={0.55} warmth={0.35} />
+          <div className="pointer-events-none absolute left-4 top-4 z-[2] font-mono text-[9px] uppercase tracking-[0.28em] text-ash-dim sm:left-6 sm:top-5">
             79°E — 82°E · 6°N — 10°N
           </div>
           <svg
             viewBox="0 0 440 700"
-            className="mx-auto block h-auto max-h-[74svh] w-full"
-            role="img"
-            aria-label="Tamil Eelam"
+            className="relative z-[2] mx-auto block h-auto max-h-[74svh] w-full"
+            role="group"
+            aria-label={experience.map[lang]}
           >
             {/* graticule */}
             <g stroke="rgb(var(--c-bone)/0.05)" strokeWidth="1">
@@ -138,57 +98,93 @@ export default function ChPatrie() {
               <clipPath id="island-clip">
                 <path d={ISLAND_PATH} />
               </clipPath>
+              {/* a drawn edge: the ink refuses to follow a perfect vector */}
+              <filter id="ink-bleed" x="-8%" y="-8%" width="116%" height="116%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.019" numOctaves="3" seed="4" result="n" />
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="2.1" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
             </defs>
-            <path d={ISLAND_PATH} fill="rgb(var(--c-soot))" stroke="rgb(var(--c-bone)/0.28)" strokeWidth="1.2" />
 
-            {/* zones of control at the 2002 ceasefire, clipped to the coastline */}
-            <g clipPath="url(#island-clip)">
-              {ZONES.map((z, i) => (
-                <path
-                  key={i}
-                  d={z.d}
-                  fill={ZONE_STYLE[z.kind].fill}
-                  stroke={ZONE_STYLE[z.kind].stroke}
-                  strokeWidth="1"
-                  strokeOpacity="0.6"
+            {/* the landmass, then the coastline drawing itself in */}
+            <path d={ISLAND_PATH} fill="rgb(var(--c-soot))" filter="url(#ink-bleed)" />
+            <g clipPath="url(#island-clip)" className={styles.districts}>
+              {districts.map((district, i) => {
+                const place = districtPlaces[district.id]
+                const active = district.id === selectedDistrict
+                return <path key={district.id} d={district.path} fillRule="evenodd"
+                  className={styles.district} data-highlighted={Boolean(place)} data-active={active} data-tone={i % 3}
+                  vectorEffect="non-scaling-stroke"
+                  role={place ? 'button' : undefined} tabIndex={place ? 0 : undefined}
+                  aria-label={place ? `${c.district} · ${locations[place].name[lang]}` : undefined}
+                  aria-pressed={place ? selection.kind === 'district' && active : undefined}
+                  onClick={place ? () => selectDistrict(district.id) : undefined}
+                  onKeyDown={place ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectDistrict(district.id) } } : undefined}
                 />
-              ))}
+              })}
             </g>
+            <defs>
+              <clipPath id="selected-district-clip"><path d={selectedGeometry.path} fillRule="evenodd" /></clipPath>
+              <linearGradient id="district-sweep"><stop stopColor="rgb(var(--c-gold))" stopOpacity="0" /><stop offset=".5" stopColor="rgb(var(--c-gold))" stopOpacity=".24" /><stop offset="1" stopColor="rgb(var(--c-gold))" stopOpacity="0" /></linearGradient>
+            </defs>
+            <g key={`outline-${selectionKey}`} pointerEvents="none" aria-hidden="true" clipPath="url(#island-clip)">
+              <path d={selectedGeometry.path} fill="none" className={styles.selectedOutline} pathLength="1" vectorEffect="non-scaling-stroke" data-quiet={stillness} />
+              {!stillness && <g clipPath="url(#selected-district-clip)"><rect width="220" height="700" fill="url(#district-sweep)" className={styles.sweep} /></g>}
+            </g>
+            <path
+              ref={coastRef}
+              className="coast"
+              d={ISLAND_PATH}
+              fill="none"
+              stroke="rgb(var(--c-bone)/0.42)"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
 
             {/* city markers */}
             {(Object.keys(locations) as LocationKey[]).map((key) => {
               const l = locations[key]
               const [x, y] = project(l.coords[0], l.coords[1])
               const r = l.type === 'capital' ? 6 : l.type === 'major' ? 4.5 : 3.5
-              const active = key === selected
+              const active = selection.kind === 'place' && key === selection.key
               return (
-                <g key={key} className="cursor-pointer" onClick={() => setSelected(key)}>
-                  {/* pulse ring */}
-                  <circle cx={x} cy={y} r={r} fill="none" stroke={active ? 'rgb(var(--c-flame-hot))' : 'rgb(var(--c-ember))'} strokeWidth="1">
-                    <animate attributeName="r" values={`${r};${r + 9}`} dur="2.6s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.8;0" dur="2.6s" repeatCount="indefinite" />
-                  </circle>
-                  {/* memorial heartbeat over Mullivaikkal */}
-                  {key === 'mullivaikkal' && (
-                    <circle cx={x} cy={y} r={r} fill="none" stroke="rgb(var(--c-blood))" strokeWidth="1.6">
-                      <animate attributeName="r" values={`${r};${r + 16};${r + 16}`} keyTimes="0;0.55;1" dur="1.9s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.9;0;0" keyTimes="0;0.55;1" dur="1.9s" repeatCount="indefinite" />
-                    </circle>
-                  )}
+                <g
+                  key={key}
+                  /* the map was reachable by mouse only: it is a control, so
+                     it answers to the keyboard and says its own name */
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${c.place} · ${l.name[lang]}`}
+                  aria-pressed={active}
+                  className="cursor-pointer"
+                  onClick={() => selectPlace(key)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      selectPlace(key)
+                    }
+                  }}
+                >
+                  {active && !stillness && <g transform={`translate(${x} ${y})`} pointerEvents="none" aria-hidden="true">
+                    <circle r={r + 3} fill="none" stroke="rgb(var(--c-flame-hot))" strokeWidth="1" className={styles.placePulse} />
+                  </g>}
+                  {/* focus is shown by the global :focus-visible outline, which
+                      tracks this group's box — one ring, no bespoke variant */}
                   <circle
                     cx={x} cy={y} r={r}
-                    fill={l.type === 'capital' ? 'rgb(var(--c-night))' : 'rgb(var(--c-ember))'}
-                    stroke={active ? 'rgb(var(--c-flame-hot))' : l.type === 'capital' ? 'rgb(var(--c-flame))' : 'rgb(var(--c-bone)/0.5)'}
+                    fill={active ? 'rgb(var(--c-flame-hot))' : 'rgb(var(--c-bone))'}
+                    stroke={active ? 'rgb(var(--c-flame-hot))' : 'rgb(var(--c-night)/0.85)'}
                     strokeWidth={l.type === 'capital' ? 2.4 : 1}
+                    className="transition-[r,stroke] duration-300 ease-vigil"
                   />
-                  {/* generous invisible hit area */}
-                  <circle cx={x} cy={y} r="14" fill="transparent" />
+                  {/* generous hit area, comfortably past the 44px guidance */}
+                  <circle cx={x} cy={y} r="16" fill="transparent" />
                 </g>
               )
             })}
 
             {/* selected label */}
-            <g pointerEvents="none">
+            {loc && <g pointerEvents="none" key={`label-${selectionKey}`} className={styles.mapLabel} data-quiet={stillness}>
               <line
                 x1={selX + 8} y1={selY - 8} x2={selX + 26} y2={selY - 26}
                 stroke="rgb(var(--c-flame-hot))" strokeWidth="1"
@@ -199,60 +195,60 @@ export default function ChPatrie() {
                 fontSize="15"
                 fontStyle="italic"
                 fontFamily="Fraunces, serif"
+                stroke="rgb(var(--c-night-2))" strokeWidth="3" paintOrder="stroke" strokeLinejoin="round"
                 textAnchor={selX > 300 ? 'end' : 'start'}
               >
                 {loc.name[lang]}
               </text>
-            </g>
+            </g>}
           </svg>
-          {/* legend, in the empty sea to the north-east */}
-          <div className="pointer-events-none absolute right-3 top-10 flex w-[150px] flex-col gap-2 sm:right-6 sm:top-12 sm:w-[190px]">
-            {(['claimed', 'ltte', 'partial'] as const).map((kind) => (
-              <div key={kind} className="flex items-start gap-2">
-                <span
-                  className="mt-[2px] inline-block h-2.5 w-5 shrink-0 border"
-                  style={{ background: ZONE_STYLE[kind].fill, borderColor: ZONE_STYLE[kind].stroke }}
-                />
-                <span className="font-mono text-[8px] uppercase leading-[1.5] tracking-[0.08em] text-ash">
-                  {LEGEND[lang][kind]}
-                </span>
-              </div>
-            ))}
+          <div className={styles.mapSelection}>
+            <span>{loc ? c.place : c.district}</span>
+            <strong>{loc ? loc.name[lang] : districtName}</strong>
+            {loc && <span>{c.district} · {districtName}</span>}
           </div>
-          <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.22em] text-ash-dim sm:bottom-5 sm:right-6">
-            தமிழீழம் · {LEGEND[lang].caption}
+          <div className={styles.legend} aria-label={c.zones}>
+            <span><i className={styles.zoneSwatch} aria-hidden="true" />{c.zones}</span>
+            <span><i className={styles.placeSwatch} aria-hidden="true" />{c.places}</span>
+            <span><i className={styles.otherSwatch} aria-hidden="true" />{c.other}</span>
           </div>
+          <p className="relative z-[2] border-t border-bone/15 px-1 pt-4 text-xs leading-relaxed text-ash">{experience.mapNote[lang]}</p>
+          <p className={styles.credit}>{c.source} · <a href="https://www.geoboundaries.org/api/current/gbOpen/LKA/ADM2/" target="_blank" rel="noopener noreferrer">geoBoundaries</a> / <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a> · ODbL</p>
         </div>
 
         {/* ——— side panel ——— */}
-        <div className="flex flex-col gap-5">
-          <div className="reveal font-mono text-[10px] uppercase tracking-[0.2em] text-ash">{v.patrieHint}</div>
-          <div className="reveal d1 flex flex-wrap gap-2">
-            {(Object.keys(locations) as LocationKey[]).map((key) => (
-              <button
-                key={key}
-                onClick={() => setSelected(key)}
-                className={`border px-3 py-2 font-mono text-[11px] tracking-[0.06em] transition-all duration-200 ${
-                  key === selected
-                    ? 'border-ember bg-ember/10 text-bone'
-                    : 'border-bone/15 text-bone-dim hover:border-ember hover:text-bone'
-                }`}
-              >
-                {locations[key].name[lang]}
-              </button>
+        <div className="flex flex-col gap-5 lg:sticky lg:top-28 lg:self-start">
+          <p className="reveal text-sm leading-relaxed text-bone-dim">{c.hint}</p>
+          <div className={styles.modeSwitch} role="group" aria-label={experience.map[lang]}>
+            <button type="button" onClick={() => selectDistrict(selectedDistrict)} aria-pressed={mode === 'district'}>{c.districts}</button>
+            <button type="button" onClick={() => selectPlace(selection.kind === 'place' ? selection.key : districtLocations[0])} aria-pressed={mode === 'place'}>{c.places}</button>
+          </div>
+          <div className={styles.choices} role="group" aria-label={mode === 'district' ? c.districts : c.places}>
+            {mode === 'district' ? Object.entries(districtPlaces).map(([id, key]) => (
+              <button key={id} type="button" onClick={() => selectDistrict(id)} aria-pressed={selection.kind === 'district' && selection.id === id}>{locations[key].name[lang]}</button>
+            )) : (Object.keys(locations) as LocationKey[]).map(key => (
+              <button key={key} type="button" onClick={() => selectPlace(key)} aria-pressed={selection.kind === 'place' && selection.key === key}>{locations[key].name[lang]}</button>
             ))}
           </div>
-          <div
-            key={selected}
-            className="reveal d2 animate-rise-in border border-bone/15 border-l-2 border-l-ember bg-bone/[0.02] px-6 py-5"
-            style={{ animationDuration: '0.7s' }}
-          >
-            <div className="font-display text-[26px] italic leading-tight text-flame">{loc.name[lang]}</div>
-            <div className="mb-3 mt-1 font-tamil text-sm text-ash">{loc.tamil}</div>
-            <div className="text-[14.5px] leading-[1.7] text-bone-dim">{loc.desc[lang]}</div>
+          <div aria-live="polite" aria-atomic="true">
+            <div key={`${selectionKey}-${lang}`} className={styles.detailPanel} data-quiet={stillness}>
+              <p className={styles.detailKind}>{loc ? c.place : c.district}</p>
+              <h3 className="lang-title font-display text-[32px] italic leading-tight text-flame">{loc ? loc.name[lang] : districtName}</h3>
+              {loc ? <>
+                <p className="mb-3 mt-1 font-tamil text-sm text-ash">{loc.tamil}</p>
+                <button type="button" className={styles.districtLink} onClick={() => selectDistrict(selectedDistrict)}>{c.belonging} · {districtName} <span aria-hidden="true">↗</span></button>
+                <p className="mt-5 text-[17px] leading-[1.8] text-bone-dim">{loc.desc[lang]}</p>
+                <p className="mt-6 font-mono text-[10px] leading-relaxed tracking-wide text-ash"><span className="mb-2 block">{c.coordinates}</span>{loc.coords[1].toFixed(4)}° N · {loc.coords[0].toFixed(4)}° E</p>
+              </> : <>
+                <p className="mt-4 text-base leading-relaxed text-bone-dim">{c.districtHint}</p>
+                <p className="mb-3 mt-7 font-mono text-[10px] uppercase tracking-[0.1em] text-ash">{c.within}</p>
+                <div className={styles.districtLocations}>{districtLocations.map(key => <button key={key} type="button" onClick={() => selectPlace(key)}><span>{locations[key].name[lang]}</span><span aria-hidden="true">↗</span></button>)}</div>
+              </>}
+            </div>
           </div>
         </div>
       </div>
+      <ChapterEnd id="patrie" />
     </section>
   )
 }

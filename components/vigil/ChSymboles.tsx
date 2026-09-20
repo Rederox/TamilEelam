@@ -1,12 +1,28 @@
 'use client'
 
 import Image from 'next/image'
+import { experience } from '@/data/experience'
+import { events } from '@/data/events'
+import { sources } from '@/data/research'
 import { useLang } from '@/context/LanguageContext'
 import { symbols, type SymbolEntry } from '@/data/narrative'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useReveal } from '@/hooks/useReveal'
+import { useViewProgress } from '@/hooks/useSceneProgress'
+import Air from './Air'
 import ChapterOpen from './ChapterOpen'
+import ChapterEnd from './ChapterEnd'
+import GlEmbers from './gl/GlEmbers'
 import { ChBody, Caption, Prose } from './blocks'
 
+/**
+ * A picture, given a treatment that says something about its subject
+ * rather than a generic fade: the flag unfurls as cloth catches air, the
+ * leopard's ground opens like an eye finding it in the underbrush. Both are
+ * plain CSS (clip-path transitions triggered by the shared .reveal.in), so
+ * they cost nothing extra and fall away cleanly under reduced motion —
+ * see .unfurl / .iris in globals.css.
+ */
 function Frame({
   src,
   width,
@@ -14,6 +30,7 @@ function Frame({
   alt,
   label,
   credit,
+  anim,
 }: {
   src: string
   width: number
@@ -21,11 +38,21 @@ function Frame({
   alt: string
   label: string
   credit: string
+  anim?: 'unfurl' | 'iris'
 }) {
   return (
-    <figure className="border border-bone/20 bg-[rgb(var(--c-night-2))] p-2 sm:p-2.5">
-      <Image src={src} width={width} height={height} alt={alt} className="block h-auto w-full" />
-      <figcaption className="flex items-center justify-between gap-3 px-1 pb-0.5 pt-2.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ash-dim">
+    <figure className="group relative z-[2] border-y border-bone/20 bg-[rgb(var(--c-night-2))] py-4">
+      <div className={anim ?? undefined}>
+        <Image
+          src={src}
+          width={width}
+          height={height}
+          alt={alt}
+          sizes="(min-width: 1024px) 45vw, 90vw"
+          className="block max-h-[65svh] w-full object-contain transition-[filter] duration-700 saturate-[0.75] group-hover:saturate-100"
+        />
+      </div>
+      <figcaption className="flex items-center justify-between gap-3 px-1 pb-0.5 pt-2.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ash">
         <span className="font-tamil normal-case tracking-normal">{label}</span>
         <span>{credit}</span>
       </figcaption>
@@ -48,30 +75,46 @@ function Body({ s, delay = false }: { s: SymbolEntry; delay?: boolean }) {
   )
 }
 
-// Chapter VIII — the symbols of Tamil Eelam: flag, leopard, coucal, glory lily.
+// Chapter IX — the symbols of Tamil Eelam: flag, leopard, coucal, glory lily.
 export default function ChSymboles() {
   const { lang } = useLang()
   const s = symbols[lang]
   const ref = useReveal()
+  const stillness = useReducedMotion()
+
+  // the coucal settles into its frame rather than simply appearing: a
+  // small parallax drift tied to how far the reader has carried it into view
+  const { ref: birdRef, progress: birdProgress } = useViewProgress<HTMLDivElement>()
+  const birdDrift = stillness ? 0 : (birdProgress - 0.5) * 26
+
+  // the day the kaarthigai flower is worn for — named by the flower's own
+  // text, but never explained until here; the chapter already cites its
+  // sources (see chapterSources.symboles), it was only missing the telling
+  const maaveerar = events[15]
 
   return (
     <section
       id="symboles"
       className="relative bg-night bg-[radial-gradient(110%_80%_at_85%_15%,rgb(var(--c-gold)/0.08),transparent_60%)]"
     >
-      <ChapterOpen id="symboles" lede={s.lede} />
-      <div ref={ref as React.RefObject<HTMLDivElement>}>
-        <ChBody>
-          {/* the flag — wide, like a flag */}
+      {/* a flag is cloth before it is an emblem: the fabric hangs behind them all */}
+      <Air kind="cloth" intensity={0.75} warmth={0.7} />
+      <div className="relative z-[2]">
+        <ChapterOpen id="symboles" lede={s.lede} />
+        <div ref={ref as React.RefObject<HTMLDivElement>}>
+          <ChBody>
+          <h3 className="reveal lang-title mb-14 max-w-[20ch] font-display text-[clamp(30px,4vw,52px)] font-light leading-tight">{experience.symbols[lang]}</h3>
+          {/* the flag — wide, like a flag, and it unfurls like one */}
           <div className="grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-[5vw]">
             <div className="reveal">
               <Frame
                 src="/symbols/flag.png"
                 width={1400}
                 height={933}
-                alt="Drapeau national du Tamil Eelam : tigre bondissant dans un cercle de rayons, baïonnettes croisées, sur fond rouge"
-                label="தேசியக் கொடி"
-                credit="1977 · 1990"
+                alt={s.flag.title}
+                label={s.flag.tamil}
+                credit="Tamil Eelam"
+                anim="unfurl"
               />
             </div>
             <Body s={s.flag} />
@@ -87,46 +130,77 @@ export default function ChSymboles() {
                 src="/symbols/leopard.jpg"
                 width={927}
                 height={1200}
-                alt="Léopard de Sri Lanka (Panthera pardus kotiya) dans un arbre, forêt de Yala"
-                label="சிறுத்தை"
+                alt={s.animal.title}
+                label={s.animal.tamil}
                 credit="C. J. Sharp · CC BY-SA 4.0"
+                anim="iris"
               />
             </div>
           </div>
 
-          {/* the coucal */}
+          {/* the coucal — settling into its frame as the reader arrives */}
           <div className="mt-16 grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-[5vw]">
-            <div className="reveal">
+            <div
+              ref={birdRef}
+              className="reveal will-change-transform"
+              style={{ transform: `translateY(${birdDrift.toFixed(2)}px)` }}
+            >
               <Frame
                 src="/symbols/coucal.jpg"
                 width={1400}
                 height={932}
-                alt="Grand coucal (Centropus sinensis) : plumage noir bleuté, ailes cuivrées, œil rouge"
-                label="செம்போத்து"
+                alt={s.bird.title}
+                label={s.bird.tamil}
                 credit="C. J. Sharp · CC BY-SA 4.0"
               />
             </div>
             <Body s={s.bird} delay />
           </div>
 
-          {/* the flower — closing the chapter, pointing to Maaveerar Naal */}
+          {/* the flower — its petals are already embers in the telling;
+              a few drift here for real, and close the chapter into the
+              night that follows every 27 November */}
           <div className="mt-16 grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-[5vw]">
             <div className="order-2 lg:order-1">
               <Body s={s.flower} />
             </div>
-            <div className="reveal d2 order-1 lg:order-2">
+            <div className="reveal d2 relative order-1 lg:order-2">
+              <div className="pointer-events-none absolute -inset-x-6 -inset-y-10 z-[1]">
+                <GlEmbers density={16} intensity={0.5} speed={0.8} fallbackDensity={6} />
+              </div>
               <Frame
                 src="/symbols/gloriosa.jpg"
                 width={1400}
                 height={933}
-                alt="Kaarthigai poo — lys de gloire (Gloriosa superba), pétales rouges et or dressés comme des flammes"
-                label="கார்த்திகைப் பூ"
+                alt={s.flower.title}
+                label={s.flower.tamil}
                 credit="J. Jose · CC BY-SA 4.0"
               />
             </div>
           </div>
-        </ChBody>
+
+          {/* the night the flower is worn for, told in full: the chapter
+              named it and cited it, so it owes the reader the telling */}
+          <div className="reveal mt-14 max-w-[860px] border-l border-gold/40 pl-6 sm:pl-7">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gold">
+              {maaveerar.year} · {maaveerar.title[lang]}
+            </p>
+            <Prose className="mt-4">
+              <p>{maaveerar.detail[lang]}</p>
+            </Prose>
+            <div className="mt-5 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[9px] uppercase tracking-[0.14em] text-ash">
+              <a href={sources.memorialArchive.href} target="_blank" rel="noopener noreferrer" className="border-b border-bone/20 py-1 hover:text-flame">
+                {sources.memorialArchive.institution} · {sources.memorialArchive.year} ↗
+              </a>
+              <a href={sources.maaveerar.href} target="_blank" rel="noopener noreferrer" className="border-b border-bone/20 py-1 hover:text-flame">
+                {sources.maaveerar.institution} · {sources.maaveerar.year} ↗
+              </a>
+            </div>
+          </div>
+          </ChBody>
+        </div>
       </div>
+      <ChapterEnd id="symboles" />
     </section>
   )
 }

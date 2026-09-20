@@ -7,6 +7,16 @@
  * layers read it inside their own frame loop, so moving the pointer or
  * scrolling never triggers a React render.
  */
+/** True when the reader has asked the system for less movement. */
+export function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.reading === 'quiet')
+}
+
+/** Scroll behaviour that honours that request. */
+export function scrollBehavior(): ScrollBehavior {
+  return prefersReducedMotion() ? 'auto' : 'smooth'
+}
+
 export const reader = {
   /** pointer position, 0..1 across the viewport */
   px: 0.5,
@@ -17,12 +27,31 @@ export const reader = {
   dir: 0,
 }
 
-let started = false
+/**
+ * Several effects share one set of listeners, so starting is reference
+ * counted: the listeners go up on the first caller and only come down when
+ * the last one lets go. A plain boolean would hand every later caller a
+ * no-op, and the first to unmount would silently blind all the others.
+ */
+let refs = 0
+let uninstall: (() => void) | null = null
 
 export function startReaderTracking(): () => void {
-  if (started || typeof window === 'undefined') return () => {}
-  started = true
+  if (typeof window === 'undefined') return () => {}
+  if (++refs === 1) uninstall = install()
 
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    if (--refs === 0) {
+      uninstall?.()
+      uninstall = null
+    }
+  }
+}
+
+function install(): () => void {
   let lastY = window.scrollY
   let lastT = performance.now()
   let raf = 0
@@ -36,7 +65,7 @@ export function startReaderTracking(): () => void {
     // the world settles when the reader stops
     reader.scroll *= 0.92
     if (reader.scroll < 0.001) reader.scroll = 0
-    raf = requestAnimationFrame(decay)
+    raf = reader.scroll > 0 ? requestAnimationFrame(decay) : 0
   }
 
   const onScroll = () => {
@@ -48,6 +77,7 @@ export function startReaderTracking(): () => void {
     const v = Math.min(Math.abs(dy) / dt / 2.2, 1)
     reader.scroll = Math.max(reader.scroll, v)
     reader.dir = Math.sign(dy)
+    if (!raf) raf = requestAnimationFrame(decay)
   }
 
   window.addEventListener('pointermove', onPointer, { passive: true })
@@ -58,6 +88,5 @@ export function startReaderTracking(): () => void {
     window.removeEventListener('pointermove', onPointer)
     window.removeEventListener('scroll', onScroll)
     cancelAnimationFrame(raf)
-    started = false
   }
 }

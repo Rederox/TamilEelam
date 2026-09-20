@@ -22,7 +22,7 @@ export function useReveal() {
     )
 
     const targets = el.querySelectorAll<HTMLElement>('.reveal')
-    targets.forEach((t) => observer.observe(t))
+    targets.forEach((t) => { t.classList.add('reveal-ready'); observer.observe(t) })
 
     return () => observer.disconnect()
   }, [])

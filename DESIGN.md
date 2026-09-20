@@ -2,20 +2,20 @@
 
 ## Visual theme
 
-Nuit de veillée : fond quasi noir teinté de suie chaude, lumière de lampe à huile (ambre/or), accents braise et sang séché. Stratégie couleur : **Restrained sur fond nocturne** — l'ambre (flame) est l'unique accent vivant, le rouge (ember/blood) est réservé à la violence et au deuil.
+Identité issue des quatre couleurs du drapeau fourni dans `public/symbols/flag.png` : jaune, rouge, noir et blanc. Le noir porte le récit, le blanc les textes, le jaune les repères et les interactions, le rouge les accents mémoriels. Cette charte s’applique à tous les chapitres et à la navigation.
 
 ## Color palette (tokens Tailwind)
 
-- `night` #070605 / `night-2` #0d0a08 — fonds
-- `soot` #17120e / `soot-2` #221a14 — surfaces
-- `bone` #ece3d3 / `bone-dim` #cfc4b0 — texte
-- `ash` #97897a / `ash-dim` #5f564b — texte secondaire, mono labels
-- `flame` #eda63d / `flame-hot` #f7d488 — la flamme, accent principal
-- `ember` #d64f33 — braise, violence évoquée
-- `blood` #8f2318 — deuil, uniquement dans les chapitres de massacre
-- `gold` #c99b2f — mémoire ancienne, royaume, résolution
+Couleurs source relevées dans l’image : **jaune #FFD400**, **rouge #DE0127**, **noir #000000**, **blanc #FFFFFF**. Elles sont conservées dans les variables `--flag-*`.
 
-Règle : jamais de #000/#fff purs. Les rouges ne servent jamais de décoration.
+- `night` / `night-2` : noir et #0A0A0A ; `soot` : surfaces gris neutre.
+- `bone` : blanc ; `bone-dim` #D7D7D7 ; `ash` #ABABAB : texte secondaire.
+- `gold` / `flame` : jaune #FFD400, repères, liens et navigation.
+- `blood` : rouge source #DE0127, lignes et accents de fond.
+- `ember` : rouge franc #EF1724, lisible pour le texte sur noir.
+- Mode clair : fond blanc, texte noir, rouge #C80023 et jaune assombri #705800 pour conserver le contraste des petits textes.
+
+Les photos, archives et matières des scènes conservent leurs couleurs naturelles. Les éléments d’interface utilisent les tokens pour suivre le thème. Les évocations générées restent explicitement distinguées des archives.
 
 ## Typography
 

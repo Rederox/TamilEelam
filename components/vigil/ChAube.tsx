@@ -3,78 +3,65 @@
 import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
 import { vigil } from '@/data/narrative'
+import { experience } from '@/data/experience'
+import { sources } from '@/data/research'
 import { useReveal } from '@/hooks/useReveal'
+import Air from './Air'
 import ChapterOpen from './ChapterOpen'
-import { ChBody, Caption, Prose, Quote } from './blocks'
+import ChapterEnd from './ChapterEnd'
+import { ChBody, Caption, Prose } from './blocks'
 import Flame from './Flame'
 
-const CITIES = ['Toronto', 'London', 'Paris', 'Zurich', 'Oslo', 'Sydney', 'Chennai', 'Berlin']
+const cities = ['Toronto', 'London', 'Paris', 'Zurich', 'Oslo', 'Sydney', 'Chennai', 'Berlin']
+const milestones = [
+  { year: '2011', source: 'panel', fr: 'Documenter les crimes', en: 'Documenting the crimes', ta: 'குற்றங்களை ஆவணப்படுத்துதல்' },
+  { year: '2015', source: 'oisl', fr: 'Établir les responsabilités', en: 'Establishing accountability', ta: 'பொறுப்புக்கூறலை நிறுவுதல்' },
+  { year: '2022', source: 'canada', fr: 'Reconnaître le génocide', en: 'Recognising the genocide', ta: 'இனப்படுகொலையை அங்கீகரித்தல்' },
+  { year: '2024', source: 'disappearances', fr: 'Chercher les disparus', en: 'Searching for the disappeared', ta: 'காணாமலாக்கப்பட்டவர்களைத் தேடுதல்' },
+] as const
 
-// Chapter IX — dawn in diaspora: memory carried across the world,
-// and the ongoing quest for justice. The palette warms toward dawn.
 export default function ChAube() {
-  const { lang, t } = useLang()
+  const { lang } = useLang()
   const v = vigil[lang]
   const ref = useReveal()
-  const diaspora = events[11]
-  const justice = events[12]
-  const maaveerar = events[15] // 27 November — Maaveerar Naal
-
-  const figures = [
-    { n: '80+', l: lang === 'fr' ? 'pays où vit la diaspora' : lang === 'en' ? 'countries of the diaspora' : 'புலம்பெயர் நாடுகள்' },
-    { n: '≈1M', l: lang === 'fr' ? "Tamouls d'Eelam en diaspora" : lang === 'en' ? 'Eelam Tamils in diaspora' : 'புலம்பெயர்ந்த ஈழத் தமிழர்கள்' },
-    { n: '18.05', l: lang === 'fr' ? 'jour de mémoire, chaque année, partout' : lang === 'en' ? 'remembrance day, every year, everywhere' : 'நினைவு நாள், ஒவ்வொரு ஆண்டும், எங்கும்' },
-  ]
 
   return (
     <section id="aube" className="relative bg-gradient-to-b from-night via-[rgb(var(--ch-dawn-1))] to-[rgb(var(--ch-dawn-2))]">
-      <ChapterOpen id="aube" lede={v.aubeLede} />
-      <div ref={ref as React.RefObject<HTMLDivElement>}>
-        <ChBody>
-          {/* the flame, relit in every city of exile */}
-          <div className="reveal flex max-w-[820px] flex-wrap items-end gap-x-9 gap-y-8 sm:gap-x-12">
-            {CITIES.map((city, i) => (
-              <div key={city} className="light-up flex flex-col items-center gap-2.5" style={{ ['--ld' as string]: `${0.3 + i * 0.35}s` }}>
-                <Flame size={13} />
-                <span className="font-display text-[clamp(15px,1.8vw,20px)] italic text-flame">{city}</span>
+      <Air kind="rake" intensity={0.8} warmth={0.95} />
+      <div className="relative z-[2]">
+        <ChapterOpen id="aube" lede={v.aubeLede} />
+        <div ref={ref as React.RefObject<HTMLDivElement>}>
+          <ChBody>
+            <div className="reveal relative max-w-[1200px] overflow-hidden border-y border-gold/25 py-14 sm:py-20">
+              <p className="lang-title max-w-[16ch] font-display text-[clamp(38px,5.8vw,78px)] font-light leading-[1.12]">{experience.diaspora[lang]}</p>
+              <p className="mt-7 max-w-[40ch] text-xl italic leading-relaxed text-bone-dim">{experience.diasporaSub[lang]}</p>
+              <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 sm:grid-cols-4">
+                {cities.map((city, i) => <div key={city} className="light-up flex items-end gap-4 border-b border-gold/15 pb-5" style={{ ['--ld' as string]: `${i * 0.15}s` }}>
+                  <Flame size={16} /><span className="font-display text-[clamp(21px,2.5vw,32px)] italic text-flame">{city}</span>
+                </div>)}
               </div>
-            ))}
-          </div>
-
-          <div className="my-14 grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-[6vw] lg:my-16">
-            {figures.map((f, i) => (
-              <div key={f.n} className={`reveal ${i === 1 ? 'd1' : i === 2 ? 'd2' : ''}`}>
-                <div className="font-display text-[clamp(40px,6vw,76px)] font-light leading-none text-bone">{f.n}</div>
-                <div className="mt-2 max-w-[180px] font-mono text-[10px] uppercase leading-[1.7] tracking-[0.18em] text-ash">{f.l}</div>
+            </div>
+            <div className="mt-16 grid max-w-[1200px] gap-12 lg:grid-cols-2 lg:gap-20">
+              <div className="reveal"><Caption>{events[11].title[lang]}</Caption><Prose><p>{events[11].detail[lang]}</p></Prose></div>
+              <div className="reveal d1"><Caption>{events[15].title[lang]} · 27.11</Caption><Prose><p>{events[15].detail[lang]}</p></Prose></div>
+            </div>
+            <div className="reveal mt-24 max-w-[1200px]">
+              <h3 className="lang-title mb-12 max-w-[20ch] font-display text-[clamp(30px,4vw,52px)] font-light leading-tight">{experience.justice[lang]}</h3>
+              <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
+                <ol className="border-l border-gold/30 pl-7">
+                  {milestones.map((item) => <li key={item.year} className="relative pb-9 last:pb-0">
+                    <span aria-hidden="true" className="absolute -left-[32.5px] top-1.5 h-2 w-2 rounded-full bg-gold" />
+                    <span className="font-mono text-[11px] text-gold">{item.year}</span>
+                    <a href={sources[item.source].href} target="_blank" rel="noopener noreferrer" className="mt-2 block w-fit font-display text-2xl text-bone-dim underline decoration-bone/20 underline-offset-4 hover:text-flame">{item[lang]} ↗</a>
+                  </li>)}
+                </ol>
+                <Prose><p>{events[12].detail[lang]}</p></Prose>
               </div>
-            ))}
-          </div>
-
-          <div className="grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-[6vw]">
-            <div className="reveal">
-              <Caption>{diaspora.year} — {diaspora.title[lang]}</Caption>
-              <Prose>
-                <p>{diaspora.detail[lang]}</p>
-              </Prose>
             </div>
-            <div className="reveal d1 border-l-2 border-gold pl-6 sm:pl-7">
-              <Quote text={t('t4-quote')} author={`${t('t4-author')} · ${t('t4-role')}`} />
-            </div>
-          </div>
-
-          <div className="mt-14 max-w-[720px]">
-            <Caption className="reveal">{maaveerar.year} — {maaveerar.title[lang]}</Caption>
-            <Prose className="reveal d1">
-              <p>{maaveerar.detail[lang]}</p>
-            </Prose>
-          </div>
-
-          <div className="reveal mt-16 max-w-[640px] border-t border-bone/15 pt-11">
-            <h3 className="lang-title mb-4 font-display text-[clamp(24px,3vw,34px)] italic text-bone">{v.aubeJusticeTitle}</h3>
-            <p className="text-[15.5px] leading-[1.8] text-bone-dim">{justice.detail[lang]}</p>
-          </div>
-        </ChBody>
+          </ChBody>
+        </div>
       </div>
+      <ChapterEnd id="aube" />
     </section>
   )
 }

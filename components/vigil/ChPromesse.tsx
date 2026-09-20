@@ -2,10 +2,13 @@
 
 import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
+import { experience } from '@/data/experience'
 import { vigil } from '@/data/narrative'
 import { useReveal } from '@/hooks/useReveal'
+import Air from './Air'
 import ChapterOpen from './ChapterOpen'
-import { ChBody, Caption, Prose, Quote, MemFigure } from './blocks'
+import ChapterEnd from './ChapterEnd'
+import { ChBody, Caption, Prose } from './blocks'
 
 // Chapter IV — the promise: Vaddukoddai 1976, then two decades of resistance.
 export default function ChPromesse() {
@@ -13,58 +16,37 @@ export default function ChPromesse() {
   const v = vigil[lang]
   const ref = useReveal()
   const vaddukoddai = events[6] // 14 May 1976 — Vaddukoddai Resolution
-  const struggle = events[8]    // 1983-2002 — armed struggle & de facto state
-  const ltte = events[14]       // 1976-2009 — LTTE & Prabhakaran
 
   return (
     <section
       id="promesse"
       className="relative bg-night bg-[radial-gradient(100%_80%_at_12%_30%,rgb(var(--c-ember)/0.10),transparent_60%)]"
     >
-      <ChapterOpen id="promesse" lede={v.promesseLede} />
-      <div ref={ref as React.RefObject<HTMLDivElement>}>
-        <ChBody>
-          <div className="reveal max-w-[720px] border-l-2 border-gold pl-6 sm:pl-7">
-            <Quote text={t('t3-quote')} author={`${t('t3-author')} — ${v.promesseQuoteLabel}`} />
-          </div>
-
-          <div className="reveal d1 mt-14 lg:mt-16">
-            <MemFigure
-              value="14.05.1976"
-              label={
-                lang === 'fr'
-                  ? 'La revendication est écrite à Vaddukoddai — puis massivement votée en 1977.'
-                  : lang === 'en'
-                    ? 'The claim is written at Vaddukoddai — then overwhelmingly voted in 1977.'
-                    : 'கோரிக்கை வட்டுக்கோட்டையில் எழுதப்பட்டது — 1977-இல் பேரளவில் வாக்களிக்கப்பட்டது.'
-              }
-              tone="gold"
-            />
-          </div>
-
-          <div className="mt-14 grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-[6vw]">
-            <div>
-              <Caption className="reveal">{vaddukoddai.year} — {vaddukoddai.title[lang]}</Caption>
-              <Prose className="reveal d1">
-                <p>{vaddukoddai.detail[lang]}</p>
-              </Prose>
+      {/* the same grains as the archive, but warm: embers that never went out */}
+      <Air kind="motes" intensity={0.62} warmth={0.9} />
+      <div className="relative z-[2]">
+        <ChapterOpen id="promesse" lede={v.promesseLede} />
+        <div ref={ref as React.RefObject<HTMLDivElement>}>
+          <ChBody>
+          <div className="grid max-w-[1200px] items-start gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
+            <div className="reveal resolution-sheet relative border border-gold/30 px-7 py-12 sm:px-12 sm:py-16">
+              <p className="font-mono text-[10px] uppercase tracking-[0.23em] text-gold">TULF · Vaddukoddai</p>
+              <p className="mt-10 font-display text-[clamp(32px,4vw,58px)] font-light leading-none text-bone">14.05.1976</p>
+              <div className="my-9 h-px w-16 bg-gold/50" />
+              <h3 className="lang-title max-w-[16ch] font-display text-[clamp(27px,3vw,40px)] italic leading-[1.3]">{experience.resolution[lang]}</h3>
+              <p className="mt-8 font-mono text-[9px] uppercase tracking-[0.15em] text-ash">{experience.resolutionLabel[lang]}</p>
             </div>
-            <div>
-              <Caption className="reveal d1">{struggle.year} — {struggle.title[lang]}</Caption>
-              <Prose className="reveal d2">
-                <p>{struggle.detail[lang]}</p>
-              </Prose>
+            <div className="reveal d1 lg:pt-12">
+              <Caption>{vaddukoddai.title[lang]}</Caption>
+              <Prose><p className="drop-cap">{vaddukoddai.detail[lang]}</p></Prose>
+              <p className="mt-10 border-l border-gold/40 pl-6 text-xl italic leading-relaxed text-bone">{t('t3-quote')}</p>
+              <p className="mt-4 pl-6 font-mono text-[9px] uppercase tracking-[0.13em] text-ash">{t('t3-author')} · {t('t3-role')}</p>
             </div>
           </div>
-
-          <div className="mt-14 max-w-[720px]">
-            <Caption className="reveal">{ltte.year} — {ltte.title[lang]}</Caption>
-            <Prose className="reveal d1">
-              <p>{ltte.detail[lang]}</p>
-            </Prose>
-          </div>
-        </ChBody>
+          </ChBody>
+        </div>
       </div>
+      <ChapterEnd id="promesse" />
     </section>
   )
 }

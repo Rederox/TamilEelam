@@ -1,5 +1,7 @@
 'use client'
 
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+
 import { useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 
@@ -17,10 +19,12 @@ export default function Embers({ density = 26 }: { density?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { theme } = useTheme()
 
+  const stillness = useReducedMotion()
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (stillness) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
@@ -93,7 +97,7 @@ export default function Embers({ density = 26 }: { density?: number }) {
       running = false
       cancelAnimationFrame(raf)
     }
-  }, [density, theme])
+  }, [density, theme, stillness])
 
   return <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-[1] h-full w-full" aria-hidden="true" />
 }

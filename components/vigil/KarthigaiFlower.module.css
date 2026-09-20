@@ -1,0 +1,44 @@
+.flower { display: block; max-width: 100%; height: auto; overflow: visible; }
+.plant {
+  transform-box: view-box;
+  transform-origin: 150px 442px;
+  animation: sway 5.8s ease-in-out -1.8s infinite alternate;
+}
+.petal {
+  transform-box: view-box;
+  transform-origin: 102px 112px;
+  animation: petal 7s ease-in-out infinite alternate;
+}
+.stamen {
+  transform-box: view-box;
+  transform-origin: 102px 112px;
+  animation: filament 8s ease-in-out infinite alternate;
+}
+.flower:not([data-running='true']) * { animation-play-state: paused; }
+.flower[data-still='true'] * { animation: none; }
+@keyframes sway {
+  from { transform: rotate(-1.8deg); }
+  to { transform: rotate(2.1deg); }
+}
+@keyframes petal {
+  from { transform: rotate(-2.8deg) scaleX(0.97); }
+  to { transform: rotate(2.6deg) scaleX(1.03); }
+}
+@keyframes filament {
+  from { transform: rotate(-3.5deg); }
+  to { transform: rotate(3.2deg); }
+}
+
+.leaf, .bud {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: leaf 4.7s ease-in-out -1.2s infinite alternate;
+}
+@keyframes leaf {
+  from { transform: rotate(-2deg); }
+  to { transform: rotate(2.6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flower * { animation: none; }
+}

@@ -1,0 +1,92 @@
+.opening {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 82% 40%, rgb(var(--c-blood) / .1), transparent 62%);
+}
+.scene { position: relative; width: 100%; max-width: none; margin-left: auto; }
+.imageWindow {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  /* Reveal the actual page background at every edge, including in paper mode.
+     Keep the mask stationary while the photograph moves inside it. */
+  --edge-fade: linear-gradient(to right, transparent, #000 46%, #000 78%, transparent),
+    linear-gradient(to bottom, transparent, #000 23%, #000 66%, transparent);
+  -webkit-mask-image: var(--edge-fade);
+  mask-image: var(--edge-fade);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.imageWindow::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to right, rgb(var(--c-night) / .8), rgb(var(--c-night) / .65) 43%, transparent 64%);
+}
+:global([data-theme="paper"]) .imageWindow::after {
+  background: linear-gradient(to right, rgb(var(--c-night)), rgb(var(--c-night) / .94) 43%, rgb(var(--c-night) / .8) 52%, transparent 67%);
+}
+.photograph { display: block; width: 100%; height: 100%; object-fit: cover; animation: breathe 24s ease-in-out infinite alternate; }
+.scene figcaption { padding-top: 12px; }
+.arrival { animation: arrive 1.2s cubic-bezier(.22, 1, .36, 1) both; }
+.scene:not([data-running='true']) * { animation-play-state: paused; }
+.scene[data-still='true'] * { animation: none; }
+.memoryTitle { position: relative; padding: 12px 0 30px; }
+.title { position: relative; text-wrap: balance; line-height: 1.05; letter-spacing: -.035em; }
+.titlePrelude { display: block; font-size: clamp(30px, 3.4vw, 50px); }
+.absence { display: block; margin: 14px 0 0 6%; font-size: clamp(36px, 4.3vw, 64px); color: rgb(var(--c-ember)); }
+.memoryThread { position: absolute; top: 100px; bottom: 4px; left: -10px; width: 1px; background: linear-gradient(rgb(var(--c-blood)), rgb(var(--c-blood) / .15)); transform: rotate(5deg); transform-origin: top; }
+.readingNote { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 70px; align-items: center; margin-top: 6px; }
+.readingNote > p { grid-row: span 2; max-width: 64ch; }
+.readingNote .enter { margin-top: 0; }
+.enter { display: flex; align-items: center; gap: 18px; width: fit-content; min-height: 62px; margin-top: 22px; color: rgb(var(--c-bone)); }
+.entryArrow { display: grid; place-items: center; width: 42px; height: 52px; border: 1px solid rgb(var(--c-blood)); border-radius: 50% 50% 0 0; color: rgb(var(--c-ember)); font-size: 23px; transition: transform .3s ease, background .3s ease; }
+.enter:hover .entryArrow { transform: translateY(4px); background: rgb(var(--c-blood) / .14); }
+.enter:focus-visible { outline: 1px solid rgb(var(--c-ember)); outline-offset: 6px; }
+:global(html[lang="ta"]) .titlePrelude { font-size: clamp(25px, 3vw, 44px); }
+:global(html[lang="ta"]) .absence { font-size: clamp(38px, 4.5vw, 66px); }
+@keyframes breathe { from { transform: scale(1); } to { transform: scale(1.045) translateY(-.5%); } }
+@keyframes arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .arrival, .photograph { animation: none; } }
+:global([data-theme="paper"]) .absence { color: rgb(var(--c-ember)); }
+@media (prefers-reduced-motion: reduce) { .enter:hover .entryArrow { transform: none; } }
+
+.panorama { position: relative; display: grid; align-items: center; }
+.openingCopy { position: relative; z-index: 2; grid-area: 1 / 1; width: 57%; padding: 24px 0 24px 5%; }
+.panoramaImage { grid-area: 1 / 1; min-width: 0; }
+@media (max-width: 767px) {
+  .panorama { margin-inline: -24px; min-height: 550px; }
+  .openingCopy {
+    grid-area: 1 / 1;
+    align-self: end;
+    width: 100%;
+    min-width: 0;
+    padding: 260px 24px 62px;
+  }
+  .openingCopy > p { max-width: none; margin-bottom: 22px; font-size: 8px; letter-spacing: .13em; color: rgb(var(--c-bone-dim)); }
+  .panoramaImage { position: absolute; inset: 0; margin: 0; }
+  .scene { height: 100%; }
+  .imageWindow {
+    height: 100%;
+    aspect-ratio: auto;
+    --edge-fade: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+      linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
+  }
+  .imageWindow::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to bottom, transparent 15%, rgb(var(--c-night) / .35) 35%, rgb(var(--c-night) / .92) 66%, rgb(var(--c-night)) 96%);
+  }
+  :global([data-theme="paper"]) .imageWindow::after { background: linear-gradient(to bottom, transparent 15%, rgb(var(--c-night) / .5) 35%, rgb(var(--c-night) / .96) 66%, rgb(var(--c-night)) 96%); }
+  .photograph { object-position: 64% center; }
+  .scene figcaption { position: absolute; bottom: 14px; right: 24px; left: 24px; padding: 0; font-size: 7px; }
+  .memoryTitle { padding: 0; }
+  .title { line-height: 1.12; letter-spacing: -.025em; }
+  .titlePrelude { font-size: clamp(28px, 7.6vw, 40px); }
+  .absence { margin: 8px 0 0; max-width: 15ch; font-size: clamp(36px, 9vw, 48px); }
+  .memoryThread { display: none; }
+  .readingNote { display: block; margin-top: 20px; }
+  .readingNote > p { font-size: 15px; line-height: 1.8; }
+  .readingNote .enter { margin-top: 20px; min-height: 56px; }
+  .entryArrow { flex-shrink: 0; }
+  :global(html[lang="ta"]) .titlePrelude { font-size: 25px; }
+  :global(html[lang="ta"]) .absence { font-size: clamp(28px, 7vw, 38px); line-height: 1.5; }
+}

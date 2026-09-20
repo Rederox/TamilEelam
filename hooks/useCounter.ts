@@ -11,6 +11,7 @@ export function useCounter(target: number, duration = 2000) {
     const el = ref.current
     if (!el) return
 
+    let frame = 0
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !started.current) {
@@ -21,9 +22,9 @@ export function useCounter(target: number, duration = 2000) {
             const progress = Math.min(elapsed / duration, 1)
             const eased = 1 - Math.pow(1 - progress, 3)
             setValue(Math.floor(eased * target))
-            if (progress < 1) requestAnimationFrame(step)
+            if (progress < 1) frame = requestAnimationFrame(step)
           }
-          requestAnimationFrame(step)
+          frame = requestAnimationFrame(step)
           observer.disconnect()
         }
       },
@@ -31,7 +32,7 @@ export function useCounter(target: number, duration = 2000) {
     )
 
     observer.observe(el)
-    return () => observer.disconnect()
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); started.current = false }
   }, [target, duration])
 
   return { value, ref }

@@ -1,0 +1,61 @@
+.trees {
+  position: absolute;
+  inset: auto 0 0;
+  height: 36svh;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  color: #100d0a;
+  fill: currentColor;
+}
+
+.palmPlace {
+  position: absolute;
+  bottom: -1px;
+  width: auto;
+  aspect-ratio: 3 / 5;
+  max-height: 280px;
+  transform: translateX(-50%);
+}
+
+.palm { width: 100%; height: 100%; overflow: visible; }
+.distant { color: #201810; }
+.fronds {
+  transform-origin: 104px 86px;
+  animation: fronds 9s ease-in-out infinite alternate;
+  animation-delay: inherit;
+}
+.palmPlace:nth-child(2) .fronds { animation-delay: -3s; animation-duration: 11s; }
+.palmPlace:nth-child(3) .fronds { animation-delay: -6s; }
+.banyan {
+  position: absolute;
+  bottom: -2px;
+  left: 60%;
+  height: min(33svh, 310px);
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+}
+.canopy {
+  transform-origin: 330px 245px;
+  animation: canopy 13s ease-in-out infinite alternate;
+}
+.trees:not([data-active='true']) *,
+.trees[data-still='true'] * { animation-play-state: paused; }
+
+@keyframes fronds {
+  from { transform: rotate(-0.7deg); }
+  to { transform: rotate(0.9deg); }
+}
+@keyframes canopy {
+  from { transform: rotate(-0.2deg); }
+  to { transform: rotate(0.25deg); }
+}
+@media (max-width: 639px) {
+  .palmPlace:nth-child(2), .palmPlace:nth-child(4) { display: none; }
+  .palmPlace:nth-child(3) { left: 93% !important; height: 24svh !important; }
+  .banyan { left: 57%; height: 25svh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fronds, .canopy { animation: none; }
+}

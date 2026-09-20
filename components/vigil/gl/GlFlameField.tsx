@@ -1,5 +1,7 @@
 'use client'
 
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+
 import { useEffect, useRef } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { isSmallScreen, mountGL, prefersReducedMotion } from './mount'
@@ -75,9 +77,11 @@ export default function GlFlameField({ lit }: { lit: boolean }) {
   const { theme } = useTheme()
   const paper = theme === 'paper'
 
+  const stillness = useReducedMotion()
+
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || prefersReducedMotion()) return
+    if (!canvas || stillness) return
 
     return mountGL(canvas, (three) => {
       const scene = new three.Scene()
@@ -154,10 +158,11 @@ export default function GlFlameField({ lit }: { lit: boolean }) {
         },
       }
     })
-  }, [paper])
+  }, [paper, stillness])
 
   return (
     <canvas
+      key={`${theme}-${stillness}`}
       ref={canvasRef}
       className="pointer-events-none absolute inset-0 z-[1] h-full w-full"
       aria-hidden="true"

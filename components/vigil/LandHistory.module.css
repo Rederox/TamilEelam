@@ -1,0 +1,35 @@
+/* The plant and heading share one composition instead of stacking. */
+.intro {
+  position: relative;
+  min-width: 0;
+  min-height: 380px;
+  isolation: isolate;
+}
+.plant {
+  position: absolute;
+  top: -14px;
+  right: -20px;
+  width: 280px;
+  pointer-events: none;
+  z-index: -1;
+}
+.copy {
+  position: relative;
+  padding-top: 132px;
+  padding-bottom: 26px;
+  text-shadow: 0 2px 12px rgb(var(--c-night)), 0 0 5px rgb(var(--c-night));
+}
+.title { max-width: 8ch; }
+.description { max-width: 20ch; }
+
+@media (min-width: 1024px) {
+  .intro { position: sticky; top: 112px; min-height: 440px; }
+  .plant { top: -8px; right: -36px; width: 320px; }
+  .copy { padding-top: 154px; }
+}
+@media (max-width: 639px) {
+  .intro { min-height: 335px; }
+  .plant { right: -12px; width: 245px; }
+  .copy { padding-top: 117px; }
+  .description { max-width: 19ch; }
+}

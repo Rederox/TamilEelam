@@ -58,9 +58,27 @@ export default function GhostWord({
       }
     }
 
+    // fit() forces layout twice. There is one of these behind every chapter,
+    // so a raw resize listener would thrash layout a couple of dozen times
+    // per drag of the window edge.
+    let raf = 0
+    const onResize = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        fit()
+      })
+    }
+
+    let mounted = true
     fit()
-    window.addEventListener('resize', fit)
-    return () => window.removeEventListener('resize', fit)
+    document.fonts.ready.then(() => { if (mounted) onResize() })
+    window.addEventListener('resize', onResize)
+    return () => {
+      mounted = false
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
   }, [initial, fill])
 
   return (

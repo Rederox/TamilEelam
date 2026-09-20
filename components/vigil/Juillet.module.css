@@ -1,0 +1,96 @@
+.chapter {
+  isolation: isolate;
+  background-image: radial-gradient(ellipse at 85% 35%, rgb(var(--c-blood) / 0.09), transparent 55%);
+}
+
+.yearReveal {
+  max-width: 100%;
+}
+
+.yearSurface {
+  isolation: isolate;
+}
+
+.yearSurface[data-still='true'] {
+  animation: none !important;
+}
+
+.yearSurface[data-still='true'] :global(.bullet) {
+  animation: none !important;
+  opacity: 0.92;
+}
+
+.yearSurface[data-still='true'] :global(.bullet)::after,
+.yearSurface[data-still='true'] :global(.bullet-shock),
+.yearSurface[data-still='true'] :global(.bullet-smoke),
+.yearSurface[data-still='true'] :global(.bullet-sparks) {
+  display: none;
+}
+
+/* Opacity and transform settle before the first impact. */
+.content :global(.reveal),
+.yearSurface {
+  transition-duration: 950ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.figure > :first-child {
+  font-size: clamp(64px, 8vw, 116px);
+  white-space: nowrap;
+}
+
+.figure > :last-child {
+  max-width: 34ch;
+  line-height: 1.7;
+}
+
+.yearSurface:global(.in) .impactSurface {
+  animation: settle 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.95s both;
+}
+
+.yearSurface:global(.in) :global(.bullet) {
+  animation-name: puncture;
+  animation-duration: 420ms;
+}
+
+.yearSurface :global(.bullet)::after {
+  background: radial-gradient(circle, rgb(var(--c-ember) / 0.35), transparent 65%);
+  inset: -20%;
+}
+
+.yearSurface :global(.bullet-shock),
+.yearSurface :global(.bullet-sparks) {
+  display: none;
+}
+
+/* A sequence resumes where it stopped if the reader scrolls away. */
+.yearReveal[data-active='false'] *,
+.yearReveal[data-active='false'] *::after {
+  animation-play-state: paused !important;
+}
+
+.yearSurface[data-still='true'] .impactSurface {
+  animation: none !important;
+}
+
+@keyframes puncture {
+  from { opacity: 0; transform: scale(1.25); }
+  35% { opacity: 0.92; }
+  to { opacity: 0.92; transform: scale(1); }
+}
+
+@keyframes settle {
+  0%, 10%, 23%, 36%, 52%, 100% { transform: translate3d(0, 0, 0); }
+  2% { transform: translate3d(1.2px, -0.8px, 0); }
+  6% { transform: translate3d(-0.5px, 0.3px, 0); }
+  14.5% { transform: translate3d(-1px, 0.6px, 0); }
+  18% { transform: translate3d(0.4px, -0.3px, 0); }
+  27% { transform: translate3d(0.8px, -0.5px, 0); }
+  31% { transform: translate3d(-0.3px, 0.2px, 0); }
+  39.5% { transform: translate3d(-0.6px, 0.4px, 0); }
+  44% { transform: translate3d(0.2px, -0.1px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yearSurface:global(.in) .impactSurface { animation: none; }
+}

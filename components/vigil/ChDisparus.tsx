@@ -2,10 +2,12 @@
 
 import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
+import { experience } from '@/data/experience'
 import { vigil } from '@/data/narrative'
 import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
-import { ChBody, Quote } from './blocks'
+import ChapterEnd from './ChapterEnd'
+import { ChBody } from './blocks'
 import Flame from './Flame'
 
 const FRAME_COUNT = 24
@@ -23,27 +25,23 @@ export default function ChDisparus() {
       <ChapterOpen id="disparus" lede={v.disparusLede} />
       <div ref={ref as React.RefObject<HTMLDivElement>}>
         <ChBody>
+          <div className="reveal mb-12 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <h3 className="lang-title max-w-[17ch] font-display text-[clamp(32px,4.5vw,58px)] font-light leading-tight">{experience.absence[lang]}</h3>
+            <p className="text-lg italic text-ash">{experience.waiting[lang]}</p>
+          </div>
           <div
-            className="reveal grid max-w-[900px] grid-cols-[repeat(auto-fill,minmax(72px,1fr))] gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(96px,1fr))] sm:gap-3.5"
+            className="reveal grid max-w-[1200px] grid-cols-4 gap-4 py-6 sm:grid-cols-6 sm:gap-7"
             role="img"
             aria-label={v.disparusFrames}
           >
             {Array.from({ length: FRAME_COUNT }, (_, i) => (
               <div
                 key={i}
-                className="relative aspect-[3/4] border border-bone/15 bg-bone/[0.015] transition-colors duration-500 hover:border-flame"
+                className="empty-frame relative aspect-[3/4] border border-bone/25 bg-bone/[0.025] p-2"
                 style={{ opacity: 0.4 + ((i * 7) % 10) * 0.06 }}
               >
-                {/* faceless silhouette */}
-                <span
-                  aria-hidden="true"
-                  className="absolute bottom-[18%] left-1/2 h-[52%] w-[46%] -translate-x-1/2 blur-[1px]"
-                  style={{
-                    background:
-                      'radial-gradient(circle at 50% 18%, rgb(var(--c-ash)/0.24) 0 22%, transparent 23%), radial-gradient(80% 55% at 50% 88%, rgb(var(--c-ash)/0.20), transparent 70%)',
-                  }}
-                />
-                <span className="absolute right-2 top-1.5 font-mono text-[11px] text-ash-dim">?</span>
+                <span aria-hidden="true" className="absolute inset-2 border border-bone/10" />
+                <span aria-hidden="true" className="absolute bottom-4 left-1/2 h-px w-5 -translate-x-1/2 bg-bone/20" />
               </div>
             ))}
           </div>
@@ -52,13 +50,15 @@ export default function ChDisparus() {
           <div className="reveal d2 mt-16 grid max-w-[820px] grid-cols-1 items-start gap-8 border-t border-bone/15 pt-12 sm:grid-cols-[auto_1fr]">
             <Flame size={22} />
             <div>
-              <Quote text={t('t2-quote')} author={`${t('t2-author')} · ${t('t2-role')}`} />
+              <p className="font-display text-2xl italic leading-relaxed text-bone">{t('t2-quote')}</p>
+              <p className="mt-4 font-mono text-[9px] uppercase tracking-wide text-ash">{t('t2-author')} · {t('t2-role')}</p>
               <p className="mt-6 max-w-[56ch] text-[15px] leading-[1.75] text-bone-dim">{v.disparusVigil}</p>
               <p className="mt-4 max-w-[56ch] text-[15px] leading-[1.75] text-bone-dim">{disappeared.detail[lang]}</p>
             </div>
           </div>
         </ChBody>
       </div>
+      <ChapterEnd id="disparus" />
     </section>
   )
 }
