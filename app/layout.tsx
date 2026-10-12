@@ -4,12 +4,12 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import { ThemeProvider, themeBootScript } from '@/context/ThemeContext'
 
 export const metadata: Metadata = {
-  title: 'Tamil Eelam — தமிழீழம் | La Veillée',
+  title: 'Tamil Eelam — தமிழீழம் | La Veillée, bientôt',
   description:
-    "Une expérience immersive dédiée à l'histoire, la souffrance et la mémoire du peuple tamoul d'Eelam — pour que nos générations, et les suivantes, la portent plus loin.",
+    "La veillée commence bientôt : un récit immersif dédié à l'histoire et à la mémoire du peuple tamoul d'Eelam, de la terre à l'exil, écrit pour être transmis.",
   openGraph: {
     title: 'Tamil Eelam — La Veillée · விழிப்பு',
-    description: 'Une histoire qu\'on a essayé d\'effacer. Celle-ci refuse.',
+    description: 'La veillée commence bientôt. Une histoire qu\'on a essayé d\'effacer. Celle-ci refuse.',
     locale: 'fr_FR',
   },
 }

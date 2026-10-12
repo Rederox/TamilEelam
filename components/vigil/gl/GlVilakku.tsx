@@ -166,6 +166,19 @@ void main() {
 `
 
 /**
+ * Where the eye stands. The vigil looks at its lamps from just above the rim;
+ * a lamp set down on a floor is looked down on, from further back.
+ */
+export interface LampView {
+  /** degrees below the horizontal */
+  pitch: number
+  /** how far back, in lamp-widths */
+  distance: number
+  /** vertical field of view, in degrees */
+  fov: number
+}
+
+/**
  * An அகல் விளக்கு, turned in 3D, where a bare flame used to float.
  *
  * The flame itself is still drawn by the shared <FlameLayer>; this is the
@@ -177,9 +190,11 @@ void main() {
  */
 export default function GlVilakku({
   onWick,
+  view,
   className = '',
 }: {
   onWick?: (x: number, y: number) => void
+  view?: LampView
   className?: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -189,6 +204,7 @@ export default function GlVilakku({
   const paper = theme === 'paper'
 
   const stillness = useReducedMotion()
+  const { pitch, distance, fov } = view ?? {}
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -196,9 +212,14 @@ export default function GlVilakku({
 
     return mountGL(canvas, (three) => {
       const scene = new three.Scene()
-      const camera = new three.PerspectiveCamera(30, 1, 0.1, 40)
-      // just above the rim, so the bowl reads as a bowl and the oil shows
-      camera.position.set(0, 0.60, 1.62)
+      const camera = new three.PerspectiveCamera(fov ?? 30, 1, 0.1, 40)
+      if (pitch === undefined || distance === undefined) {
+        // just above the rim, so the bowl reads as a bowl and the oil shows
+        camera.position.set(0, 0.60, 1.62)
+      } else {
+        const a = (pitch * Math.PI) / 180
+        camera.position.set(0, 0.10 + distance * Math.sin(a), distance * Math.cos(a))
+      }
       camera.lookAt(0, 0.10, 0)
 
       const group = new three.Group()
@@ -318,7 +339,7 @@ export default function GlVilakku({
         },
       }
     })
-  }, [paper, stillness])
+  }, [paper, stillness, pitch, distance, fov])
 
   return (
     <canvas

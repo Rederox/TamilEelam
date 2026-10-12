@@ -143,7 +143,16 @@ const MAX_FLAMES = 20
  * flame elements currently sit and draws a shader flame into each rectangle,
  * so flames stay welded to the layout while they scroll.
  */
-export default function FlameLayer() {
+export default function FlameLayer({
+  /**
+   * Flames that only ever add light. By default a flame also covers a little
+   * of what is behind it, which never shows against the dark; in front of
+   * something bright (the lit oil of a lamp seen from above) it would dim it.
+   */
+  emissive = false,
+}: {
+  emissive?: boolean
+} = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { theme } = useTheme()
   const paper = theme === 'paper'
@@ -180,6 +189,15 @@ export default function FlameLayer() {
             // its winding: without both sides it would be culled away
             side: three.DoubleSide,
             blending: paper ? three.NormalBlending : three.AdditiveBlending,
+            // colour is summed and the layer's own alpha left untouched, so
+            // the page behind keeps all of its light
+            ...(emissive && !paper && {
+              blending: three.CustomBlending,
+              blendSrc: three.OneFactor,
+              blendDst: three.OneFactor,
+              blendSrcAlpha: three.ZeroFactor,
+              blendDstAlpha: three.OneFactor,
+            }),
             uniforms: {
               uTime: { value: 0 },
               uSeed: { value: Math.random() },
@@ -265,7 +283,7 @@ export default function FlameLayer() {
       stopTracking()
       setFlameGL(false)
     }
-  }, [paper, stillness])
+  }, [paper, stillness, emissive])
 
   return (
     <canvas

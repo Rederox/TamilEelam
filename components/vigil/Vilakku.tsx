@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import Flame from './Flame'
-import GlVilakku from './gl/GlVilakku'
+import GlVilakku, { type LampView } from './gl/GlVilakku'
 
 /**
  * விளக்கு — the lamp itself, not just its flame.
@@ -20,10 +20,16 @@ export default function Vilakku({
   /** width of the lamp in px; a diya is wide and low, so height follows */
   size = 240,
   lit = true,
+  view,
+  flame = 0.12,
   className = '',
 }: {
   size?: number
   lit?: boolean
+  /** where the eye stands; by default, just above the rim */
+  view?: LampView
+  /** width of the flame, as a share of the lamp's */
+  flame?: number
   className?: string
 }) {
   const [wick, setWick] = useState<{ x: number; y: number } | null>(null)
@@ -51,7 +57,7 @@ export default function Vilakku({
       className={`relative ${className}`}
       style={{ width: size, height: size * 0.78 }}
     >
-      <GlVilakku onWick={onWick} />
+      <GlVilakku onWick={onWick} view={view} />
       {(!wick || reduced) && <svg aria-hidden="true" viewBox="0 0 240 187" className="absolute inset-0 h-full w-full text-gold/70"><path d="M51 99 Q120 162 189 99 Q120 116 51 99Z" fill="currentColor" opacity=".45"/><ellipse cx="120" cy="100" rx="69" ry="12" fill="none" stroke="currentColor"/><path d="M115 135 L125 135 L130 159 L110 159Z M95 162 Q120 153 145 162" fill="currentColor" opacity=".5"/></svg>}
 
       {/* Stood on the spout once the lamp reports where that is. Until then it
@@ -63,7 +69,7 @@ export default function Vilakku({
           top: `${(reduced ? 0.5 : wick?.y ?? 0.5) * 100}%`,
         }}
       >
-        <Flame size={Math.round(size * 0.12)} lit={lit} />
+        <Flame size={Math.round(size * flame)} lit={lit} />
       </div>
     </div>
   )
