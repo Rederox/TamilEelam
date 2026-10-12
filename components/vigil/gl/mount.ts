@@ -1,4 +1,5 @@
 import type * as THREE from 'three'
+import { prefersReducedMotion } from '@/lib/motion'
 
 export interface GLBuild {
   scene: THREE.Scene
@@ -25,6 +26,33 @@ export type GLBuilder = (three: typeof THREE, canvas: HTMLCanvasElement) => GLBu
  * Calls onFail when WebGL cannot start so the caller can keep its 2D fallback.
  */
 export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: () => void): () => void {
+  // Allocate contexts only near the viewport, after the opening is readable.
+  // The inner lifecycle pauses rendering again when the chapter leaves view.
+  let near = false
+  let unmount: (() => void) | null = null
+  const sync = () => {
+    const wanted = near && !document.hidden && !prefersReducedMotion()
+      && document.documentElement.dataset.loading !== 'true'
+    if (wanted && !unmount) unmount = mountVisibleGL(canvas, build, onFail)
+  }
+  const observer = new IntersectionObserver(([entry]) => {
+    near = entry.isIntersecting
+    sync()
+  }, { rootMargin: '240px' })
+  observer.observe(canvas)
+  window.addEventListener('vigil-ready', sync)
+  window.addEventListener('vigil-reading-change', sync)
+  document.addEventListener('visibilitychange', sync)
+  return () => {
+    observer.disconnect()
+    window.removeEventListener('vigil-ready', sync)
+    window.removeEventListener('vigil-reading-change', sync)
+    document.removeEventListener('visibilitychange', sync)
+    unmount?.()
+  }
+}
+
+function mountVisibleGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: () => void): () => void {
   let disposed = false
   let teardown: (() => void) | null = null
 
@@ -33,14 +61,15 @@ export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
     try {
       three = await import('three')
     } catch {
-      onFail?.()
+      if (!disposed) onFail?.()
       return
     }
     if (disposed) return
 
     let renderer: THREE.WebGLRenderer
     try {
-      renderer = new three.WebGLRenderer({ canvas, alpha: true, antialias: false })
+      renderer = new three.WebGLRenderer({ canvas, alpha: true, antialias: false,
+        powerPreference: isConstrainedDevice() ? 'low-power' : 'default' })
       // Empty layers can call clear() before their first render(). Initialize
       // the clear alpha explicitly: WebKit otherwise paints an opaque black
       // surface over the document until this layer has something to render.
@@ -61,12 +90,26 @@ export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
 
     const timer = new three.Timer()
 
-    const dprCap = () => Math.min(window.devicePixelRatio || 1, 1.75)
+    // Pixel cost grows quadratically with DPR; phones keep the same scene at 1x.
+    const dprCap = (w: number, h: number) => {
+      const constrained = isConstrainedDevice()
+      // Chapter canvases can be several screens tall. Bound both total memory
+      // and texture dimensions, including on older mobile GPUs.
+      return Math.min(
+        window.devicePixelRatio || 1,
+        constrained ? 1 : 1.75,
+        Math.sqrt((constrained ? 2_000_000 : 4_000_000) / (w * h)),
+        Math.min(renderer.capabilities.maxTextureSize, 4096) / Math.max(w, h),
+      )
+    }
+    let frameInterval = 1000 / (isConstrainedDevice() ? 30 : 60)
+    let lastFrame = -Infinity
     const resize = () => {
       const w = canvas.clientWidth
       const h = canvas.clientHeight
       if (!w || !h) return
-      const dpr = dprCap()
+      const dpr = dprCap(w, h)
+      frameInterval = 1000 / (isConstrainedDevice() ? 30 : 60)
       renderer.setPixelRatio(dpr)
       renderer.setSize(w, h, false)
       const cam = built.camera as THREE.PerspectiveCamera
@@ -78,8 +121,11 @@ export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
     }
 
     let cleared = false
-    const frame = () => {
+    const frame = (now: number) => {
       if (!running) return
+      raf = requestAnimationFrame(frame)
+      if (now - lastFrame < frameInterval - 1) return
+      lastFrame = now
       timer.update()
       const t = timer.getElapsed()
       const dt = prev < 0 ? 0.016 : Math.min(t - prev, 0.1)
@@ -96,7 +142,6 @@ export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
         cleared = false
         renderer.render(built.scene, built.camera)
       }
-      raf = requestAnimationFrame(frame)
     }
 
     const setRunning = (on: boolean) => {
@@ -104,8 +149,9 @@ export function mountGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
       running = on
       if (on) {
         prev = -1
+        lastFrame = -Infinity
         resize()
-        frame()
+        raf = requestAnimationFrame(frame)
       } else {
         cancelAnimationFrame(raf)
       }
@@ -239,4 +285,11 @@ export function createBoxCache(refreshMs = 500) {
 /** Coarse heuristic to halve particle budgets on phones. */
 export function isSmallScreen(): boolean {
   return typeof window !== 'undefined' && (window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches)
+}
+
+function isConstrainedDevice(): boolean {
+  const device = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } }
+  return isSmallScreen() || (device.hardwareConcurrency > 0 && device.hardwareConcurrency <= 4)
+    || (device.deviceMemory !== undefined && device.deviceMemory <= 4)
+    || device.connection?.saveData === true
 }

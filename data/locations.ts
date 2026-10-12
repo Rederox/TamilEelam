@@ -184,9 +184,9 @@ export const locations: Record<LocationKey, Location> = {
     },
     "tamil": "புத்தளம் · Puttalam",
     "desc": {
-      "fr": "Sur la côte Ouest, Puttalam a accueilli des musulmans expulsés du Nord par le LTTE en 1990. Leur déplacement fait partie de l’histoire des civils que la guerre a privés de leur foyer.",
-      "en": "On the western coast, Puttalam received Muslims expelled from the North by the LTTE in 1990. Their displacement is part of the history of civilians deprived of home by war.",
-      "ta": "மேற்குக் கரையில் புத்தளம், 1990-இல் புலிகளால் வடக்கிலிருந்து வெளியேற்றப்பட்ட முஸ்லிம்களைத் தங்கவைத்தது. போர் வீடுகளைப் பறித்த பொதுமக்களின் வரலாற்றில் அவர்களின் இடப்பெயர்வும் அடங்கும்."
+      "fr": "Sur la côte Ouest, Puttalam a accueilli des musulmans déplacés du Nord en 1990. Leur déplacement fait partie de l’histoire des civils que la guerre a privés de leur foyer.",
+      "en": "On the western coast, Puttalam received Muslims displaced from the North in 1990. Their displacement is part of the history of civilians deprived of home by war.",
+      "ta": "மேற்குக் கரையில் புத்தளம், 1990-இல் வடக்கிலிருந்து இடம்பெயர்ந்த முஸ்லிம்களைத் தங்கவைத்தது. போர் வீடுகளைப் பறித்த பொதுமக்களின் வரலாற்றில் அவர்களின் இடப்பெயர்வும் அடங்கும்."
     },
     "coords": [
       79.841,

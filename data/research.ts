@@ -4,6 +4,10 @@ export type Localized = Record<Lang, string>
 const tr = (fr: string, en: string, ta: string): Localized => ({ fr, en, ta })
 
 export const sources = {
+  ceasefire: { year: '2002', institution: 'Norwegian Ministry of Foreign Affairs · USIP archives', title: 'Announcement of Sri Lanka ceasefire — 22 February 2002', href: 'https://www.usip.org/sites/default/files/file/resources/collections/peace_agreements/sri_lanka_norwaypr02222002.pdf' },
+  prabhakaran: { year: '2009', institution: 'The Independent', title: 'Velupillai Prabhakaran: Leader of the Tamil Tigers — biographical dates', href: 'https://www.independent.co.uk/news/obituaries/velupillai-prabhakaran-leader-of-the-tamil-tigers-1687239.html' },
+  conflict: { year: '2009', institution: 'Council on Foreign Relations', title: 'The Sri Lankan Conflict', href: 'https://www.cfr.org/backgrounders/sri-lankan-conflict' },
+  memorialSites: { year: '2016', institution: 'PEARL · Tamil human-rights advocacy organisation', title: 'Erasing the Past: Repression of Memorialization in Sri Lanka — pp. 13–15, 21–25', href: 'https://pearlaction.org/wp-content/uploads/2022/08/pearl-erasing-the-past-nov-1-2016-report-b-1.pdf' },
   history: { year: '1990', institution: 'Library of Congress', title: 'Sri Lanka: a country study', href: 'https://www.loc.gov/item/89600372/' },
   reforms: { year: '1833', institution: 'Sri Lanka National Archives', title: 'The First Reforms, 1833', href: 'https://www.archives.gov.lk/English/online-exhibits/path-to-freedom/reforms' },
   citizenship: { year: '2004', institution: 'UNHCR', title: 'Sri Lanka makes citizens out of stateless tea pickers', href: 'https://www.unhcr.org/us/news/stories/feature-sri-lanka-makes-citizens-out-stateless-tea-pickers' },
@@ -27,6 +31,8 @@ export type SourceId = keyof typeof sources
 export const chapterSources: Record<string, SourceId[]> = {
   terre: ['history', 'reforms'], etau: ['reforms', 'citizenship', 'language'],
   feu: ['library', 'oisl'], promesse: ['resolution'], juillet: ['oisl', 'hrw'],
+  prabhakaran: ['prabhakaran', 'language', 'resolution', 'conflict', 'ceasefire'],
+  maaveerar: ['memorialArchive', 'memorialSites', 'maaveerar', 'remembrance'],
   mullivaikkal: ['panel', 'oisl', 'review', 'kanji', 'canada'],
   disparus: ['disappearances', 'hrw'], patrie: ['history', 'oisl'],
   symboles: ['memorialArchive', 'maaveerar'], aube: ['remembrance', 'memorialArchive', 'maaveerar', 'canada', 'uk'],

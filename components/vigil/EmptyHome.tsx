@@ -23,7 +23,7 @@ export default function EmptyHome({ caption }: { caption: string }) {
   return (
     <figure ref={ref} className={styles.scene} data-still={still}>
       <div className={styles.imageWindow}>
-        <Image src="/images/prologue/empty-home-landscape.png" alt="" width={1672} height={941}
+        <Image data-opening-image src="/images/prologue/empty-home-landscape.webp" alt="" width={1672} height={941}
           priority sizes="(min-width: 1560px) 1280px, 90vw" className={styles.photograph} />
       </div>
       <figcaption className="mt-1 text-right font-mono text-[8px] uppercase leading-relaxed tracking-[0.16em] text-ash">{caption}</figcaption>

@@ -5,6 +5,7 @@ import { events } from '@/data/events'
 import { vigil } from '@/data/narrative'
 import { experience } from '@/data/experience'
 import { sources } from '@/data/research'
+import { usePresence } from '@/hooks/usePresence'
 import { useReveal } from '@/hooks/useReveal'
 import Air from './Air'
 import ChapterOpen from './ChapterOpen'
@@ -24,9 +25,11 @@ export default function ChAube() {
   const { lang } = useLang()
   const v = vigil[lang]
   const ref = useReveal()
+  // the ambient sound listens for this: birds and a far bell
+  const dawnRef = usePresence<HTMLElement>('dawn', 1)
 
   return (
-    <section id="aube" className="relative bg-gradient-to-b from-night via-[rgb(var(--ch-dawn-1))] to-[rgb(var(--ch-dawn-2))]">
+    <section id="aube" ref={dawnRef} className="relative bg-gradient-to-b from-night via-[rgb(var(--ch-dawn-1))] to-[rgb(var(--ch-dawn-2))]">
       <Air kind="rake" intensity={0.8} warmth={0.95} />
       <div className="relative z-[2]">
         <ChapterOpen id="aube" lede={v.aubeLede} />

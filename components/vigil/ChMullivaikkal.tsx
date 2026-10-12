@@ -6,6 +6,8 @@ import { mvScenes } from '@/data/narrative'
 import { researchCopy, sources, type SourceId } from '@/data/research'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { clearOrdeal, setOrdeal } from '@/lib/ordeal'
+import { clearPresence, setPresence } from '@/lib/presence'
+import { proximity } from '@/hooks/usePresence'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import MullivaikkalScenery from './MullivaikkalScenery'
@@ -19,6 +21,10 @@ const labels = {
   ta: ['சுருங்கும் நிலம்', 'அடைக்கலம்', 'எறிகணைகளின் கீழ்', 'உயிர்கள்', 'பகிர்வு', 'மௌனம்', 'முடிவுறாத கணக்கு', 'பெயரிடல்', 'தடயம்', 'நினைவு'],
 }
 const evidence: (SourceId | null)[] = ['panel', 'remembrance', 'oisl', null, 'kanji', 'review', 'panel', 'canada', null, 'kanji']
+
+/** What the reader hears in each scene, 0..1: the sea all the way through, drawn almost to nothing for the silence; the guns only under the shells. */
+const seaByScene = [0.5, 0.45, 0.8, 0.4, 0.4, 0.08, 0.4, 0.35, 0.4, 0.55]
+const shellsByScene = [0, 0.2, 1, 0.3, 0, 0, 0, 0, 0, 0]
 
 /** Every scene is real document content. A sticky sea accompanies it; scrolling never hides the text. */
 export default function ChMullivaikkal() {
@@ -35,6 +41,16 @@ export default function ChMullivaikkal() {
     const el = track.current
     if (!el) return
     const key = Symbol('mullivaikkal')
+    let raf = 0
+    let inView = false
+    // the sea and the guns follow the scroll through the whole sequence, and the scene sets how loud they are
+    const sync = () => {
+      raf = 0
+      const near = reduced || !inView ? 0 : proximity(el)
+      setPresence('sea', key, near * seaByScene[chapterScene.current])
+      setPresence('shells', key, near * shellsByScene[chapterScene.current])
+    }
+    const onScroll = () => { if (inView && !raf) raf = requestAnimationFrame(sync) }
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue
@@ -43,15 +59,25 @@ export default function ChMullivaikkal() {
         chapterScene.current = index
         agitation.current = !reduced && index === 2 ? 1 : 0
         setOrdeal(key, reduced ? 0 : index === 2 ? 0.85 : index === 6 || index === 7 ? 0.5 : 0.15)
+        sync()
       }
     }, { rootMargin: '-55% 0px -44% 0px', threshold: 0 })
     el.querySelectorAll('article[data-scene]').forEach((scene) => observer.observe(scene))
     const bounds = new IntersectionObserver(([entry]) => {
       setVisible(entry.isIntersecting)
-      if (!entry.isIntersecting) { clearOrdeal(key); agitation.current = 0 }
+      inView = entry.isIntersecting
+      if (inView) sync()
+      else { clearOrdeal(key); clearPresence('sea', key); clearPresence('shells', key); agitation.current = 0 }
     })
     bounds.observe(el)
-    return () => { observer.disconnect(); bounds.disconnect(); clearOrdeal(key) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      observer.disconnect(); bounds.disconnect()
+      window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+      clearOrdeal(key); clearPresence('sea', key); clearPresence('shells', key)
+    }
   }, [reduced])
 
   const passages = [s.sand, s.zone, s.shells, s.namesLine, s.kanji, s.silence, s.countLabel, s.naming, t('t1-quote'), s.dayLine]

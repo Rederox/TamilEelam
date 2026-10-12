@@ -177,9 +177,9 @@ export const events: TimelineEvent[] = [
       "ta": "போர் விரிவடைந்தது. வடக்கு, கிழக்கின் பகுதிகள் புலிகளின் கட்டுப்பாட்டில் இருந்தன. 2002 பிப்ரவரியில் நோர்வே மத்தியஸ்தத்தில் போர்நிறுத்தம் கையெழுத்தானது."
     },
     "detail": {
-      "fr": "Les aspirations tamoules à l’autodétermination prennent des formes politiques et armées différentes. Le LTTE devient le principal mouvement armé et établit une administration dans les territoires qu’il contrôle. La guerre détruit des vies civiles dans toutes les communautés. Human Rights Watch documente aussi les assassinats de dissidents tamouls, les attaques contre des civils et les expulsions de musulmans commis par le LTTE. Le cessez-le-feu de 2002 ouvre un espoir qui ne se transforme pas en paix durable.",
-      "en": "Tamil aspirations to self-determination took different political and armed forms. The LTTE became the dominant armed movement and established an administration in areas it controlled. War devastated civilian lives across communities. Human Rights Watch also documents LTTE killings of Tamil dissidents, attacks on civilians and expulsions of Muslims. The 2002 ceasefire offered hope that did not become lasting peace.",
-      "ta": "தமிழரின் சுயநிர்ணயக் கோரிக்கை வெவ்வேறு அரசியல், ஆயுத வடிவங்களை எடுத்தது. புலிகள் பிரதான ஆயுத இயக்கமாகி தமது கட்டுப்பாட்டுப் பகுதிகளில் நிர்வாகத்தை அமைத்தனர். போர் எல்லாச் சமூகங்களின் பொதுமக்களையும் பாதித்தது. தமிழ் மாற்றுக்கருத்தாளர்கள் கொலை, பொதுமக்கள் மீதான தாக்குதல்கள், முஸ்லிம்கள் வெளியேற்றம் ஆகிய புலிகளின் செயல்களையும் மனித உரிமைகள் கண்காணிப்பகம் ஆவணப்படுத்தியுள்ளது. 2002 போர்நிறுத்தத்தின் நம்பிக்கை நிலையான அமைதியாக மாறவில்லை."
+      "fr": "Les aspirations tamoules à l’autodétermination prennent des formes politiques et armées différentes. Le LTTE devient le principal mouvement armé et établit une administration dans les territoires qu’il contrôle. La guerre détruit des vies civiles dans toutes les communautés. Le cessez-le-feu de 2002 ouvre un espoir qui ne se transforme pas en paix durable.",
+      "en": "Tamil aspirations to self-determination took different political and armed forms. The LTTE became the dominant armed movement and established an administration in areas it controlled. War devastated civilian lives across communities. The 2002 ceasefire offered hope that did not become lasting peace.",
+      "ta": "தமிழரின் சுயநிர்ணயக் கோரிக்கை வெவ்வேறு அரசியல், ஆயுத வடிவங்களை எடுத்தது. புலிகள் பிரதான ஆயுத இயக்கமாகி தமது கட்டுப்பாட்டுப் பகுதிகளில் நிர்வாகத்தை அமைத்தனர். போர் எல்லாச் சமூகங்களின் பொதுமக்களையும் பாதித்தது. 2002 போர்நிறுத்தத்தின் நம்பிக்கை நிலையான அமைதியாக மாறவில்லை."
     }
   },
   {
@@ -196,9 +196,9 @@ export const events: TimelineEvent[] = [
       "ta": "போரின் இறுதிக்கட்டத்தில் பொதுமக்கள் சுருங்கிவரும் இடத்தில் சிக்கினர். பாதுகாப்பு வலயங்கள் எறிகணைத் தாக்குதலுக்கு உள்ளாயின."
     },
     "detail": {
-      "fr": "À Mullivaikkal, le manque de nourriture, les bombardements et l’effondrement des soins se conjuguent. Le rapport de l’ONU de 2011 examine des estimations pouvant atteindre 40 000 morts civils durant les derniers mois du conflit, sans établir un bilan définitif. Les enquêtes décrivent les bombardements gouvernementaux ainsi que les civils empêchés de fuir par le LTTE. La protection des personnes civiles demeurait une obligation pour chaque partie.",
-      "en": "At Mullivaikkal, hunger, shelling and the collapse of medical care converged. The 2011 UN report considered estimates of as many as 40,000 civilian deaths during the conflict’s final months, without establishing a definitive toll. Investigations describe government shelling and civilians prevented from leaving by the LTTE. Every party remained obliged to protect civilians.",
-      "ta": "முள்ளிவாய்க்காலில் பசி, எறிகணைத் தாக்குதல், மருத்துவச் சேவைகளின் சிதைவு ஒன்றுசேர்ந்தன. 2011 ஐ.நா. அறிக்கை இறுதி மாதங்களில் 40,000 வரை பொதுமக்கள் இறந்திருக்கலாம் என்ற மதிப்பீடுகளை ஆய்வு செய்தது; இறுதியான எண்ணிக்கையை நிறுவவில்லை. அரசின் எறிகணைத் தாக்குதல்களையும் பொதுமக்கள் வெளியேறுவதைப் புலிகள் தடுத்ததையும் விசாரணைகள் விவரிக்கின்றன. பொதுமக்களைப் பாதுகாப்பது ஒவ்வொரு தரப்பின் கடமையாக இருந்தது."
+      "fr": "À Mullivaikkal, le manque de nourriture, les bombardements et l’effondrement des soins se conjuguent. Le rapport de l’ONU de 2011 examine des estimations pouvant atteindre 40 000 morts civils durant les derniers mois du conflit, sans établir un bilan définitif. Les enquêtes décrivent les bombardements gouvernementaux. La protection des personnes civiles demeurait une obligation.",
+      "en": "At Mullivaikkal, hunger, shelling and the collapse of medical care converged. The 2011 UN report considered estimates of as many as 40,000 civilian deaths during the conflict’s final months, without establishing a definitive toll. Investigations describe government shelling. The protection of civilians remained an obligation.",
+      "ta": "முள்ளிவாய்க்காலில் பசி, எறிகணைத் தாக்குதல், மருத்துவச் சேவைகளின் சிதைவு ஒன்றுசேர்ந்தன. 2011 ஐ.நா. அறிக்கை இறுதி மாதங்களில் 40,000 வரை பொதுமக்கள் இறந்திருக்கலாம் என்ற மதிப்பீடுகளை ஆய்வு செய்தது; இறுதியான எண்ணிக்கையை நிறுவவில்லை. அரசின் எறிகணைத் தாக்குதல்களை விசாரணைகள் விவரிக்கின்றன. பொதுமக்களைப் பாதுகாப்பது ஒரு கடமையாக இருந்தது."
     }
   },
   {
@@ -286,14 +286,14 @@ export const events: TimelineEvent[] = [
       "ta": "விடுதலைப் புலிகள் & வேலுப்பிள்ளை பிரபாகரன்"
     },
     "desc": {
-      "fr": "Fondé en 1976 sous la direction de Velupillai Prabhakaran, le LTTE devient le principal mouvement armé séparatiste tamoul. Il est défait en mai 2009.",
-      "en": "Founded in 1976 under Velupillai Prabhakaran, the LTTE became the dominant Tamil separatist armed movement. It was defeated in May 2009.",
-      "ta": "1976-இல் வேலுப்பிள்ளை பிரபாகரன் தலைமையில் உருவான புலிகள் பிரதான தமிழ் பிரிவினைவாத ஆயுத இயக்கமாகினர். 2009 மேயில் தோற்கடிக்கப்பட்டனர்."
+      "fr": "Fondé en 1976 sous la direction de Velupillai Prabhakaran, le LTTE devient le principal mouvement armé de la lutte pour le Tamil Eelam. Il est défait en mai 2009.",
+      "en": "Founded in 1976 under Velupillai Prabhakaran, the LTTE became the leading armed movement in the struggle for Tamil Eelam. It was defeated in May 2009.",
+      "ta": "1976-இல் வேலுப்பிள்ளை பிரபாகரன் தலைமையில் உருவான புலிகள் தமிழீழ விடுதலைப் போராட்டத்தின் பிரதான ஆயுத இயக்கமாகினர். 2009 மேயில் தோற்கடிக்கப்பட்டனர்."
     },
     "detail": {
-      "fr": "L’histoire du LTTE ne se confond pas avec celle de tout le peuple tamoul. Le mouvement a incarné pour certains l’espoir d’un État indépendant, tout en imposant son autorité et en commettant de graves exactions. Les enquêtes documentent le recrutement d’enfants, des attaques contre des civils et la répression d’opposants. Reconnaître ces faits est aussi respecter les victimes tamoules du mouvement. Prabhakaran meurt lors de l’offensive finale de mai 2009.",
-      "en": "The LTTE’s history is not the history of the entire Tamil people. For some it represented hope for an independent state, while imposing its authority and committing grave abuses. Investigations document child recruitment, attacks on civilians and repression of opponents. Recognising these facts also respects Tamil victims of the movement. Prabhakaran died during the final offensive in May 2009.",
-      "ta": "புலிகளின் வரலாறு முழுத் தமிழ் மக்களின் வரலாற்றுக்குச் சமமானதல்ல. சிலருக்கு அது சுதந்திர அரசின் நம்பிக்கையாக இருந்தது; அதே நேரத்தில் தன் அதிகாரத்தைத் திணித்து கடுமையான மீறல்களைச் செய்தது. சிறுவர் ஆட்சேர்ப்பு, பொதுமக்கள் மீதான தாக்குதல்கள், எதிர்ப்பாளர்களை ஒடுக்குதல் ஆவணப்படுத்தப்பட்டுள்ளன. இவற்றை ஏற்றுக்கொள்வது இயக்கத்தால் பாதிக்கப்பட்ட தமிழர்களையும் மதிப்பதாகும். 2009 மே இறுதித் தாக்குதலில் பிரபாகரன் இறந்தார்."
+      "fr": "Pour de nombreux Tamouls, le LTTE a incarné la défense de leur terre, de leur langue et de leur culture face aux discriminations et aux violences, ainsi que l’espoir d’un État indépendant. Dans les territoires qu’il contrôlait, il a mis en place une administration civile, avec ses tribunaux et sa police. Prabhakaran meurt lors de l’offensive finale de mai 2009.",
+      "en": "For many Tamils, the LTTE stood for the defence of their land, language and culture against discrimination and violence, and for the hope of an independent state. In the areas it controlled, it built a civil administration with its own courts and police. Prabhakaran died during the final offensive in May 2009.",
+      "ta": "பல தமிழர்களுக்கு, பாகுபாட்டுக்கும் வன்முறைக்கும் எதிராகத் தம் நிலத்தையும் மொழியையும் பண்பாட்டையும் காத்த இயக்கமாகவும் சுதந்திர அரசின் நம்பிக்கையாகவும் புலிகள் விளங்கினர். தமது கட்டுப்பாட்டுப் பகுதிகளில் நீதிமன்றங்களும் காவல்துறையும் கொண்ட சிவில் நிர்வாகத்தை அமைத்தனர். 2009 மே இறுதித் தாக்குதலில் பிரபாகரன் இறந்தார்."
     }
   },
   {

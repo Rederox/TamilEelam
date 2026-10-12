@@ -143,8 +143,17 @@ export const chapters: ChapterMeta[] = [
     "tamilGhost": "கறுப்பு ஜூலை"
   },
   {
+    id: 'prabhakaran',
+    num: 'VI',
+    years: { fr: '1954 — 2009', en: '1954 — 2009', ta: '1954 — 2009' },
+    kicker: { fr: 'Un parcours au cœur de la guerre', en: 'A life at the centre of the war', ta: 'போரின் மையத்தில் ஒரு வாழ்க்கை' },
+    title: { fr: 'Qui était', en: 'Who was', ta: 'யார் இந்த' },
+    titleAccent: { fr: 'Prabhakaran ?', en: 'Prabhakaran?', ta: 'பிரபாகரன்?' },
+    tamilGhost: 'பிரபாகரன்',
+  },
+  {
     "id": "mullivaikkal",
-    "num": "VI",
+    "num": "VII",
     "years": {
       "fr": "Mai 2009",
       "en": "May 2009",
@@ -169,7 +178,7 @@ export const chapters: ChapterMeta[] = [
   },
   {
     "id": "disparus",
-    "num": "VII",
+    "num": "VIII",
     "years": {
       "fr": "Depuis 2009",
       "en": "Since 2009",
@@ -194,7 +203,7 @@ export const chapters: ChapterMeta[] = [
   },
   {
     "id": "patrie",
-    "num": "VIII",
+    "num": "IX",
     "years": {
       "fr": "Depuis toujours",
       "en": "Since always",
@@ -219,7 +228,7 @@ export const chapters: ChapterMeta[] = [
   },
   {
     "id": "symboles",
-    "num": "IX",
+    "num": "X",
     "years": {
       "fr": "1977 — aujourd'hui",
       "en": "1977 — today",
@@ -243,8 +252,17 @@ export const chapters: ChapterMeta[] = [
     "tamilGhost": "சின்னங்கள்"
   },
   {
+    id: 'maaveerar',
+    num: 'XI',
+    years: { fr: '27 novembre · depuis 1989', en: '27 November · since 1989', ta: 'நவம்பர் 27 · 1989 முதல்' },
+    kicker: { fr: 'Une date, des noms, des familles', en: 'A date, names, families', ta: 'ஒரு நாள், பெயர்கள், குடும்பங்கள்' },
+    title: { fr: 'Maaveerar', en: 'Maaveerar', ta: 'மாவீரர்' },
+    titleAccent: { fr: 'Naal.', en: 'Naal.', ta: 'நாள்.' },
+    tamilGhost: 'நினைவு',
+  },
+  {
     "id": "aube",
-    "num": "X",
+    "num": "XII",
     "years": {
       "fr": "1983 — demain",
       "en": "1983 — tomorrow",
@@ -407,7 +425,7 @@ export const symbols: Record<Lang, {
     "flag": {
       "title": "Le drapeau",
       "tamil": "தேசியக் கொடி",
-      "text": "Le drapeau au tigre est porté dans le mouvement national tamoul et dans une partie de la diaspora. Dérivé du drapeau du LTTE, il accompagne des manifestations et des commémorations. Sa signification n’est pas la même pour toutes les personnes tamoules."
+      "text": "Le drapeau au tigre est porté dans le mouvement national tamoul et dans une partie de la diaspora. Dérivé du drapeau du LTTE, il accompagne des manifestations et des commémorations. Pour celles et ceux qui le portent, il dit l’attachement à la terre, à la langue et à la culture."
     },
     "animal": {
       "title": "Le léopard · siruthai",
@@ -430,7 +448,7 @@ export const symbols: Record<Lang, {
     "flag": {
       "title": "The flag",
       "tamil": "தேசியக் கொடி",
-      "text": "The tiger flag is used within the Tamil national movement and parts of the diaspora. Derived from the LTTE flag, it appears at demonstrations and commemorations. Its meaning is not the same for every Tamil person."
+      "text": "The tiger flag is used within the Tamil national movement and parts of the diaspora. Derived from the LTTE flag, it appears at demonstrations and commemorations. For those who carry it, it speaks of attachment to the land, the language and the culture."
     },
     "animal": {
       "title": "The leopard · siruthai",
@@ -453,7 +471,7 @@ export const symbols: Record<Lang, {
     "flag": {
       "title": "கொடி",
       "tamil": "தேசியக் கொடி",
-      "text": "புலிக்கொடி தமிழ் தேசிய இயக்கத்திலும் புலம்பெயர் சமூகத்தின் ஒரு பகுதியிலும் பயன்படுத்தப்படுகிறது. புலிகளின் கொடியிலிருந்து வந்த இது போராட்டங்களிலும் நினைவேந்தல்களிலும் இடம்பெறுகிறது. எல்லாத் தமிழர்களுக்கும் அதன் அர்த்தம் ஒன்றல்ல."
+      "text": "புலிக்கொடி தமிழ் தேசிய இயக்கத்திலும் புலம்பெயர் சமூகத்தின் ஒரு பகுதியிலும் பயன்படுத்தப்படுகிறது. புலிகளின் கொடியிலிருந்து வந்த இது போராட்டங்களிலும் நினைவேந்தல்களிலும் இடம்பெறுகிறது. அதை ஏந்துவோருக்கு அது நிலம், மொழி, பண்பாடு மீதான பற்றைக் குறிக்கிறது."
     },
     "animal": {
       "title": "சிறுத்தை",

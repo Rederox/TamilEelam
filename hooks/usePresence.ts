@@ -10,9 +10,21 @@ const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-/** Nothing at the section's edges, full through its middle: the reader is
- *  "at" a place only once they are properly inside it. */
-const envelope = (p: number) => smoothstep(0.08, 0.3, p) * (1 - smoothstep(0.72, 0.96, p))
+/**
+ * How far inside a place the reader is, 0..1, from where the middle of the
+ * screen sits: nothing while that line is outside the section, full once it
+ * is a little over half a screen in from either edge. Measured in pixels of
+ * scroll rather than a share of the section, so the sound arrives and leaves
+ * over the same stretch of scrolling whether the chapter is one screen tall
+ * or ten — the sea is never a screen late, nor still there a screen after.
+ */
+export function proximity(el: HTMLElement): number {
+  const rect = el.getBoundingClientRect()
+  const vh = window.innerHeight
+  const inside = Math.min(vh / 2 - rect.top, rect.bottom - vh / 2)
+  if (inside <= 0) return 0
+  return smoothstep(0, Math.max(1, Math.min(vh * 0.6, rect.height * 0.4)), inside)
+}
 
 /**
  * Ties a section's own scroll traversal to one of the shared presence
@@ -33,9 +45,7 @@ export function usePresence<T extends HTMLElement>(channel: Channel, peak = 1) {
 
     const update = () => {
       raf = 0
-      const rect = el.getBoundingClientRect()
-      const p = clamp01((window.innerHeight - rect.top) / (window.innerHeight + rect.height))
-      setPresence(channel, key, envelope(p) * peak)
+      setPresence(channel, key, proximity(el) * peak)
     }
     const onScroll = () => {
       if (onScreen && !raf) raf = requestAnimationFrame(update)

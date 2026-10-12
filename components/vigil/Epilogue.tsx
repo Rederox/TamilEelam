@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { sources, researchCopy } from '@/data/research'
 import { vigil } from '@/data/narrative'
+import { soundCredits, soundCreditsLabel } from '@/data/soundCredits'
+import { usePresence } from '@/hooks/usePresence'
+import { lightLamp } from '@/lib/sounds/bell'
 import Vilakku from './Vilakku'
 import GlEmbers from './gl/GlEmbers'
 import GlFlameField from './gl/GlFlameField'
@@ -13,6 +16,8 @@ export default function Epilogue() {
   const { lang, t } = useLang()
   const v = vigil[lang]
   const [lit, setLit] = useState(false)
+  // the ambient sound listens for this: the lamp's own flame, heard once it is lit
+  const lampRef = usePresence<HTMLElement>('lamp', lit ? 0.8 : 0)
   // bumped when the visitor lights their flame: the embers answer with a burst of sparks
   const burst = useRef(0)
 
@@ -23,6 +28,7 @@ export default function Epilogue() {
   const light = () => {
     setLit(true)
     burst.current += 1
+    lightLamp()
     try { localStorage.setItem('vigil-flame', '1') } catch { /* The gesture still works for this visit. */ }
   }
 
@@ -30,6 +36,7 @@ export default function Epilogue() {
     <>
       <section
         id="epilogue"
+        ref={lampRef}
         className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-night bg-[radial-gradient(90%_70%_at_50%_100%,rgb(var(--c-flame)/0.10),transparent_60%)] px-6 pb-16 pt-28 text-center"
       >
         <GlEmbers density={55} intensity={0.6} fallbackDensity={12} burst={burst} burstAt={{ x: 0.5, y: 0.6 }} />
@@ -89,6 +96,19 @@ export default function Epilogue() {
             ))}
           </ul>
           <p className="mt-8 font-mono text-[10px] text-ash">{researchCopy.reviewed[lang]}</p>
+          {/* the ambient sound is made of other people's field recordings: say whose */}
+          <div className="mt-12">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gold">{soundCreditsLabel[lang]}</p>
+            <ul className="mt-4 grid gap-x-10 gap-y-2 text-[13px] leading-relaxed text-ash md:grid-cols-2">
+              {soundCredits.map((credit) => (
+                <li key={credit.file}>
+                  <a href={credit.href} target="_blank" rel="noopener noreferrer" className="hover:text-flame">{credit.what[lang]} — {credit.author}</a>
+                  {' · '}
+                  <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-[10px] hover:text-flame">{credit.license}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
           <div className="mt-16 flex flex-wrap justify-between gap-6 border-t border-bone/15 pt-7">
             <p className="max-w-[50ch] text-sm italic leading-relaxed text-bone-dim">{t('ft-about')}</p>
             <a href="#prologue" className="font-tamil text-xl text-gold">தமிழீழம் ↑</a>

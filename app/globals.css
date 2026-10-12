@@ -12,6 +12,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The boot script enables this before paint. Without JS the page stays readable. */
+.vigil-loading { display: none; }
+html[data-loading="true"] .vigil-loading { display: flex; }
+html[data-loading="true"] { overflow: hidden; }
+html[data-loading="true"] #vigil-content { visibility: hidden; }
+html[data-loading="true"] #vigil-content *,
+html[data-loading="true"] #vigil-content *::before,
+html[data-loading="true"] #vigil-content *::after { animation-play-state: paused !important; }
+.vigil-loading-line { animation: loading-pass 1.6s ease-in-out infinite; }
+@keyframes loading-pass {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vigil-loading-line { animation: none; width: 100%; }
+}
+
 @layer base {
   /* ————— flag palette: yellow, red, black and white ————— */
   :root {

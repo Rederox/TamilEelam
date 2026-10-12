@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 import { experience } from '@/data/experience'
-import { events } from '@/data/events'
-import { sources } from '@/data/research'
+import { maaveerar } from '@/data/historyChapters'
 import { useLang } from '@/context/LanguageContext'
 import { symbols, type SymbolEntry } from '@/data/narrative'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -86,11 +85,6 @@ export default function ChSymboles() {
   // small parallax drift tied to how far the reader has carried it into view
   const { ref: birdRef, progress: birdProgress } = useViewProgress<HTMLDivElement>()
   const birdDrift = stillness ? 0 : (birdProgress - 0.5) * 26
-
-  // the day the kaarthigai flower is worn for — named by the flower's own
-  // text, but never explained until here; the chapter already cites its
-  // sources (see chapterSources.symboles), it was only missing the telling
-  const maaveerar = events[15]
 
   return (
     <section
@@ -179,24 +173,9 @@ export default function ChSymboles() {
             </div>
           </div>
 
-          {/* the night the flower is worn for, told in full: the chapter
-              named it and cited it, so it owes the reader the telling */}
-          <div className="reveal mt-14 max-w-[860px] border-l border-gold/40 pl-6 sm:pl-7">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gold">
-              {maaveerar.year} · {maaveerar.title[lang]}
-            </p>
-            <Prose className="mt-4">
-              <p>{maaveerar.detail[lang]}</p>
-            </Prose>
-            <div className="mt-5 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[9px] uppercase tracking-[0.14em] text-ash">
-              <a href={sources.memorialArchive.href} target="_blank" rel="noopener noreferrer" className="border-b border-bone/20 py-1 hover:text-flame">
-                {sources.memorialArchive.institution} · {sources.memorialArchive.year} ↗
-              </a>
-              <a href={sources.maaveerar.href} target="_blank" rel="noopener noreferrer" className="border-b border-bone/20 py-1 hover:text-flame">
-                {sources.maaveerar.institution} · {sources.maaveerar.year} ↗
-              </a>
-            </div>
-          </div>
+          <a href="#maaveerar" className="reveal mt-12 inline-flex min-h-11 items-center gap-5 border-b border-gold/40 py-3 text-lg text-bone-dim hover:text-flame">
+            {maaveerar.link[lang]} <span aria-hidden="true">↓</span>
+          </a>
           </ChBody>
         </div>
       </div>

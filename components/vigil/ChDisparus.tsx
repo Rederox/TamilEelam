@@ -4,6 +4,7 @@ import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
 import { experience } from '@/data/experience'
 import { vigil } from '@/data/narrative'
+import { usePresence } from '@/hooks/usePresence'
 import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
@@ -18,10 +19,12 @@ export default function ChDisparus() {
   const { lang, t } = useLang()
   const v = vigil[lang]
   const ref = useReveal()
+  // the ambient sound listens for this: an empty room, and a clock
+  const absenceRef = usePresence<HTMLElement>('absence', 0.85)
   const disappeared = events[10]
 
   return (
-    <section id="disparus" className="relative bg-gradient-to-b from-[rgb(var(--ch-void))] via-[rgb(var(--ch-void-2))] to-night">
+    <section id="disparus" ref={absenceRef} className="relative bg-gradient-to-b from-[rgb(var(--ch-void))] via-[rgb(var(--ch-void-2))] to-night">
       <ChapterOpen id="disparus" lede={v.disparusLede} />
       <div ref={ref as React.RefObject<HTMLDivElement>}>
         <ChBody>

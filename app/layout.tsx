@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { ThemeProvider, themeBootScript } from '@/context/ThemeContext'
+import LoadingScreen from '@/components/vigil/LoadingScreen'
+import { loadingBootScript } from '@/lib/loading'
 
 export const metadata: Metadata = {
   title: 'Tamil Eelam — தமிழீழம் | La Veillée',
@@ -37,10 +39,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: loadingBootScript }} />
       </head>
       <body>
         <ThemeProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider>
+            <LoadingScreen />
+            <div id="vigil-content">{children}</div>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

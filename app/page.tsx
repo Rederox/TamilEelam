@@ -11,6 +11,8 @@ import ChTerre from '@/components/vigil/ChTerre'
 import ChEtau from '@/components/vigil/ChEtau'
 import ChFeu from '@/components/vigil/ChFeu'
 import ChPromesse from '@/components/vigil/ChPromesse'
+import ChPrabhakaran from '@/components/vigil/ChPrabhakaran'
+import ChMaaveerar from '@/components/vigil/ChMaaveerar'
 import ChJuillet from '@/components/vigil/ChJuillet'
 import ChMullivaikkal from '@/components/vigil/ChMullivaikkal'
 import ReadingControls from '@/components/vigil/ReadingControls'
@@ -46,10 +48,12 @@ export default function Home() {
         <ChFeu />
         <ChPromesse />
         <ChJuillet />
+        <ChPrabhakaran />
         <ChMullivaikkal />
         <ChDisparus />
         <ChPatrie />
         <ChSymboles />
+        <ChMaaveerar />
         <ChAube />
         <Epilogue />
       </main>

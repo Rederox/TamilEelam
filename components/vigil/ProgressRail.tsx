@@ -99,7 +99,7 @@ export default function ProgressRail() {
   }, [])
 
   // Move chapter to chapter from the keyboard. J/K rather than the arrows:
-  // ten chapters is a long way to travel, but taking the arrow keys away
+  // the chapters span a long page, but taking the arrow keys away
   // from someone who is simply trying to scroll would be worse.
   useEffect(() => {
     if (menuOpen) return
@@ -189,7 +189,7 @@ export default function ProgressRail() {
           aria-expanded={menuOpen}
           aria-label={`${t('ui-chapters')} — ${activeChapter.title[lang]}`}
           /* clear of the iPhone home indicator */
-          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-[85] flex min-h-[44px] -translate-x-1/2 items-center gap-2.5 border border-bone/25 bg-night/80 px-4 py-2.5 backdrop-blur-md lg:hidden"
+          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-[85] flex min-h-[44px] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2.5 border border-bone/25 bg-night/80 px-4 py-2.5 backdrop-blur-md lg:hidden"
         >
           <span className="font-display text-[15px] italic text-gold">{activeChapter.num}</span>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-bone-dim">

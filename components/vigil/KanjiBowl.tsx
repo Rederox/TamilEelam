@@ -53,7 +53,7 @@ export default function KanjiBowl({ size = 96 }: { size?: number }) {
   return (
     <div className={styles.photoBowl} style={{ width: size }} aria-hidden="true" data-loaded={loaded}>
       {!loaded && <div className={styles.bowlLoading} />}
-      <Image src="/images/kanji-bowl-realistic.png" alt="" fill sizes={`${size}px`} className={styles.bowlImage} onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+      <Image src="/images/kanji-bowl-realistic.webp" alt="" fill sizes={`${size}px`} className={styles.bowlImage} onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
       <svg viewBox="0 0 240 240" className={styles.photoSteam} fill="none">
         <g className={styles.steam} strokeLinecap="round">
           <path d="M92 114 C70 90 110 67 95 35" />

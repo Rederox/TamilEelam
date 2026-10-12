@@ -3,21 +3,33 @@
 /**
  * A drone the reader has to ask for.
  *
- * Two low, close-tuned sine tones beat softly against each other — the
- * beating itself reads as a slow pulse, so there is no separate LFO to
- * reason about. Its only input is the same ordeal signal the vignette and
- * the grain already read (see lib/ordeal.ts): the drone breathes with
- * whichever chapter is heaviest, and falls silent the moment nothing is.
+ * Two low, close-tuned tones beat softly against each other — the beating
+ * itself reads as a slow pulse, so there is no separate LFO to reason
+ * about. They are triangles, not sines: a 54 Hz sine is below what a laptop
+ * speaker can play, while the first odd harmonics of a triangle are not.
+ * Its only input is the same ordeal signal the vignette and the grain
+ * already read (see lib/ordeal.ts): the drone breathes with whichever
+ * chapter is heaviest, opens up as it gets heavier, and falls silent the
+ * moment nothing is.
  *
  * Never starts itself. Every browser refuses to make sound before a user
  * gesture, and a vigil for the dead should refuse to as well.
  *
- * The fire (lib/fireAudio.ts) rides on the same context and the same
- * toggle: one gesture, one ambience.
+ * The places (lib/soundscape.ts — the fire, the sea, the dawn…) ride on the
+ * same context and the same toggle: one gesture, one ambience.
  */
 
-import { startFireAudio, stopFireAudio } from './fireAudio'
 import { getOrdeal, onOrdeal } from './ordeal'
+import { startSoundscape, stopSoundscape, type Layer } from './soundscape'
+import { absenceLayer } from './sounds/absence'
+import { dawnLayer } from './sounds/dawn'
+import { fireLayer } from './sounds/fire'
+import { lampLayer } from './sounds/lamp'
+import { landLayer } from './sounds/land'
+import { seaLayer, shellsLayer } from './sounds/sea'
+
+/** every place that has a sound, each silent until the reader is there */
+const LAYERS: Layer[] = [landLayer, fireLayer, shellsLayer, seaLayer, absenceLayer, dawnLayer, lampLayer]
 
 type LegacyWindow = Window & { webkitAudioContext?: typeof AudioContext }
 
@@ -32,8 +44,11 @@ let target = 0
 /** Two tones this close beat roughly once a second — a heartbeat, not a note. */
 const BASE_HZ = 54
 const DETUNE_HZ = 1.1
-const FLOOR = 0.006
+const FLOOR = 0.003
 const PEAK = 0.05
+/** the drone's low-pass, at rest and at the worst of it */
+const LOW = 200
+const HIGH = 420
 
 export function isOrdealAudioAvailable(): boolean {
   if (typeof window === 'undefined') return false
@@ -55,9 +70,11 @@ export async function startOrdealAudio(): Promise<void> {
   try { await audio.resume() } catch (error) { stopOrdealAudio(); throw error }
   if (ctx !== audio) return
 
+  const kit = startSoundscape(audio, LAYERS)
+
   const filter = audio.createBiquadFilter()
   filter.type = 'lowpass'
-  filter.frequency.value = 220
+  filter.frequency.value = LOW
 
   const gain = audio.createGain()
   gain.gain.value = FLOOR
@@ -65,7 +82,7 @@ export async function startOrdealAudio(): Promise<void> {
 
   oscillators = [BASE_HZ, BASE_HZ + DETUNE_HZ].map((hz) => {
     const osc = audio.createOscillator()
-    osc.type = 'sine'
+    osc.type = 'triangle'
     osc.frequency.value = hz
     osc.connect(filter)
     osc.start()
@@ -73,7 +90,7 @@ export async function startOrdealAudio(): Promise<void> {
   })
 
   filter.connect(gain)
-  gain.connect(audio.destination)
+  gain.connect(kit.out)
 
   target = getOrdeal()
   level = target
@@ -85,17 +102,16 @@ export async function startOrdealAudio(): Promise<void> {
     if (!master) return
     level += (target - level) * 0.05
     master.gain.value = FLOOR + level * (PEAK - FLOOR)
+    // the heavier the moment, the more of the drone's upper body comes through
+    filter.frequency.value = LOW + level * (HIGH - LOW)
     raf = requestAnimationFrame(tick)
   }
   raf = requestAnimationFrame(tick)
-
-  // the fire chapter crackles on the same context, and only while it is under the reader
-  startFireAudio(audio)
 }
 
 export function stopOrdealAudio(): void {
   if (!ctx) return
-  stopFireAudio()
+  stopSoundscape()
   const audio = ctx
   const dying = oscillators
   ctx = null
@@ -123,5 +139,5 @@ export function stopOrdealAudio(): void {
       }
     })
     audio.close().catch(() => {})
-  }, 550)
+  }, 600)
 }

@@ -3,6 +3,7 @@
 import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
 import { vigil } from '@/data/narrative'
+import { usePresence } from '@/hooks/usePresence'
 import { useReveal } from '@/hooks/useReveal'
 import Air from './Air'
 import ChapterOpen from './ChapterOpen'
@@ -17,6 +18,8 @@ export default function ChTerre() {
   const { lang } = useLang()
   const v = vigil[lang]
   const ref = useReveal()
+  // the ambient sound listens for this: wind and insects, heard only over the old kingdom
+  const landRef = usePresence<HTMLElement>('land', 0.9)
   const presence = events[0]
   const kingdom = events[1]
   const colonial = events[13] // 1505-1796 — three European colonisations
@@ -24,6 +27,7 @@ export default function ChTerre() {
   return (
     <section
       id="terre"
+      ref={landRef}
       className="relative bg-night bg-[radial-gradient(120%_90%_at_80%_10%,rgb(var(--c-gold)/0.10),transparent_55%)]"
     >
       {/* the land itself: relief turning over under a light that crosses
