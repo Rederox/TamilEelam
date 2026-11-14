@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "optimize:images": "node scripts/optimize-images.cjs",
+    "fetch:fonts": "node scripts/fetch-fonts.cjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

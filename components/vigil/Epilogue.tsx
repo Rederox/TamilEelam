@@ -8,8 +8,7 @@ import { soundCredits, soundCreditsLabel } from '@/data/soundCredits'
 import { usePresence } from '@/hooks/usePresence'
 import { lightLamp } from '@/lib/sounds/bell'
 import Vilakku from './Vilakku'
-import GlEmbers from './gl/GlEmbers'
-import GlFlameField from './gl/GlFlameField'
+import { GlEmbers, GlFlameField } from './gl/lazy'
 
 // Epilogue — the flame is passed to the visitor.
 export default function Epilogue() {

@@ -69,6 +69,8 @@ export async function startOrdealAudio(): Promise<void> {
   ctx = audio
   try { await audio.resume() } catch (error) { stopOrdealAudio(); throw error }
   if (ctx !== audio) return
+  // every control that shows the sound (hooks/useAmbience.ts) follows this
+  window.dispatchEvent(new Event('vigil-audio-change'))
 
   const kit = startSoundscape(audio, LAYERS)
 
@@ -115,6 +117,7 @@ export function stopOrdealAudio(): void {
   const audio = ctx
   const dying = oscillators
   ctx = null
+  window.dispatchEvent(new Event('vigil-audio-change'))
   oscillators = []
   if (raf) cancelAnimationFrame(raf)
   raf = 0

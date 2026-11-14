@@ -12,7 +12,8 @@ import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { ChBody, Caption, Prose } from './blocks'
-import GlPyre from './gl/GlPyre'
+import camera from './Camera.module.css'
+import { GlPyre } from './gl/lazy'
 
 /** A subtle heat shimmer over the lost-book count. */
 function FireFilters({ still }: { still: boolean }) {
@@ -47,14 +48,16 @@ function ArchivePhoto({ tag, caption, credit }: { tag: string; caption: string; 
         <span>2003</span>
       </div>
       <div className="relative border border-bone/20 p-1.5">
-        <Image
-          src="/archive/jaffna-library-2003.jpg"
-          width={2325}
-          height={1550}
-          alt={caption}
-          sizes="(max-width: 639px) calc(100vw - 62px), (max-width: 1023px) 426px, 34vw"
-          className="block h-auto w-full sepia-[.32] contrast-[1.04] saturate-[.78] brightness-[.96]"
-        />
+        <div className={camera.gate}>
+          <Image
+            src="/archive/jaffna-library-2003.webp"
+            width={1100}
+            height={733}
+            alt={caption}
+            sizes="(max-width: 639px) calc(100vw - 62px), (max-width: 1023px) 426px, 34vw"
+            className={`${camera.settle} ${camera.library} block h-auto w-full sepia-[.32] contrast-[1.04] saturate-[.78] brightness-[.96]`}
+          />
+        </div>
       </div>
       <figcaption className="mt-5 border-l border-gold/30 pl-4">
         <p className="text-[13px] italic leading-[1.7] text-bone-dim">{caption}</p>

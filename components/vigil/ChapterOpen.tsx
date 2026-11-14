@@ -41,7 +41,7 @@ export default function ChapterOpen({ id, lede, children }: { id: string; lede?:
     <div
       ref={setNode}
       data-chapter-open={id}
-      className="chapter-open relative flex min-h-[78dvh] flex-col justify-center overflow-hidden border-t border-bone/10 px-6 pb-16 pt-24 sm:px-[9vw] lg:pb-20 lg:pt-28"
+      className="chapter-open relative flex min-h-[100svh] flex-col justify-center overflow-hidden border-t border-bone/10 px-6 pb-20 pt-24 sm:px-[9vw] lg:pb-28 lg:pt-28"
     >
       {/* veil: cinematic fade from the previous chapter */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-night to-transparent" />
@@ -49,7 +49,7 @@ export default function ChapterOpen({ id, lede, children }: { id: string; lede?:
       {/* ghosted Tamil word, drifting against the scroll */}
       <GhostWord
         word={c.tamilGhost}
-        className="absolute bottom-[4%] right-[2%] will-change-transform motion-reduce:transform-none"
+        className="absolute bottom-[12svh] right-[2%] will-change-transform motion-reduce:transform-none lg:bottom-[20svh]"
         style={{ transform: `translateY(${parallax}px)` }}
         maxPx={230}
       />

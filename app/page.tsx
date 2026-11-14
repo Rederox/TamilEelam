@@ -3,9 +3,8 @@ import ProgressRail from '@/components/vigil/ProgressRail'
 import Lamp from '@/components/vigil/Lamp'
 import Ordeal from '@/components/vigil/Ordeal'
 import Resume from '@/components/vigil/Resume'
-import FlameLayer from '@/components/vigil/gl/FlameLayer'
-import AtmosphereStage from '@/components/vigil/gl/AtmosphereStage'
-import GlDust from '@/components/vigil/gl/GlDust'
+import Letterbox from '@/components/vigil/Letterbox'
+import { AtmosphereStage, FlameLayer, GlDust } from '@/components/vigil/gl/lazy'
 import Prologue from '@/components/vigil/Prologue'
 import ChTerre from '@/components/vigil/ChTerre'
 import ChEtau from '@/components/vigil/ChEtau'
@@ -39,6 +38,8 @@ export default function Home() {
       <AtmosphereStage />
       {/* how heavy the chapter under the reader is right now */}
       <Ordeal />
+      {/* the frame narrows to scope while a title card holds the screen */}
+      <Letterbox />
       <div aria-hidden="true" className="vignette pointer-events-none fixed inset-0 z-[86]" />
       <main>
         <Prologue />

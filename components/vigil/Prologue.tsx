@@ -2,6 +2,10 @@
 
 import { useLang } from '@/context/LanguageContext'
 import { prologue } from '@/data/narrative'
+import { ambienceCopy, useAmbience } from '@/hooks/useAmbience'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { scrollBehavior } from '@/lib/motion'
+import { isOrdealAudioRunning } from '@/lib/ordealAudio'
 import EmptyHome from './EmptyHome'
 import styles from './Prologue.module.css'
 
@@ -11,9 +15,30 @@ const STAGES = [
   { year: '2009', href: '#mullivaikkal' },
 ]
 
+const copy = {
+  fr: { enter: 'Entrer avec le son', hint: 'Casque conseillé · le son se coupe à tout moment, en haut de l’écran' },
+  en: { enter: 'Enter with sound', hint: 'Headphones recommended · sound can be switched off at any time, top of the screen' },
+  ta: { enter: 'ஒலியுடன் நுழையுங்கள்', hint: 'ஹெட்ஃபோன் பரிந்துரைக்கப்படுகிறது · ஒலியை எந்நேரமும் திரையின் மேலே நிறுத்தலாம்' },
+}
+
 export default function Prologue() {
   const { lang } = useLang()
   const p = prologue[lang]
+  const c = copy[lang]
+  const { failed, toggle } = useAmbience()
+  // no sound in quiet reading or reduced motion: the door with sound is not offered at all
+  const still = useReducedMotion()
+
+  const enterWithSound = () => {
+    // Asked of the audio itself, not of React state: on a double click the state
+    // has not caught up yet, and a second toggle() would switch the sound back off.
+    if (!isOrdealAudioRunning()) void toggle()
+    const terre = document.getElementById('terre')
+    terre?.scrollIntoView({ behavior: scrollBehavior() })
+    // a link would carry the keyboard with it; a button has to do it by hand
+    terre?.focus({ preventScroll: true })
+  }
+
   return (
     <section id="prologue" className={`${styles.opening} min-h-[100dvh] px-6 pb-10 pt-28 sm:px-[9vw] lg:flex lg:flex-col lg:justify-center lg:pt-32`}>
       <div className="mx-auto w-full max-w-[1280px]">
@@ -36,10 +61,23 @@ export default function Prologue() {
         </div>
             <div className={styles.readingNote}>
               <p className="max-w-[42ch] text-[15px] leading-[1.85] text-bone-dim sm:text-[16px]">{p.sub}</p>
-              <a href="#terre" className={`group ${styles.enter}`}>
-                <span aria-hidden="true" className={styles.entryArrow}>↓</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{p.enter}</span>
-              </a>
+              <div className={styles.entries}>
+                {!still && (
+                  <>
+                    <button type="button" onClick={enterWithSound} aria-describedby="prologue-sound-hint" className={`text-left ${styles.enter}`}>
+                      <span aria-hidden="true" className={styles.entryArrow}>↓</span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{c.enter}</span>
+                    </button>
+                    <p id="prologue-sound-hint" className={`font-mono text-[10px] uppercase leading-relaxed tracking-[0.14em] text-ash ${styles.soundHint}`}>{c.hint}</p>
+                    {/* always in the page, empty until needed, so a screen reader hears it arrive */}
+                    <p role="status" className={`text-[13px] text-ember ${styles.soundFailed}`}>{failed ? ambienceCopy[lang].failed : ''}</p>
+                  </>
+                )}
+                <a href="#terre" className={`group ${styles.enter} ${still ? '' : styles.enterQuiet}`}>
+                  <span aria-hidden="true" className={styles.entryArrow}>↓</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.15em]">{p.enter}</span>
+                </a>
+              </div>
               <a href="#sources" className="inline-flex min-h-11 items-center text-[13px] italic text-ash underline decoration-bone/20 underline-offset-4 transition-colors hover:text-bone">{p.sources}</a>
             </div>
 

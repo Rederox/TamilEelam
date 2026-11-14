@@ -10,13 +10,48 @@ from urllib.request import urlopen
 SOURCE = 'https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/LKA/ADM2/geoBoundaries-LKA-ADM2_simplified.geojson'
 
 
+# The atlas is drawn about 440 px wide, so one unit is about a pixel. Vertices
+# closer to the line than this cannot be seen, and they were four points in ten.
+TOLERANCE = 0.3
+
+
+def simplify(points):
+    """Douglas-Peucker, iterative: keep a vertex only if it leaves the chord by more than TOLERANCE."""
+    keep = [False] * len(points)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(points) - 1)]
+    while stack:
+        first, last = stack.pop()
+        (ax, ay), (bx, by) = points[first], points[last]
+        dx, dy = bx - ax, by - ay
+        length = (dx * dx + dy * dy) ** 0.5
+        worst, index = 0.0, -1
+        for i in range(first + 1, last):
+            px, py = points[i]
+            distance = abs(dy * (px - ax) - dx * (py - ay)) / length if length else ((px - ax) ** 2 + (py - ay) ** 2) ** 0.5
+            if distance > worst:
+                worst, index = distance, i
+        if worst > TOLERANCE:
+            keep[index] = True
+            stack += [(first, index), (index, last)]
+    return [point for point, kept in zip(points, keep) if kept]
+
+
 def project_ring(ring):
-    points = []
-    for lon, lat, *_ in ring:
-        point = f'{(lon - 79.4) * 165:.1f},{(10.05 - lat) * 165:.1f}'
-        if not points or point != points[-1]:
-            points.append(point)
-    return 'M' + 'L'.join(points) + 'Z'
+    points = [((lon - 79.4) * 165, (10.05 - lat) * 165) for lon, lat, *_ in ring]
+    xs, ys = [x for x, _ in points], [y for _, y in points]
+    # a rock smaller than a pixel: nothing would be painted
+    if (max(xs) - min(xs)) * (max(ys) - min(ys)) < 1:
+        return ''
+    # a ring closes on its first point: split it in two so the chord is never of zero length
+    half = len(points) // 2
+    points = simplify(points[:half + 1])[:-1] + simplify(points[half:])
+    out = []
+    for x, y in points:
+        point = f'{x:.1f},{y:.1f}'.replace('.0,', ',').removesuffix('.0')
+        if not out or point != out[-1]:
+            out.append(point)
+    return 'M' + 'L'.join(out[:-1] if out[-1] == out[0] else out) + 'Z'
 
 
 def generate(data):
@@ -34,5 +69,8 @@ def generate(data):
 
 
 if __name__ == '__main__':
+    # the eyes never catch what this loses, so check it: two rings must not drift apart
+    assert simplify([(0, 0), (5, 0.2), (10, 0)]) == [(0, 0), (10, 0)]
+    assert simplify([(0, 0), (5, 0.4), (10, 0)]) == [(0, 0), (5, 0.4), (10, 0)]
     with urlopen(SOURCE) as response:
         generate(json.load(response))

@@ -180,6 +180,8 @@ export default function ProgressRail() {
       </div>
 
       {/* ——— mobile: chapter pill ——— */}
+      {/* the prose sinks into the dark before it reaches the pill, instead of running under it */}
+      {activeChapter && <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 bottom-0 z-[84] h-28 bg-gradient-to-t from-night via-night/80 to-transparent lg:hidden" />}
       {activeChapter && (
         <button
           ref={openerRef}

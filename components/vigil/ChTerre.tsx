@@ -28,7 +28,9 @@ export default function ChTerre() {
     <section
       id="terre"
       ref={landRef}
-      className="relative bg-night bg-[radial-gradient(120%_90%_at_80%_10%,rgb(var(--c-gold)/0.10),transparent_55%)]"
+      /* the sound entrance in the prologue moves the keyboard here */
+      tabIndex={-1}
+      className="relative outline-none bg-night bg-[radial-gradient(120%_90%_at_80%_10%,rgb(var(--c-gold)/0.10),transparent_55%)]"
     >
       {/* the land itself: relief turning over under a light that crosses
           only while the chapter is being read */}

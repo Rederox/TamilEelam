@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useLang } from '@/context/LanguageContext'
-import { isOrdealAudioAvailable, startOrdealAudio, stopOrdealAudio } from '@/lib/ordealAudio'
+import { stopOrdealAudio } from '@/lib/ordealAudio'
+import { ambienceCopy, useAmbience } from '@/hooks/useAmbience'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 const copy = {
-  fr: { welcome: 'Une histoire à traverser, à votre rythme.', quiet: 'Lecture calme', immersive: 'Lecture immersive', sound: 'Activer l’ambiance sonore', mute: 'Couper le son', failed: 'Le son est indisponible dans ce navigateur.', sources: 'Les sources', hint: 'La lecture calme retire les animations et déroule toutes les scènes.' },
-  en: { welcome: 'A story to move through, at your own pace.', quiet: 'Quiet reading', immersive: 'Immersive reading', sound: 'Enable ambient sound', mute: 'Mute sound', failed: 'Sound is unavailable in this browser.', sources: 'The sources', hint: 'Quiet reading removes animation and displays every scene in order.' },
-  ta: { welcome: 'உங்கள் வேகத்தில் வாசிக்க ஒரு வரலாறு.', quiet: 'அமைதியான வாசிப்பு', immersive: 'அனுபவ வாசிப்பு', sound: 'பின்னணி ஒலியை இயக்கு', mute: 'ஒலியை நிறுத்து', failed: 'இந்த உலாவியில் ஒலி கிடைக்கவில்லை.', sources: 'ஆதாரங்கள்', hint: 'அமைதியான வாசிப்பு அசைவுகளை நிறுத்தி எல்லாக் காட்சிகளையும் வரிசையாகக் காட்டும்.' },
+  fr: { welcome: 'Une histoire à traverser, à votre rythme.', quiet: 'Lecture calme', immersive: 'Lecture immersive', sources: 'Les sources', hint: 'La lecture calme retire les animations et déroule toutes les scènes.' },
+  en: { welcome: 'A story to move through, at your own pace.', quiet: 'Quiet reading', immersive: 'Immersive reading', sources: 'The sources', hint: 'Quiet reading removes animation and displays every scene in order.' },
+  ta: { welcome: 'உங்கள் வேகத்தில் வாசிக்க ஒரு வரலாறு.', quiet: 'அமைதியான வாசிப்பு', immersive: 'அனுபவ வாசிப்பு', sources: 'ஆதாரங்கள்', hint: 'அமைதியான வாசிப்பு அசைவுகளை நிறுத்தி எல்லாக் காட்சிகளையும் வரிசையாகக் காட்டும்.' },
 }
 
 export default function ReadingControls() {
@@ -16,11 +17,11 @@ export default function ReadingControls() {
   const c = copy[lang]
   const reduced = useReducedMotion()
   const [quiet, setQuiet] = useState(false)
-  const [audio, setAudio] = useState(false)
-  const [error, setError] = useState(false)
+  const sound = ambienceCopy[lang]
+  const { on: audio, failed: error, toggle: toggleAudio } = useAmbience()
 
   useEffect(() => {
-    const hide = () => { if (document.hidden) { stopOrdealAudio(); setAudio(false) } }
+    const hide = () => { if (document.hidden) stopOrdealAudio() }
     document.addEventListener('visibilitychange', hide)
     return () => { document.removeEventListener('visibilitychange', hide); stopOrdealAudio() }
   }, [])
@@ -30,14 +31,7 @@ export default function ReadingControls() {
     setQuiet(next)
     document.documentElement.dataset.reading = next ? 'quiet' : 'immersive'
     window.dispatchEvent(new Event('vigil-reading-change'))
-    if (next) { stopOrdealAudio(); setAudio(false) }
-  }
-
-  const toggleAudio = async () => {
-    setError(false)
-    if (audio) { stopOrdealAudio(); setAudio(false); return }
-    if (!isOrdealAudioAvailable()) { setError(true); return }
-    try { await startOrdealAudio(); setAudio(true) } catch { stopOrdealAudio(); setError(true) }
+    if (next) stopOrdealAudio()
   }
 
   return (
@@ -46,11 +40,11 @@ export default function ReadingControls() {
         <p className="text-lg italic text-bone-dim">{c.welcome}</p>
         <div className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-[10px] uppercase tracking-[0.12em] text-ash">
           <button onClick={toggleReading} aria-pressed={quiet} title={c.hint} className="min-h-11 border-b border-bone/25 hover:text-flame">{quiet ? c.immersive : c.quiet}</button>
-          <button onClick={toggleAudio} aria-pressed={audio} disabled={reduced} className="min-h-11 border-b border-bone/25 hover:text-flame disabled:cursor-default disabled:opacity-40">{audio ? c.mute : c.sound}</button>
+          <button onClick={toggleAudio} aria-pressed={audio} disabled={reduced} className="min-h-11 border-b border-bone/25 hover:text-flame disabled:cursor-default disabled:opacity-40">{audio ? sound.mute : sound.sound}</button>
           <a href="#sources" className="inline-flex min-h-11 items-center border-b border-bone/25 hover:text-flame">{c.sources}</a>
         </div>
       </div>
-      {error && <p role="status" className="mt-3 text-sm text-ember">{c.failed}</p>}
+      {error && <p role="status" className="mt-3 text-sm text-ember">{sound.failed}</p>}
     </aside>
   )
 }

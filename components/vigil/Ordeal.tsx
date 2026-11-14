@@ -23,14 +23,17 @@ export default function Ordeal() {
 
   useEffect(() => {
     if (stillness) return
-    const root = document.documentElement
+    // written on the vignette itself, its only reader: on <html> every
+    // write restyled the whole document, once a frame, through each heavy chapter
+    const vignette = document.querySelector<HTMLElement>('.vignette')
+    if (!vignette) return
     let raf = 0
     let level = 0
     let target = 0
 
     const tick = () => {
       level += (target - level) * 0.06
-      root.style.setProperty('--ordeal', level.toFixed(3))
+      vignette.style.setProperty('--ordeal', level.toFixed(3))
       raf = Math.abs(target - level) > 0.001 ? requestAnimationFrame(tick) : 0
     }
 
@@ -42,7 +45,7 @@ export default function Ordeal() {
     return () => {
       unsubscribe()
       if (raf) cancelAnimationFrame(raf)
-      root.style.removeProperty('--ordeal')
+      vignette.style.removeProperty('--ordeal')
     }
   }, [stillness])
 

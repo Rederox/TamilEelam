@@ -9,6 +9,9 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 9;
+  /* the way in belongs in the first frame: on a short laptop screen the
+     picture gives up height (it is cropped, never squeezed) to leave it room */
+  max-height: max(300px, calc(100svh - 370px));
   /* Reveal the actual page background at every edge, including in paper mode.
      Keep the mask stationary while the photograph moves inside it. */
   --edge-fade: linear-gradient(to right, transparent, #000 46%, #000 78%, transparent),
@@ -54,19 +57,20 @@
 .openingCopy { position: relative; z-index: 2; grid-area: 1 / 1; width: 57%; padding: 24px 0 24px 5%; }
 .panoramaImage { grid-area: 1 / 1; min-width: 0; }
 @media (max-width: 767px) {
-  .panorama { margin-inline: -24px; min-height: 550px; }
+  .panorama { margin-inline: -24px; min-height: min(550px, 60svh); }
   .openingCopy {
     grid-area: 1 / 1;
     align-self: end;
     width: 100%;
     min-width: 0;
-    padding: 260px 24px 62px;
+    padding: min(260px, 26svh) 24px 62px;
   }
   .openingCopy > p { max-width: none; margin-bottom: 22px; font-size: 8px; letter-spacing: .13em; color: rgb(var(--c-bone-dim)); }
   .panoramaImage { position: absolute; inset: 0; margin: 0; }
   .scene { height: 100%; }
   .imageWindow {
     height: 100%;
+    max-height: none;
     aspect-ratio: auto;
     --edge-fade: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
       linear-gradient(to bottom, transparent, #000 12%, #000 80%, transparent);
@@ -90,3 +94,17 @@
   :global(html[lang="ta"]) .titlePrelude { font-size: 25px; }
   :global(html[lang="ta"]) .absence { font-size: clamp(28px, 7vw, 38px); line-height: 1.5; }
 }
+
+/* Entering with sound is the main door. The silent link stays under it, without
+   the arch: the same way in, said more quietly. */
+.entries { min-width: 0; }
+/* 60px = arch (42) + gap (18): what follows hangs under the label, not under the arch */
+.soundHint, .soundFailed { max-width: min(320px, 34vw); padding-left: 60px; }
+/* pulled up towards its label; clicks in the overlap still belong to the button */
+.soundHint { margin-top: -6px; pointer-events: none; }
+.soundFailed:not(:empty) { margin-top: 6px; }
+.readingNote .enterQuiet { min-height: 44px; margin-top: 6px; color: rgb(var(--c-bone-dim)); }
+.enterQuiet:hover { color: rgb(var(--c-bone)); }
+.enterQuiet .entryArrow { height: auto; border: 0; color: rgb(var(--c-ash)); font-size: 15px; }
+.enterQuiet:hover .entryArrow { background: none; }
+@media (max-width: 767px) { .soundHint, .soundFailed { max-width: none; } }

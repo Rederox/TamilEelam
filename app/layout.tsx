@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import './fonts.css'
 import './globals.css'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { ThemeProvider, themeBootScript } from '@/context/ThemeContext'
@@ -26,18 +27,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/*
-          Only the cuts the vigil actually sets. Measured against the page:
-          Fraunces is never heavier than 400, Newsreader is only ever 400,
-          and no Tamil on the site is italic. Asking for the full 300..700
-          ranges cost 653 kB of font, two thirds of the whole page.
+          The typefaces are served from this origin (scripts/fetch-fonts.cjs):
+          first paint used to wait on a third-party stylesheet. Only the three
+          faces the opening screen is set in are fetched ahead of the CSS.
+          Their names carry the release: update them after `npm run fetch:fonts`.
         */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..400;1,9..144,300..400&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+Tamil:wght@400..700&display=swap"
-          rel="stylesheet"
-        />
+        {['fraunces-v38-normal-latin', 'fraunces-v38-italic-latin', 'newsreader-v26-normal-latin'].map((font) => (
+          <link key={font} rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href={`/fonts/${font}.woff2`} />
+        ))}
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: loadingBootScript }} />
       </head>

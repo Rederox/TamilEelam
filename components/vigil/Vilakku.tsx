@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import Flame from './Flame'
-import GlVilakku from './gl/GlVilakku'
+import { GlVilakku } from './gl/lazy'
 
 /**
  * விளக்கு — the lamp itself, not just its flame.

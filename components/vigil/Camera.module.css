@@ -1,0 +1,45 @@
+/* The camera. In a documentary a still photograph is never static: the frame
+   opens a little too close and the camera settles back onto it. One slow
+   push per picture, played once when its .reveal comes in. The zoom exists
+   only inside the animation: a picture that never animates (no JS, reduced
+   motion, quiet reading, print) is whole and exactly where the layout put it. */
+
+/* the film gate: the push happens behind it, never over the mat or the caption */
+.gate { overflow: hidden; }
+
+/* A picture held to 65svh (the symbols, object-contain) is narrower than its
+   box and leaves empty bars beside it. The gate has to close on the picture,
+   not on the box, or the push would show its edges sliding in those bars.
+   Half a pixel of slack, and nothing at all when the picture fills its box:
+   at rest the clip touches no painted pixel. */
+.hug { clip-path: inset(-1px calc((100% - 65svh * var(--gate-ar)) / 2 - 0.5px)); }
+
+/* gentler than --e-vigil on purpose: over ten seconds the house curve spends
+   its whole move in the first one, and a camera is still arriving at the end.
+   No forwards fill: it would leave an identity matrix on the picture for
+   good, which is not `none` (Chrome then rasterises it on other pixels). The
+   move ends on the resting state, so letting go of it changes nothing. */
+:global(.reveal.in) .settle {
+  animation: settle var(--settle-dur, 11s) cubic-bezier(0.33, 1, 0.68, 1) backwards;
+}
+@keyframes settle {
+  from { transform: scale(var(--settle-zoom, 1.07)) translate(var(--settle-x, 0), var(--settle-y, 0)); }
+  to { transform: none; }
+}
+
+/* one take per photograph: the same quiet register, never the same move twice */
+.library { --settle-dur: 11s; --settle-x: -1%; }
+/* a face is met straight on: the slowest take, the least zoom, no drift */
+.portrait { --settle-dur: 12s; --settle-zoom: 1.06; }
+.flag { --settle-dur: 10s; --settle-zoom: 1.06; --settle-x: 1%; }
+.leopard { --settle-dur: 12s; --settle-zoom: 1.08; --settle-y: -1%; }
+.coucal { --settle-dur: 9s; --settle-zoom: 1.06; --settle-x: -1%; --settle-y: 0.5%; }
+.flower { --settle-dur: 10.5s; --settle-y: 1%; }
+
+/* belt and braces: globals.css already collapses every animation onto its end
+   state in both cases. The selectors repeat .reveal.in because a bare .settle
+   would lose to the rule above. */
+@media (prefers-reduced-motion: reduce) {
+  :global(.reveal.in) .settle { animation: none; }
+}
+:global(html[data-reading="quiet"]) :global(.reveal.in) .settle { animation: none; }

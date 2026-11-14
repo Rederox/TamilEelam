@@ -7,6 +7,7 @@ import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { ChBody, Caption } from './blocks'
+import camera from './Camera.module.css'
 import HistoryPassages, { HistorySources } from './HistoryPassages'
 
 export default function ChPrabhakaran() {
@@ -22,14 +23,16 @@ export default function ChPrabhakaran() {
             <div className="min-w-0 lg:sticky lg:top-28">
               <figure className="reveal mb-10">
                 <div className="border border-bone/20 bg-night-2 p-1.5">
-                  <Image
-                    src="/archive/prabhakaran-portrait.jpg"
-                    alt={p.photoAlt[lang]}
-                    width={1200}
-                    height={800}
-                    sizes="(max-width: 639px) calc(100vw - 62px), (max-width: 1023px) 82vw, 440px"
-                    className="block h-auto w-full"
-                  />
+                  <div className={camera.gate}>
+                    <Image
+                      src="/archive/prabhakaran-portrait.jpg"
+                      alt={p.photoAlt[lang]}
+                      width={1200}
+                      height={800}
+                      sizes="(max-width: 639px) calc(100vw - 62px), (max-width: 1023px) 82vw, 440px"
+                      className={`${camera.settle} ${camera.portrait} block h-auto w-full`}
+                    />
+                  </div>
                 </div>
                 <figcaption className="mt-4 border-l border-gold/30 pl-4">
                   <p className="text-sm italic leading-relaxed text-bone-dim">{p.photoCaption[lang]}</p>

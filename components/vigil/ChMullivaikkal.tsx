@@ -12,7 +12,7 @@ import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import MullivaikkalScenery from './MullivaikkalScenery'
 import styles from './MullivaikkalScenery.module.css'
-import GlSea from './gl/GlSea'
+import { GlSea } from './gl/lazy'
 import KanjiBowl from './KanjiBowl'
 
 const labels = {

@@ -11,8 +11,9 @@ import { useViewProgress } from '@/hooks/useSceneProgress'
 import Air from './Air'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
-import GlEmbers from './gl/GlEmbers'
+import { GlEmbers } from './gl/lazy'
 import { ChBody, Caption, Prose } from './blocks'
+import camera from './Camera.module.css'
 
 /**
  * A picture, given a treatment that says something about its subject
@@ -30,6 +31,7 @@ function Frame({
   label,
   credit,
   anim,
+  take,
 }: {
   src: string
   width: number
@@ -38,18 +40,23 @@ function Frame({
   label: string
   credit: string
   anim?: 'unfurl' | 'iris'
+  take: 'flag' | 'leopard' | 'coucal' | 'flower'
 }) {
   return (
     <figure className="group relative z-[2] border-y border-bone/20 bg-[rgb(var(--c-night-2))] py-4">
       <div className={anim ?? undefined}>
-        <Image
-          src={src}
-          width={width}
-          height={height}
-          alt={alt}
-          sizes="(min-width: 1024px) 45vw, 90vw"
-          className="block max-h-[65svh] w-full object-contain transition-[filter] duration-700 saturate-[0.75] group-hover:saturate-100"
-        />
+        {/* three elements, three jobs: the unfurl / iris and the sway stay on
+            the wrapper, the gate has its own clip, the camera moves the image */}
+        <div className={`${camera.gate} ${camera.hug}`} style={{ ['--gate-ar' as string]: width / height }}>
+          <Image
+            src={src}
+            width={width}
+            height={height}
+            alt={alt}
+            sizes="(min-width: 1024px) 45vw, 90vw"
+            className={`${camera.settle} ${camera[take]} block max-h-[65svh] w-full object-contain transition-[filter] duration-700 saturate-[0.75] group-hover:saturate-100`}
+          />
+        </div>
       </div>
       <figcaption className="flex items-center justify-between gap-3 px-1 pb-0.5 pt-2.5 font-mono text-[9px] uppercase tracking-[0.2em] text-ash">
         <span className="font-tamil normal-case tracking-normal">{label}</span>
@@ -102,13 +109,14 @@ export default function ChSymboles() {
           <div className="grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-[5vw]">
             <div className="reveal">
               <Frame
-                src="/symbols/flag.png"
+                src="/symbols/flag.webp"
                 width={1400}
                 height={933}
                 alt={s.flag.title}
                 label={s.flag.tamil}
                 credit="Tamil Eelam"
                 anim="unfurl"
+                take="flag"
               />
             </div>
             <Body s={s.flag} />
@@ -121,13 +129,14 @@ export default function ChSymboles() {
             </div>
             <div className="reveal d2 order-1 lg:order-2">
               <Frame
-                src="/symbols/leopard.jpg"
+                src="/symbols/leopard.webp"
                 width={927}
                 height={1200}
                 alt={s.animal.title}
                 label={s.animal.tamil}
                 credit="C. J. Sharp · CC BY-SA 4.0"
                 anim="iris"
+                take="leopard"
               />
             </div>
           </div>
@@ -140,12 +149,13 @@ export default function ChSymboles() {
               style={{ transform: `translateY(${birdDrift.toFixed(2)}px)` }}
             >
               <Frame
-                src="/symbols/coucal.jpg"
+                src="/symbols/coucal.webp"
                 width={1400}
                 height={932}
                 alt={s.bird.title}
                 label={s.bird.tamil}
                 credit="C. J. Sharp · CC BY-SA 4.0"
+                take="coucal"
               />
             </div>
             <Body s={s.bird} delay />
@@ -163,12 +173,13 @@ export default function ChSymboles() {
                 <GlEmbers density={16} intensity={0.5} speed={0.8} fallbackDensity={6} />
               </div>
               <Frame
-                src="/symbols/gloriosa.jpg"
+                src="/symbols/gloriosa.webp"
                 width={1400}
                 height={933}
                 alt={s.flower.title}
                 label={s.flower.tamil}
                 credit="J. Jose · CC BY-SA 4.0"
+                take="flower"
               />
             </div>
           </div>

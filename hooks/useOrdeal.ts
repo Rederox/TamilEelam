@@ -39,13 +39,17 @@ export function useOrdeal<T extends HTMLElement>(peak: number) {
     const key = Symbol('ordeal')
     let raf = 0
     let onScreen = false
+    let written = ''
 
     const update = () => {
       raf = 0
       const rect = el.getBoundingClientRect()
       const p = clamp01((window.innerHeight - rect.top) / (window.innerHeight + rect.height))
       const v = envelope(p) * peak
-      el.style.setProperty('--ordeal', v.toFixed(3))
+      // the section's copy only paces its reveals, and each write restyles
+      // the whole chapter: tenths are plenty, the shared signal stays exact
+      const step = v.toFixed(1)
+      if (step !== written) el.style.setProperty('--ordeal', (written = step))
       setOrdeal(key, v)
     }
     const onScroll = () => {
@@ -58,7 +62,7 @@ export function useOrdeal<T extends HTMLElement>(peak: number) {
       (entries) => {
         onScreen = entries[0].isIntersecting
         if (onScreen) update()
-        else { clearOrdeal(key); el.style.setProperty('--ordeal', '0') }
+        else { clearOrdeal(key); el.style.setProperty('--ordeal', (written = '0')) }
       },
       { rootMargin: '15% 0px' }
     )

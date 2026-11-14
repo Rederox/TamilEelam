@@ -3,6 +3,8 @@
 import { useLang } from '@/context/LanguageContext'
 import { useTheme } from '@/context/ThemeContext'
 import type { Lang } from '@/data/events'
+import { ambienceCopy, useAmbience } from '@/hooks/useAmbience'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { scrollBehavior } from '@/lib/motion'
 
 const LANGS: Lang[] = ['fr', 'en', 'ta']
@@ -17,9 +19,13 @@ export default function SiteHeader() {
   const { lang, setLang, t } = useLang()
   const { theme, toggle } = useTheme()
   const paper = theme === 'paper'
+  const sound = useAmbience()
+  // sound is silenced with everything else that moves (quiet reading, reduced motion)
+  const still = useReducedMotion()
+  const soundLabel = sound.failed ? ambienceCopy[lang].failed : sound.on ? ambienceCopy[lang].mute : ambienceCopy[lang].sound
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex items-center justify-between bg-gradient-to-b from-night/80 to-transparent px-5 py-4 sm:px-7">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex items-center justify-between bg-gradient-to-b from-night via-night/85 to-transparent px-5 pb-9 pt-4 sm:px-7">
       <a
         href="#prologue"
         aria-label={t('ui-top')}
@@ -32,7 +38,23 @@ export default function SiteHeader() {
         <span className="font-tamil text-[19px] font-semibold text-flame">தமிழீழம்</span>
         <span className="hidden font-mono text-[9px] uppercase tracking-[0.32em] text-ash sm:block">{t('brand-sub')}</span>
       </a>
-      <div className="flex items-stretch gap-2.5">
+      <div className="flex items-stretch gap-1.5 sm:gap-2.5">
+        {/* the ambience can be switched from anywhere, not only where it was offered */}
+        {!still && (
+          <button
+            type="button"
+            onClick={sound.toggle}
+            aria-pressed={sound.on}
+            title={soundLabel}
+            aria-label={soundLabel}
+            className={`pointer-events-auto grid min-h-[44px] w-11 place-items-center border border-bone/30 bg-night/50 backdrop-blur-md transition-colors hover:text-flame ${sound.failed ? 'text-ember' : sound.on ? 'text-flame' : 'text-ash'}`}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 9.5v5h3.5l4.5 3.5v-12L7.5 9.5H4Z" />
+              {sound.on ? <path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" /> : <path d="m16 9.5 5 5m0-5-5 5" />}
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           onClick={toggle}
@@ -68,7 +90,7 @@ export default function SiteHeader() {
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
               lang={l}
-              className={`min-h-[44px] border-r border-bone/15 px-3.5 font-mono text-[11px] tracking-[0.12em] transition-colors last:border-r-0 sm:min-h-0 sm:py-1.5 ${
+              className={`min-h-[44px] border-r border-bone/15 px-2.5 font-mono text-[11px] tracking-[0.12em] transition-colors last:border-r-0 sm:min-h-0 sm:px-3.5 sm:py-1.5 ${
                 lang === l ? 'bg-bone text-night' : 'text-ash hover:text-bone'
               }`}
             >

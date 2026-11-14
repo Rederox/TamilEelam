@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['mapbox-gl'],
   images: {
     // The project lives on an exFAT volume, where macOS writes `._` AppleDouble
     // sidecars next to every file. The optimizer's disk cache reads those
@@ -9,6 +8,11 @@ const nextConfig = {
     // pre-sized in /public, so serve them as-is.
     unoptimized: true,
   },
+  // every file under /fonts carries its release in its name (fetch-fonts.cjs)
+  headers: async () => [{
+    source: '/fonts/:file*',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+  }],
 }
 
 module.exports = (phase) => ({

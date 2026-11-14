@@ -27,7 +27,7 @@ const PETALS = COURSES.map(({ points: [a, b, c, d], width }, index) => {
     const body = Math.sin(Math.PI * t) ** 0.85
     const w = width * body * (0.7 + t * 0.3)
     const ripple = Math.sin(t * 43 + index * 1.7) * 1.35 * body
-    const coord = (offset: number) => `${(x - dy / length * offset).toFixed(2)},${(y + dx / length * offset).toFixed(2)}`
+    const coord = (offset: number) => `${(x - dy / length * offset).toFixed(1)},${(y + dx / length * offset).toFixed(1)}`
     left.push(coord(-w + ripple))
     right.push(coord(w + ripple * 0.65))
     fold.push(coord(w * 0.53 + ripple * 0.4))
@@ -78,9 +78,9 @@ function Blossom({ id, phase }: { id: string; phase: number }) {
   return <>
         {PETALS.map((petal, i) => (
           <g key={i} className={styles.petal} style={{ animationDelay: `${-i * 1.37 - phase}s`, animationDuration: `${3.6 + i * 0.37}s` }}>
-            <path d={petal.outline} fill={`url(#${id}-petal-${i})`} stroke="#d5ac4e" strokeWidth="0.85" strokeLinejoin="round" />
-            <path d={petal.shadow} fill="#491416" opacity="0.28" />
-            <path d={petal.vein} fill="none" stroke="#f2b060" strokeOpacity="0.22" strokeWidth="0.55" />
+            <use href={`#${id}-outline-${i}`} fill={`url(#${id}-petal-${i})`} stroke="#d5ac4e" strokeWidth="0.85" strokeLinejoin="round" />
+            <use href={`#${id}-shadow-${i}`} fill="#491416" opacity="0.28" />
+            <use href={`#${id}-vein-${i}`} fill="none" stroke="#f2b060" strokeOpacity="0.22" strokeWidth="0.55" />
           </g>
         ))}
         <ellipse cx="102" cy="113" rx="4" ry="2.3" fill="#8b873f" />
@@ -123,6 +123,15 @@ export default function KarthigaiFlower({ size = 300 }: { size?: number }) {
             <stop offset="0.7" stopColor={i < 3 ? '#9c241c' : '#ca3023'} />
             <stop offset="1" stopColor="#781c1b" />
           </linearGradient>
+        ))}
+        {/* each petal is drawn once and shown in all three blooms: written out
+            per bloom, these outlines were 95 kB of markup per flower */}
+        {PETALS.map((petal, i) => (
+          <g key={`petal-${i}`}>
+            <path id={`${id}-outline-${i}`} d={petal.outline} />
+            <path id={`${id}-shadow-${i}`} d={petal.shadow} />
+            <path id={`${id}-vein-${i}`} d={petal.vein} />
+          </g>
         ))}
         <linearGradient id={`${id}-stem`}><stop stopColor="#41452b" /><stop offset="0.5" stopColor="#85834a" /><stop offset="1" stopColor="#44482b" /></linearGradient>
         <linearGradient id={`${id}-leaf`} x2="1" y2="1"><stop stopColor="#747341" /><stop offset="0.55" stopColor="#3d482b" /><stop offset="1" stopColor="#232e20" /></linearGradient>

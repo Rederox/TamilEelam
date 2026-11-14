@@ -69,9 +69,10 @@ html[data-loading="true"] #vigil-content *::after { animation-play-state: paused
     --vignette-strength: 0.42;
     --press: 1.18;             /* a pressed control brightens in the dark */
 
-    /* how heavy the chapter under the reader is right now, 0..1 — written
-       by <Ordeal> from the shared signal in lib/ordeal.ts. Zero everywhere
-       except inside the vice, the fire, Black July and Mullivaikkal. */
+    /* how heavy the chapter under the reader is right now, 0..1. This is
+       only the resting value: <Ordeal> writes the live one on .vignette and
+       useOrdeal on its own section, never here — a write on :root restyles
+       the whole document. */
     --ordeal: 0;
 
     /* per-chapter grounds: each chapter has its own air */
@@ -448,6 +449,36 @@ html[data-loading="true"] #vigil-content *::after { animation-play-state: paused
     mix-blend-mode: multiply;
   }
 
+  /* ————— the frame: scope for a title card, open again for its chapter ————— */
+  /* <Letterbox> sets data-closed on itself; the two bars are its own
+     pseudo-elements. They sit at 79: over every chapter, under the header,
+     the lamp and the vignette, so the picture narrows and the room and its
+     controls do not. Only scaleY moves, so closing the frame costs the
+     compositor alone. */
+  .letterbox::before,
+  .letterbox::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 79;
+    height: 6svh;
+    pointer-events: none;
+    background: rgb(var(--flag-black));
+    transform: scaleY(0);
+    transition: transform 1.4s var(--e-vigil);
+  }
+  .letterbox::before { top: 0; transform-origin: top; }
+  .letterbox::after { bottom: 0; transform-origin: bottom; }
+  .letterbox[data-closed='true']::before,
+  .letterbox[data-closed='true']::after { transform: none; }
+  @media (min-width: 1024px) {
+    .letterbox::before,
+    .letterbox::after { height: min(11svh, 96px); }
+  }
+  /* paper is the reading, not the film: a sheet has no frame to narrow */
+  [data-theme='paper'] .letterbox { display: none; }
+
   /* ————— violence effects (Black July / Mullivaikkal) ————— */
 
   /* bullet impact: hidden until the chapter reveals, then punches in */
@@ -673,6 +704,11 @@ html[lang="ta"] .lang-title {
   letter-spacing: 0;
 }
 html[lang="ta"] body { line-height: 1.95; }
+/* a Tamil title takes three lines where the others take two: on the wide
+   title card it is set a little smaller, so the lede still clears the frame */
+@media (min-width: 1024px) {
+  html[lang="ta"] .chapter-open .lang-title { font-size: min(6.8vw, 80px); }
+}
 html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0; color: inherit; }
 
 /* editorial drop cap */
@@ -806,6 +842,56 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
 @keyframes flag-sway {
   0%, 100% { transform: skewY(0deg) scaleY(1); }
   50% { transform: skewY(0.35deg) scaleY(1.004); }
+}
+
+/* ————— the film frame: fade from black, living grain ————— */
+/* Both are extras for a reader who asked for the film: never under reduced
+   motion, quiet reading or on paper. Each is one rule and one @keyframes;
+   delete the pair and the page is exactly what it was. */
+
+/* Fade from black: a title card comes up out of the dark as it enters the
+   screen and sinks back as it leaves, tied to the scroll and not to a clock.
+   The whole card fades, not its lines: the .reveal children keep their own
+   opacity transitions and the two multiply instead of fighting. It is not
+   declared at all while the loading screen holds the page (that rule pauses
+   every animation, and a scroll-driven one must not resume out of step),
+   and 1ms is for engines that do not yet read `auto` as "the whole range". */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not([data-reading='quiet'], [data-loading='true'], [data-theme='paper']) .chapter-open {
+      animation: card-fade-in 1ms linear both, card-fade-out 1ms linear forwards;
+      animation-timeline: view(), view();
+      animation-range: entry 20% entry 80%, exit 20% exit 80%;
+    }
+  }
+}
+/* the second has no backwards fill on purpose: until the card starts to
+   leave it must not hold opacity 1 over the first one's fade-in */
+@keyframes card-fade-in { from { opacity: 0; } }
+@keyframes card-fade-out { to { opacity: 0; } }
+
+/* Living grain: the stock moves. The grain layer (body::after) jumps to a
+   new place eight times a second — steps, never a slide, or it would read
+   as a texture being dragged. Transform only, on a layer made a little
+   larger than the screen so a jump never bares an edge; background-size
+   pins the grain to the size it had when the layer was the screen. Pointer
+   devices only. The paper theme keeps its fibre still: a sheet does not boil. */
+@media screen and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html:not([data-reading='quiet'], [data-theme='paper']) body::after {
+    inset: -96px;
+    background-size: 100vmin 100vmin;
+    animation: grain-live 1s step-end infinite;
+  }
+}
+@keyframes grain-live {
+  0% { transform: translate(0, 0); }
+  12.5% { transform: translate(-61px, 37px); }
+  25% { transform: translate(43px, -79px); }
+  37.5% { transform: translate(-88px, -23px); }
+  50% { transform: translate(71px, 58px); }
+  62.5% { transform: translate(-29px, 90px); }
+  75% { transform: translate(84px, -47px); }
+  87.5% { transform: translate(-52px, -85px); }
 }
 
 /* ————— reduced motion ————— */

@@ -4,6 +4,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 import { useEffect, useRef } from 'react'
 import { prefersReducedMotion, reader, startReaderTracking } from '@/lib/motion'
+import { onFlameGL } from '@/lib/flames'
 import { getOrdeal } from '@/lib/ordeal'
 
 /**
@@ -30,6 +31,13 @@ export default function Lamp() {
     let x = 0.5
     let y = 0.42
     let lastDraught = ''
+    // only the CSS stand-in flames read --draught; the shader flames take the
+    // draught as a uniform, so while they burn the variable is left alone
+    let cssFlames = true
+    const offFlameGL = onFlameGL((on) => {
+      cssFlames = !on
+      if (on) { lastDraught = ''; document.documentElement.style.removeProperty('--draught') }
+    })
 
     const frame = (t: number) => {
       // the lamp trails the hand rather than snapping to it — and the
@@ -46,12 +54,12 @@ export default function Lamp() {
       el.style.setProperty('--ly', `${(y * 100).toFixed(2)}%`)
       el.style.setProperty('--lr', `${(breath * lift).toFixed(3)}`)
 
-      // Every flame on the page leans into the draught the reader makes.
-      // This one lives on <html>, so writing it invalidates style for the
-      // whole document: only write it when it has actually changed, which
-      // is never while the reader is holding still.
+      // Every CSS flame leans into the draught the reader makes. This one
+      // lives on <html>, so writing it restyles the whole document (measured:
+      // half of every scroll frame): only when a CSS flame is there to read
+      // it, and only when it has actually changed.
       const draught = (reader.scroll * -reader.dir).toFixed(2)
-      if (draught !== lastDraught) {
+      if (cssFlames && draught !== lastDraught) {
         lastDraught = draught
         document.documentElement.style.setProperty('--draught', draught)
       }
@@ -61,6 +69,7 @@ export default function Lamp() {
 
     return () => {
       cancelAnimationFrame(raf)
+      offFlameGL()
       stop()
     }
   }, [stillness])
