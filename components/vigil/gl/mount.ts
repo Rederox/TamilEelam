@@ -104,12 +104,18 @@ function mountVisibleGL(canvas: HTMLCanvasElement, build: GLBuilder, onFail?: ()
     }
     let frameInterval = 1000 / (isConstrainedDevice() ? 30 : 60)
     let lastFrame = -Infinity
+    let sized = ''
     const resize = () => {
       const w = canvas.clientWidth
       const h = canvas.clientHeight
       if (!w || !h) return
       const dpr = dprCap(w, h)
       frameInterval = 1000 / (isConstrainedDevice() ? 30 : 60)
+      // every return to the screen calls this: an unchanged size must not
+      // reallocate a full-screen buffer (twice: setPixelRatio, then setSize)
+      const size = `${w}x${h}@${dpr}`
+      if (size === sized) return
+      sized = size
       renderer.setPixelRatio(dpr)
       renderer.setSize(w, h, false)
       const cam = built.camera as THREE.PerspectiveCamera

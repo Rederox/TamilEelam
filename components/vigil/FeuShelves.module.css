@@ -1,17 +1,12 @@
 /* Chapter III's shelves. The reader walks along a wall of books while they
-   are lost, then stands in front of the shelves rebuilt and empty: one
-   number, --p, compared by each spine with the moment it goes (--at). */
+   are lost, then stands in front of the shelves rebuilt and empty.
+   What is written here without a state is the last image, the one shown
+   without scripting, in quiet reading and in reduced motion. FeuShelves.tsx
+   puts the books back (.here) and ages the shelves (data-askew, data-worn)
+   for as long as the scroll says so; nothing here reads a scroll variable. */
 .track {
-  /* where the scene rests without scripting, in quiet reading and in reduced
-     motion: rebuilt, empty. FeuShelves.tsx hands the same number to useScrub */
-  --p: 1;
-  /* the two repairs, one after the other: the boards are set true, then the
-     shelves come back new and lit */
-  --true: clamp(0, calc((var(--p) - 0.76) * 14), 1);
-  --lit: clamp(0, calc((var(--p) - 0.79) * 11), 1);
   --row: clamp(84px, 13.2svh, 118px);
   --board: 8px;
-  --walk: 220px;
 
   /* cloth, leather, palm leaf and wood, mixed from the site's own colours */
   /* worn: every tone is greyed with ash before it is sunk into the dark */
@@ -31,6 +26,7 @@
   /* the back of a rebuilt bay, laid half over the marks, and the light on it */
   --clean: color-mix(in srgb, color-mix(in srgb, var(--new) 30%, rgb(var(--ground))) 55%, transparent);
   --lamp: rgb(var(--c-bone) / 0.1);
+  --dark: rgb(var(--c-shade) / 0.84);
 
   position: relative;
   margin-bottom: clamp(56px, 9vh, 96px);
@@ -49,11 +45,9 @@
   --mark: rgb(var(--c-bone) / 0.16);
   --mark-top: rgb(var(--c-bone) / 0.06);
   --clean: rgb(var(--c-night) / 0.5);
+  --dark: rgb(var(--c-shade) / 0.34);
   --lamp: rgb(var(--c-night) / 0.5);
 }
-/* a screen that cannot hold the scene shows it at rest, whatever the scroll says */
-.track[data-held='false'] { --p: 1 !important; }
-
 .stage {
   position: relative;
   display: flex;
@@ -84,9 +78,8 @@
   display: flex;
   width: max-content;
   margin-left: 50%;
-  /* the reader's own steps along the shelves; they have stopped by the time
-     the last manuscripts go, and nothing moves sideways after that */
-  transform: translate3d(calc(-50% + clamp(0, calc(0.63 - var(--p)), 0.63) * var(--walk)), 0, 0);
+  /* FeuShelves.tsx adds the reader's steps to this, on this element alone */
+  transform: translate3d(-50%, 0, 0);
   will-change: transform;
 }
 
@@ -111,16 +104,23 @@
   border-color: var(--old);
   border-top-color: color-mix(in srgb, var(--old) 80%, rgb(var(--ground)));
   transform-origin: 50% 100%;
-  transform: rotate(calc(var(--tilt) * (1 - var(--true))));
-  opacity: calc(1 - var(--lit));
+  opacity: 0;
 }
 .bay::after {
   border-color: var(--new);
   /* the light comes back too, from above, on boards that hold nothing */
   background: linear-gradient(var(--lamp), transparent 85%), var(--clean);
   box-shadow: inset 1px 0 rgb(var(--c-bone) / 0.12), inset -1px 0 rgb(var(--c-shade) / 0.3);
-  opacity: var(--lit);
 }
+.track[data-askew='true'] .bay::before { transform: rotate(var(--tilt)); }
+.track[data-worn='true'] .bay::before { opacity: 1; }
+.track[data-worn='true'] .bay::after,
+.track[data-worn='true'] .shelf::after { opacity: 0; }
+/* set true in one movement, relit slowly: the new shelves take their time to arrive */
+.track[data-live='true'] .bay::before { transition: transform 1.6s var(--e-vigil), opacity 2.6s ease; }
+.track[data-live='true'] .shelf::before { transition: transform 1.6s var(--e-vigil); }
+.track[data-live='true'] .bay::after,
+.track[data-live='true'] .shelf::after { transition: opacity 2.6s ease; }
 
 .bay + .bay { margin-left: 1px; }
 
@@ -142,15 +142,14 @@
 }
 .shelf::before {
   background: linear-gradient(color-mix(in srgb, var(--old) 82%, rgb(var(--c-bone))), var(--old) 2px);
-  transform: rotate(calc(var(--sag) * (1 - var(--true))));
 }
+.track[data-askew='true'] .shelf::before { transform: rotate(var(--sag)); }
 .shelf::after {
   background: linear-gradient(color-mix(in srgb, var(--new) 84%, rgb(var(--c-bone))), var(--new) 2px);
-  opacity: var(--lit);
 }
 
-/* ————— a book: the element is the mark it leaves, ::before the spine,
-   ::after the dark that takes it just before it is gone ————— */
+/* ————— a book: the element is the mark it leaves, ::after the spine,
+   ::before, under it, the dark that takes it just before it is gone ————— */
 .spine,
 .ola {
   position: relative;
@@ -165,27 +164,36 @@
 .lean { transform-origin: 100% 100%; transform: rotate(var(--lean)); }
 .spine::before,
 .spine::after,
-.ola::after {
+.ola::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 1px 1px 0 0;
 }
 .spine::before,
-.ola > svg {
-  opacity: clamp(0, calc((var(--at) - var(--p)) * 60), 1);
-}
-.spine::before {
+.ola::before { background: var(--dark); }
+.spine::before { visibility: hidden; }
+.spine::after,
+.ola::before { opacity: 0; }
+.spine::after {
   background:
     var(--bands, none),
     linear-gradient(90deg, rgb(var(--c-bone) / 0.13), transparent 30%, transparent 60%, rgb(var(--c-shade) / 0.4)),
     var(--tone);
 }
-.spine::after,
-.ola::after {
-  background: rgb(var(--c-shade));
-  opacity: calc(clamp(0, calc((var(--p) - var(--at) + 0.05) * 30), 0.84) * clamp(0, calc((var(--at) - var(--p)) * 60), 1));
-}
+.ola > svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+/* still standing */
+.here::before { visibility: visible; opacity: 1; }
+.here::after,
+.here > svg { opacity: 1; }
+/* The colours go and leave the dark, then the dark is simply no longer
+   there. One fade a book, not two, and the second step is a switch: a
+   reader scrolling briskly has a hundred books leaving at once. */
+.track[data-live='true'] .spine::after { transition: opacity 0.45s ease-out; }
+.track[data-live='true'] .spine::before { transition: visibility 0s linear 0.45s; }
+/* the manuscripts leave more slowly than the books */
+.track[data-live='true'] .ola > svg { transition: opacity 1.1s ease-out; }
+.track[data-live='true'] .ola::before { transition: opacity 1.3s ease-in 0.8s; }
 .t0 { --tone: var(--oxblood); }
 .t1 { --tone: var(--rust); }
 .t2 { --tone: var(--ochre); }
@@ -211,7 +219,6 @@
   height: 21px;
   margin: 1px 0 0 calc(var(--x) * 1%);
 }
-.ola > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .leaf, .leaf2, .cord { fill: none; }
 .leaf { stroke: var(--straw); stroke-width: 1.7; }
 .leaf2 { stroke: color-mix(in srgb, var(--straw) 84%, rgb(var(--c-shade))); stroke-width: 1.7; }
@@ -222,10 +229,6 @@
 @media (max-width: 639.98px) {
   .bay:first-child, .bay:last-child { display: none; }
 }
-@media (min-width: 640px) {
-  .track { --walk: 150px; }
-}
-
 @media print {
   .track { height: auto !important; }
   .stage { position: static !important; height: auto !important; padding: 0; }

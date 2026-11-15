@@ -35,11 +35,13 @@
 /* the wide shot and the horizon are filmed from where there is no sand underfoot */
 .world[data-shot="0"] .ground, .world[data-shot="7"] .ground { opacity: 0; }
 
-.shot { position: absolute; inset: 0; opacity: 1; transition: opacity 1.5s ease-out; }
-/* Without @starting-style the incoming shot simply cuts in under the outgoing one. */
-@starting-style { .shot { opacity: 0; } }
-.shot[data-leaving="true"] { opacity: 0; transition-timing-function: ease-in; }
-.shot[data-cut="true"] { transition: none; }
+/* Every shot stays in the tree, in a box that never changes size; a shot change
+   is `data-on` moving from one to another. Off shots are `visibility: hidden`
+   (after their dissolve), so two are composited at most, and they hold still. */
+.shot { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity 1.5s ease-in, visibility 0s 1.5s; }
+.shot[data-on="true"] { opacity: 1; visibility: visible; transition: opacity 1.5s ease-out, visibility 0s; }
+.world[data-cut="true"] .shot { transition: none; }
+.shot:not([data-on="true"]) * { animation-play-state: paused; }
 
 .set { position: absolute; left: calc(var(--cx) - var(--set-w) / 2); top: calc(var(--waterline) - var(--set-w) * .15); width: var(--set-w); aspect-ratio: 2 / 1; }
 .set svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -62,8 +64,8 @@
 .cloth { fill: var(--mv-cloth); }
 .stick { fill: none; stroke: var(--mv-dark); stroke-width: .9; }
 .fires, .underFire { position: absolute; inset: 0; transition: opacity 1.5s ease; }
-.shot[data-shot="2"] .fires, .shot[data-shot="1"] .underFire { opacity: 0; }
-.shot[data-shot="1"] .underFire * { animation-play-state: paused; }
+.world:not([data-shot="0"], [data-shot="1"]) .fires, .world:not([data-shot="2"]) .underFire { opacity: 0; }
+.world:not([data-shot="2"]) .underFire * { animation-play-state: paused; }
 .fire { position: absolute; width: 5%; aspect-ratio: 1; margin: -2.5% 0 0 -2.5%; border-radius: 50%; background: radial-gradient(circle, rgb(var(--mv-light)) 0 5%, rgb(var(--mv-light) / .42) 11%, rgb(var(--mv-light) / .1) 34%, transparent 62%); animation: ember 3.8s ease-in-out var(--d, 0s) infinite alternate; }
 @keyframes ember { from { opacity: .6; transform: scale(.94); } to { opacity: 1; transform: scale(1.04); } }
 .lash { fill: rgb(var(--mv-light) / .5); animation: farFire 13s linear infinite; }
@@ -82,7 +84,8 @@
 .warmth { position: absolute; left: -45%; right: -45%; top: 62%; height: 52%; border-radius: 50%; background: radial-gradient(ellipse, rgb(var(--mv-light) / .2), rgb(var(--mv-light) / .07) 45%, transparent 70%); animation: warm 5.5s ease-in-out infinite alternate; }
 .contact { position: absolute; left: 8%; right: 8%; top: 82%; height: 14%; border-radius: 50%; background: radial-gradient(ellipse, rgb(var(--ch-clay-2) / .85), transparent 68%); }
 @keyframes warm { from { opacity: .78; } to { opacity: 1; } }
-.shot[data-shot="5"] .warmth { display: none; }
+/* a cut, not a fade: the steam and the warmth are simply no longer there */
+.world[data-shot="5"] .warmth, .world[data-shot="6"] .warmth, .world[data-shot="5"] .bowlSpot svg, .world[data-shot="6"] .bowlSpot svg { visibility: hidden; }
 
 /* 8 — naming: the horizon, drawn once and held (GlSea's waterline rests at 34 %) */
 .horizon { position: absolute; left: 0; top: 34%; width: 58%; height: 1px; background: linear-gradient(90deg, transparent, rgb(var(--ch-sand) / .7) 14%, rgb(var(--ch-sand) / .7) 62%, transparent); transform-origin: 0 50%; animation: drawLine 3.4s var(--e-draw) .5s both; }
@@ -192,7 +195,10 @@
 .sequence { overflow: clip; }
 .chapterEnd { position: relative; z-index: 3; padding-top: clamp(32px, 5vw, 64px); background: rgb(var(--ch-void)); }
 /* Text keeps its native shapes and contrast; warmth is confined to the letters. */
-.sequence :global(.mv-passage) h3 { position: relative; transition: color 1.8s ease, text-shadow 1.8s ease; }
+/* No transition on colour or text-shadow here: both run on the main thread and restyled every word of the
+   heading for 1.8 s at each scene (measured: a third of the chapter's style time on a phone). The colour
+   arrives under the passage's own fade instead. */
+.sequence :global(.mv-passage) h3 { position: relative; }
 .sequence[data-quiet="false"] :global(.mv-passage[data-scene="2"][data-active="true"]) h3 {
   color: rgb(var(--c-ember));
   text-shadow: 0 2px 18px rgb(var(--c-blood) / .24);

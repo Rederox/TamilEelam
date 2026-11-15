@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, type CSSProperties } from 'react'
+import { useCallback, useEffect, useId, useRef, type CSSProperties } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { researchCopy } from '@/data/research'
 import { useScrub } from '@/hooks/useScrub'
@@ -95,29 +95,63 @@ const WALL: Shelf[][] = (() => {
  * The reader stands in front of a wall of shelves and walks along it. The
  * books are lost one by one, then in runs, the palm-leaf manuscripts last;
  * each leaves the pale mark of where it stood. Then the shelves are set
- * straight, rebuilt, relit, and stay empty. `--p` on the track is the whole
- * of it: every spine carries the moment it goes (`--at`) and the stylesheet
- * compares the two.
+ * straight, rebuilt, relit, and stay empty.
+ *
+ * The markup is the last image: nothing on the shelves. A book stands only
+ * while it carries `.here`, and the scroll moves one index along the order of
+ * the loss, touching the few books it passes and no other element. No custom
+ * property is written above the spines: an inherited one restyled all of
+ * them on every frame.
  */
 export default function FeuShelves() {
   const { lang } = useLang()
   const id = useId()
-  const ref = useScrub<HTMLDivElement>({ pinned: true, rest: 1 })
+  const wall = useRef<HTMLDivElement>(null)
+  const held = useRef(true)
+  const loss = useRef<{ books: { el: HTMLElement; at: number }[]; gone: number; x: number } | null>(null)
+
+  const walk = useCallback((p: number) => {
+    const node = ref.current
+    if (!node || !wall.current) return
+    // a screen that cannot hold the scene shows it at rest, whatever the scroll says
+    if (!held.current) p = 1
+    let l = loss.current
+    if (!l) {
+      const books = Array.from(node.querySelectorAll<HTMLElement>('[data-at]'), (el) => ({ el, at: Number(el.dataset.at) })).sort((a, b) => a.at - b.at)
+      l = loss.current = { books, gone: books.length, x: 0 }
+      // the first placing is not an event: the fades are allowed once it has been painted
+      requestAnimationFrame(() => requestAnimationFrame(() => { node.dataset.live = 'true' }))
+    }
+    while (l.gone < l.books.length && l.books[l.gone].at <= p) l.books[l.gone++].el.classList.remove(s.here)
+    while (l.gone > 0 && l.books[l.gone - 1].at > p) l.books[--l.gone].el.classList.add(s.here)
+    // the two repairs, one after the other: the boards are set true, then the shelves come back new and lit
+    const askew = String(p < 0.76)
+    const worn = String(p < 0.8)
+    if (node.dataset.askew !== askew) node.dataset.askew = askew
+    if (node.dataset.worn !== worn) node.dataset.worn = worn
+    // the reader's own steps along the shelves; they have stopped by the time
+    // the last manuscripts go, and nothing moves sideways after that
+    const x = Math.round(Math.max(0, 0.63 - p) * (window.innerWidth < 640 ? 220 : 150) * 10) / 10
+    if (x !== l.x) wall.current.style.transform = (l.x = x) ? `translate3d(calc(-50% + ${x}px), 0, 0)` : ''
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs only
+  }, [])
+  const ref = useScrub<HTMLDivElement>({ pinned: true, rest: 1, variable: false, onChange: walk })
 
   useEffect(() => {
-    const node = ref.current
-    if (!node) return
     const hold = window.matchMedia(HOLD)
-    const fit = () => { node.dataset.held = String(hold.matches) }
+    const fit = () => {
+      held.current = hold.matches
+      if (!hold.matches) walk(1)
+    }
     fit()
     hold.addEventListener('change', fit)
     return () => hold.removeEventListener('change', fit)
-  }, [ref])
+  }, [walk])
 
   return (
     <div ref={ref} className={s.track}>
       <figure className={s.stage}>
-        <figcaption className={`${s.label} font-mono text-[9px] uppercase tracking-[0.22em] text-gold`}>{researchCopy.illustration[lang]}</figcaption>
+        <figcaption className={`${s.label} font-mono text-[9px] uppercase tracking-[0.22em] text-gold`}>02 · {researchCopy.illustration[lang]}</figcaption>
         <div className={s.room} aria-hidden="true">
           <svg className={s.defs} focusable="false">
             {/* an ola: narrow leaves stacked between two boards, held by a cord wound through them */}
@@ -128,7 +162,7 @@ export default function FeuShelves() {
               <path className={s.cord} d="M45 0L45.6 21M47 0L47.6 21M123 0L123.6 21M125 0L125.6 21" />
             </symbol>
           </svg>
-          <div className={s.wall}>
+          <div ref={wall} className={s.wall}>
             {WALL.map((bay, b) => (
               <div key={b} className={s.bay} style={{ '--tilt': `${b % 2 ? 0.28 : -0.22}deg` } as CSSProperties}>
                 {bay.map((shelf, k) => (
@@ -136,7 +170,7 @@ export default function FeuShelves() {
                     {shelf.pile.length > 0 && (
                       <div className={s.pile}>
                         {shelf.pile.map((ola, i) => (
-                          <i key={i} className={s.ola} style={{ '--w': ola.w, '--x': ola.x, '--at': ola.at } as CSSProperties}>
+                          <i key={i} className={s.ola} data-at={ola.at} style={{ '--w': ola.w, '--x': ola.x } as CSSProperties}>
                             <svg focusable="false"><use href={`#${id}-ola`} /></svg>
                           </i>
                         ))}
@@ -146,7 +180,8 @@ export default function FeuShelves() {
                       <i
                         key={i}
                         className={`${s.spine} ${s[`t${spine.tone}`]}${spine.band ? ` ${s[`b${spine.band}`]}` : ''}${spine.lean ? ` ${s.lean}` : ''}`}
-                        style={{ '--w': spine.w, '--h': spine.h, '--at': spine.at, ...(spine.lean ? { '--lean': `${spine.lean}deg` } : null) } as CSSProperties}
+                        data-at={spine.at}
+                        style={{ '--w': spine.w, '--h': spine.h, ...(spine.lean ? { '--lean': `${spine.lean}deg` } : null) } as CSSProperties}
                       />
                     ))}
                   </div>

@@ -981,6 +981,9 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
 
 /* Editorial rhythm: a landscape, documents, absence, then a shared vigil. */
 .reveal:not(.reveal-ready) { opacity: 1; transform: none; }
+/* the same promise for the word-staggered titles: without JavaScript nothing ever
+   adds .in, and all twelve chapter titles used to stay invisible */
+.stagger:not(.reveal-ready) .w { opacity: 1; transform: none; filter: none; }
 .mv-scenery { margin-bottom: -100svh; }
 .mv-passage { border-bottom: 1px solid rgb(var(--c-bone) / .08); }
 .mv-passage:last-child { border-bottom: 0; }

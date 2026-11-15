@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { researchCopy } from '@/data/research'
 import { useScrub } from '@/hooks/useScrub'
@@ -18,8 +18,9 @@ const dice = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) - 1) 
 // to either side, in gaps of the nearest row; LEAN keeps any column from
 // running straight up the middle of the frame.
 const STEP = 0.72, ROWS = 6, FAR_ROWS = 5, HALF = 3.4, LEAN = 0.38
-// the lighting, on --p: the reader's lamp, a while alone, then the wave
-const ALONE = 0.04, WAVE = 0.17, REACH = 0.5
+// the lighting, along the walk: the reader's lamp, a while alone, then the wave,
+// then the far rows rising together between BAND and BAND + 0.25
+const ALONE = 0.04, WAVE = 0.17, REACH = 0.5, BAND = 0.5
 
 // How late a lamp catches: its distance from the first one, by rows away and by
 // width across, and a little of its own. A circle spreading, never a line.
@@ -49,22 +50,13 @@ const LAMPS: Lamp[] = (() => {
   return out
 })()
 
-type Stretch = Light & { left: number; width: number; bx: number; by: number; dim: number }
-const FAR: Stretch[] = (() => {
+// The five rows beyond: one strip of points each, all inside one band.
+const FAR = (() => {
   const r = dice(1807)
-  const out: Stretch[] = []
-  for (let j = FAR_ROWS - 1; j >= 0; j--) {
-    const depth = STEP ** (ROWS + j)
-    // uneven stretches, overlapping where one fades into the next; wider than the frame
-    const cuts = Array.from({ length: 8 }, (_, k) => (k === 0 ? -6 : k === 7 ? 106 : -6 + (112 * (k + (r() - 0.5) * 0.5)) / 7))
-    for (let k = 0; k < 7; k++) {
-      const left = cuts[k] - 3, width = cuts[k + 1] - cuts[k] + 6
-      // 5.9: the width of the frame in gaps of the nearest row
-      const x = ((left + width / 2 - 50) / 100) * 5.9 + LEAN
-      out.push({ x: 0, s: n(depth), t: when(r, ROWS + j, x, 0.05), d: n(4 + r() * 4, 1), o: n(-r() * 7, 1), left: n(left, 1), width: n(width, 1), bx: n(r(), 2), by: n(r(), 2), dim: n(0.74 - j * 0.08, 2) })
-    }
-  }
-  return out
+  return Array.from({ length: FAR_ROWS }, (_, k) => {
+    const j = FAR_ROWS - 1 - k
+    return { s: n(STEP ** (ROWS + j)), bx: n(r(), 2), by: n(r(), 2), dim: n(0.74 - j * 0.08, 2) }
+  })
 })()
 
 // A glory lily, simply: six petals swept back like a flame, the stamens
@@ -88,7 +80,7 @@ const LILIES = [
   { by: beside(0, 0), dx: -0.36, lean: -66 },
   { by: beside(0, -1), dx: -0.34, lean: 74 },
   { by: beside(1, 1), dx: -0.26, lean: -82 },
-].map(({ by, dx, lean }) => ({ x: n(by.x + dx * by.s), s: n(by.s * 1.03), t: by.t, lean }))
+].map(({ by, dx, lean }) => ({ x: n(by.x + dx * by.s), s: n(by.s * 1.03), t: by.t + 0.01, lean }))
 
 // Palmyras on the skyline: a straight trunk, a round head of stiff fans.
 const TREES = ([[70, 22], [96, 31], [250, 18], [410, 26], [432, 35], [452, 21], [640, 16], [790, 29], [815, 20], [980, 32], [1004, 24], [1130, 19]] as const).map(([x, h]) => {
@@ -97,6 +89,12 @@ const TREES = ([[70, 22], [96, 31], [250, 18], [410, 26], [432, 35], [452, 21], 
 }).join('')
 
 const vars = (v: Record<string, string | number>) => v as CSSProperties
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
+
+// Everything that catches, in the order it is drawn, and the order it catches in.
+const WHEN = [...LAMPS, ...LILIES].map((l) => l.t)
+const ORDER = WHEN.map((_, i) => i).sort((a, b) => WHEN[a] - WHEN[b])
+type Scene = { lights: Element[]; lit: number; dusk: HTMLElement; glow: HTMLElement; band: HTMLElement; ground: HTMLElement }
 
 /**
  * An evocation of the evening of 27 November: a ground where lamps are being
@@ -105,13 +103,37 @@ const vars = (v: Record<string, string | number>) => v as CSSProperties
  *
  * The reader's scroll lights them. The one at their feet first, then from
  * hand to hand outward until the far rows are a band at the horizon; then
- * nothing moves but the flames. `--p` on the track is the whole of it. Without
- * scripting, in quiet reading and in reduced motion, every lamp is lit.
+ * nothing moves but the nearest flames. The markup is the lit ground: without
+ * scripting, in quiet reading and in reduced motion, that is what stays.
+ *
+ * No custom property carries the walk: it would restyle every lamp on every
+ * frame. Only the lamps whose moment is crossed are touched, and three washes.
  */
 export default function MaaveerarLamps() {
   const { lang } = useLang()
   const [held, setHeld] = useState(true)
-  const ref = useScrub<HTMLDivElement>({ pinned: held, rest: 1 })
+  const scene = useRef<Scene | null>(null)
+  const ref = useScrub<HTMLDivElement>({
+    pinned: held,
+    rest: 1,
+    variable: false,
+    onChange: (p) => {
+      const node = ref.current
+      if (!node) return
+      const part = (name: string) => node.getElementsByClassName(name)[0] as HTMLElement
+      const sc = (scene.current ??= { lights: Array.from(node.querySelectorAll('[data-l]')), lit: ORDER.length, dusk: part(s.dusk), glow: part(s.glow), band: part(s.band), ground: part(s.ground) })
+      // passing by (no pin): the nearest row is the last to come into view, so
+      // the lighting waits for it and is done before the horizon leaves
+      const q = held ? p : clamp01((p - 0.4) * 3.6)
+      while (sc.lit < ORDER.length && WHEN[ORDER[sc.lit]] <= q) sc.lights[ORDER[sc.lit++]].removeAttribute('data-out')
+      while (sc.lit > 0 && WHEN[ORDER[sc.lit - 1]] > q) sc.lights[ORDER[--sc.lit]].setAttribute('data-out', '')
+      sc.dusk.style.opacity = (1 - q * 0.82).toFixed(3)
+      sc.glow.style.opacity = clamp01((q - 0.42) * 2.4).toFixed(3)
+      sc.band.style.opacity = clamp01((q - BAND) * 4).toFixed(3)
+      // the reader's last steps towards it: everything opens out from the horizon
+      sc.ground.style.transform = `scale(${(0.94 + q * 0.06).toFixed(4)})`
+    },
+  })
 
   useEffect(() => {
     const node = ref.current
@@ -131,24 +153,25 @@ export default function MaaveerarLamps() {
   return (
     <div ref={ref} className={s.track}>
       <figure className={s.stage}>
-        <figcaption className={`${s.label} font-mono text-[9px] uppercase tracking-[0.22em] text-gold`}>{researchCopy.illustration[lang]}</figcaption>
+        <figcaption className={`${s.label} font-mono text-[9px] uppercase tracking-[0.22em] text-gold`}>04 · {researchCopy.illustration[lang]}</figcaption>
         <div className={s.scene} aria-hidden="true">
           <span className={s.dusk} />
           <span className={s.glow} />
           <svg viewBox="0 0 1200 50" preserveAspectRatio="xMidYMax slice" className={s.trees}><path d={TREES} /></svg>
           <div className={s.ground}>
-            {FAR.map((f, i) => (
-              <span key={i} className={s.far} style={vars({ left: `${f.left}%`, width: `${f.width}%`, '--s': f.s, '--t': f.t, '--bx': f.bx, '--by': f.by, '--dim': f.dim, '--d': `${f.d}s`, '--o': `${f.o}s` })} />
-            ))}
+            <div className={s.band}>
+              {FAR.map((f, i) => <span key={i} className={s.far} style={vars({ '--s': f.s, '--bx': f.bx, '--by': f.by, opacity: f.dim })} />)}
+            </div>
             {LAMPS.map((l, i) => (
               <span
                 key={i}
-                className={`${s.lamp}${l.row < 3 ? ` ${s.near}` : ''}${l.first ? ` ${s.first}` : ''}${Math.abs(l.x) > 1.9 ? ` ${s.wide}` : ''}`}
-                style={vars({ '--x': l.x, '--s': l.s, '--t': l.t, '--d': `${l.d}s`, '--o': `${l.o}s` })}
+                data-l=""
+                className={`${s.lamp}${l.row < 2 ? ` ${s.near}` : l.row > 2 ? ` ${s.small}` : ''}${l.row ? '' : ` ${s.front}`}${l.first ? ` ${s.first}` : ''}${Math.abs(l.x) > 1.9 ? ` ${s.wide}` : ''}`}
+                style={vars(l.row < 2 ? { '--x': l.x, '--s': l.s, '--d': `${l.d}s`, '--o': `${l.o}s` } : { '--x': l.x, '--s': l.s })}
               ><span /></span>
             ))}
             {LILIES.map((f, i) => (
-              <svg key={i} viewBox="-80 -80 160 160" className={s.lily} style={vars({ '--x': f.x, '--s': f.s, '--t': f.t })}>
+              <svg key={i} viewBox="-80 -80 160 160" data-l="" className={s.lily} style={vars({ '--x': f.x, '--s': f.s })}>
                 <g transform={`rotate(${f.lean})`}>
                   <path className={s.stem} d="M0 2Q5 34 -8 72" />
                   <path className={s.stamen} d={STAMENS} />

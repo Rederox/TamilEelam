@@ -41,6 +41,30 @@ Les photos, archives et matières des scènes conservent leurs couleurs naturell
 - Caméra : chaque photographie se pose lentement (`Camera.module.css`, `.settle` dans `.gate`), une seule fois, et finit exactement à `transform: none`.
 - Tout cela disparaît en lecture calme, en mouvement réduit et à l’impression.
 
+## Version « immersion » : être dans l’histoire
+
+Le défilement est le pas du lecteur dans un lieu. Quatre appuis, dans cet ordre : l’échelle humaine (un geste, un objet), le temps (ce qui arrive lentement et tient), l’absence (la place laissée), la main du lecteur (rien ne bouge au point d’en refaire un spectateur). La violence reste évoquée, jamais montrée ; aucun visage, nom, chiffre ou document inventé.
+
+- **Le seuil** (`Prologue`) : épinglé, la caméra avance vers la porte jusqu’à ce que le jardin prenne le cadre.
+- **La terre** (`LandMemory`) : paysage en cinq plans, le soleil descend avec le défilement, une maison s’éclaire ; la frise se trace en marchant.
+- **L’étau** (`ChEtau`, `Etau.module.css`) : les actes posés sur le bureau et tamponnés, les murs qui se resserrent dans les marges.
+- **Le feu** (`FeuShelves`) : les rayonnages se vident livre par livre, puis reviennent, neufs et vides.
+- **La promesse** (`ChPromesse`) : la feuille qui s’écrit, les bulletins dans l’urne.
+- **Juillet noir** (`JuilletExil`) : la valise, les objets d’une maison, la lumière qui quitte la pièce.
+- **Mullivaikkal** (`MullivaikkalScenery`) : dix plans presque immobiles, montés une fois, fondus par opacité.
+- **Les disparus** (`ChDisparus`) : la lumière passe sur les cadres vides ; la ligne des jours écoulés depuis le 18 mai 2009.
+- **Maaveerar Naal** (`MaaveerarLamps`) : le champ de lampes allumé de proche en proche ; « Aujourd’hui » les 26 et 27 novembre et le 18 mai.
+- **L’aube** (`ChAube`) : le ciel s’éclaircit, les huit villes s’allument une à une, un fil les relie.
+- **L’épilogue** (`Epilogue`) : un temps de noir avant que la mèche prenne ; les sources en générique de fin, jamais en défilement automatique.
+- **La voix** (`Voice.tsx`, `Spoken`) : les grandes phrases arrivent par membres, avec un temps aux ponctuations ; les chiffres mémoriels arrivent d’un bloc et tiennent, sans jamais compter.
+- **Les coupes** (`Letterbox`, `ProgressRail`) : un saut de chapitre passe par le noir au lieu de traverser les autres chapitres.
+
+Règles techniques, toutes issues de mesures :
+- `hooks/useScrub.ts` donne la progression d’une scène. Sur une petite scène, il écrit `--p` sur l’élément ; sur une scène de centaines d’éléments, `variable: false` et `onChange` : on ne touche que les éléments dont l’état change (une variable héritée restylait 300 éléments par image).
+- `transform` et `opacity` seulement ; rien n’anime hors écran ; un plan qui bouge est son propre élément, pas un `<g>` dans un grand SVG.
+- L’état au repos est celui du HTML servi : sans JavaScript, en lecture calme et en mouvement réduit, chaque scène est complète, immobile, dans le flux (pas d’épinglage).
+- Les figures portent la mention « Évocation visuelle », numérotées dans l’ordre de lecture (01 la terre, 02 le feu, 03 juillet, 04 Maaveerar).
+
 ## WebGL layer (couche immersive)
 
 - Composants `components/vigil/gl/*` : three.js chargé dynamiquement (jamais dans le bundle initial)

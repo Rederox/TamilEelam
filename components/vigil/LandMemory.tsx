@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { researchCopy } from '@/data/research'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -13,8 +13,8 @@ const text = {
   ta: { line: 'தேதிகளுக்கு முன், வாழ்வுகள் இருந்தன.', sub: 'வீட்டில் ஒரு மொழி. பழகிய ஒரு பாதை. தமதென அழைத்த ஒரு நிலம்.' },
 }
 
-// where the walk stands when nothing moves: the default of --p in the stylesheet is the same number
-const REST = 0.64
+// when nothing moves the walk is over: the sun down, the lamp lit. The stylesheet's --p is the same number
+const REST = 1
 // the stylesheet holds the scene on screen under this condition; anywhere else it passes by
 const HOLD = '(scripting: enabled) and (min-height: 600px)'
 
@@ -59,7 +59,7 @@ const ground = (top: (x: number) => number) => {
 }
 const MID_GROUND = ground(midTop)
 const NEAR_GROUND = ground(nearTop)
-const MID_PALMS = grove(3, [[380, 200], [470, 236], [700, 178], [1010, 214], [1150, 188], [1600, 242], [1700, 204], [2050, 222]], midTop, 7)
+const MID_PALMS = grove(3, [[380, 150], [470, 172], [700, 150], [1010, 190], [1150, 188], [1600, 242], [1700, 204], [2050, 222]], midTop, 7)
 // both stand right of the centre for the whole walk: the sky behind the words stays empty
 const NEAR_PALMS = grove(5, [[1470, 478], [1900, 428]], nearTop, 9)
 // a young palmyra has no trunk yet, only fans rising from the ground
@@ -117,6 +117,32 @@ const meadow = (seed: number, step: number, y: (x: number) => number, small: num
 const NEAR_GRASS = meadow(31, 105, nearTop, 0.8, 1.5)
 const FORE_GRASS = meadow(32, 92, () => 604, 2.1, 3.5)
 
+// how far each plane travels sideways and how far it rises, in % of its own strip
+const TRAVEL: Record<string, [number, number]> = { far: [2.4, 0], mid: [8, 1.5], hearth: [8, 1.5], near: [16, 3], fore: [24, 6] }
+const unit = (v: number) => Math.min(1, Math.max(0, v))
+type Scene = { parts: (HTMLElement | SVGElement)[]; q: number; lamp: number }
+/**
+ * The scene at scroll position p, written on the dozen elements that change
+ * and on nothing else: as an inherited --p, every frame restyled all 250 nodes
+ * of the drawing (measured: 4 ms of style a frame on a desktop).
+ * The stylesheet holds the same formulas on --p for the page without scripting.
+ */
+function paint(scene: Scene, p: number) {
+  // the walk is over at three quarters of the scroll: after that the light is held
+  const q = Math.min(1, p / 0.75)
+  const lamp = n(unit((p - 0.5) * 3.6), 3)
+  for (const el of scene.parts) {
+    const part = el.dataset.part as string
+    if (part === 'lamp') { if (lamp !== scene.lamp) el.style.opacity = String(lamp) }
+    else if (q === scene.q) continue
+    else if (TRAVEL[part]) el.style.transform = `translate3d(${n(-50 + (0.5 - q) * TRAVEL[part][0], 3)}%, ${n((1 - q) * TRAVEL[part][1], 3)}%, 0)`
+    else if (part === 'sun') el.style.transform = `translate3d(-50%, ${n(q * 300 - 195, 2)}%, 0)`
+    else el.style.opacity = String(n(part === 'day' ? 1 - q * 0.55 : part === 'glitter' ? unit(1.3 - q * 1.5) : q, 3))
+  }
+  scene.q = q
+  scene.lamp = lamp
+}
+
 function Palm({ tree, fan }: { tree: Tree; fan: string }) {
   return (
     <g transform={`translate(${tree.x} ${tree.y}) rotate(${tree.lean})`}>
@@ -142,7 +168,7 @@ function Grass({ tufts, id }: { tufts: Tuft[]; id: string }) {
  *
  * The scroll is the reader's walk along a lagoon at the end of a day. Five
  * planes drift past at their own speed while the sun goes down behind the far
- * shore; `--p` on the track is the whole of it, the stylesheet does the rest.
+ * shore, and stops before the scroll does: the last quarter is the lamp, held.
  */
 export default function LandMemory() {
   const { lang } = useLang()
@@ -151,7 +177,25 @@ export default function LandMemory() {
   const fan = `#${id}-fan`
   const still = useReducedMotion()
   const [held, setHeld] = useState(true)
-  const ref = useScrub<HTMLDivElement>({ pinned: held, rest: REST })
+  const scene = useRef<Scene | null>(null)
+  const walking = useRef(0)
+  const ref = useScrub<HTMLDivElement>({
+    pinned: held,
+    rest: REST,
+    variable: false,
+    onChange: (p) => {
+      const root = ref.current
+      if (!root) return
+      paint((scene.current ??= { parts: Array.from(root.querySelectorAll<HTMLElement | SVGElement>('[data-part]')), q: -1, lamp: -1 }), p)
+      // The wind waits while the reader walks and picks up where it was when
+      // they stop: the step is theirs, and a frond turning inside a strip that
+      // is travelling repaints the strip on every frame. Written twice a
+      // gesture, not once a frame.
+      if (!root.dataset.walking) root.dataset.walking = 'true'
+      window.clearTimeout(walking.current)
+      walking.current = window.setTimeout(() => { delete root.dataset.walking }, 200)
+    },
+  })
 
   useEffect(() => {
     const node = ref.current
@@ -165,7 +209,7 @@ export default function LandMemory() {
     observer.observe(node)
     hold.addEventListener('change', fit)
     document.addEventListener('visibilitychange', sync)
-    return () => { observer.disconnect(); hold.removeEventListener('change', fit); document.removeEventListener('visibilitychange', sync) }
+    return () => { observer.disconnect(); hold.removeEventListener('change', fit); document.removeEventListener('visibilitychange', sync); window.clearTimeout(walking.current) }
   }, [ref])
 
   return (
@@ -178,10 +222,10 @@ export default function LandMemory() {
         </figcaption>
 
         <div className={s.land} aria-hidden="true">
-          <span className={s.day} />
-          <span className={s.dusk} />
+          <span className={s.day} data-part="day" />
+          <span className={s.dusk} data-part="dusk" />
           {/* the well ends at the horizon, so the sun sets behind the water */}
-          <span className={s.well}><span className={s.sun}><span className={s.glow} /></span></span>
+          <span className={s.well}><span className={s.sun} data-part="sun"><span className={s.glow} /><span className={s.blush} data-part="blush" /></span></span>
           {[s.flock, s.loner].map((flight, k) => (
             <svg key={flight} viewBox="0 0 90 40" className={flight} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
               {([[20, 27], [49, 12], [72, 25]] as const).slice(0, k ? 1 : 3).map(([x, y], i) => (
@@ -190,7 +234,7 @@ export default function LandMemory() {
             </svg>
           ))}
 
-          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.far}`}>
+          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.far}`} data-part="far">
             <defs>
               <path id={`${id}-fan`} d={FAN} />
               <path id={`${id}-far`} d={FAR_PALM} />
@@ -200,10 +244,10 @@ export default function LandMemory() {
             <path d="M-20 403V397Q200 387 420 393T800 395Q900 396 990 401V403ZM1170 403Q1300 392 1500 394T1900 390T2420 394V403Z" />
             {FAR_PALMS.map(([x, h]) => <use key={x} href={`#${id}-far`} transform={`translate(${x} 397) scale(${h / 100})`} />)}
           </svg>
-          <svg viewBox="0 0 200 84" preserveAspectRatio="none" className={s.glitter} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+          <svg viewBox="0 0 200 84" preserveAspectRatio="none" className={s.glitter} data-part="glitter" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             {GLINTS.map((g, i) => <path key={i} d={g.d} className={s.glint} vectorEffect="non-scaling-stroke" style={{ animationDuration: `${g.t}s`, animationDelay: `${-g.o}s` }} />)}
           </svg>
-          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.mid}`}>
+          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.mid}`} data-part="mid">
             <path d={MID_GROUND} />
             <path d={PATH} className={s.path} />
             <path d={HOUSE} transform={`translate(${HOME.x} ${HOME.y})`} />
@@ -211,7 +255,7 @@ export default function LandMemory() {
           </svg>
           <span className={s.mist} />
           {/* its own strip, travelling with the house: the land's ink must not dim the lamp */}
-          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.hearth}`}>
+          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.hearth}`} data-part="hearth">
             <defs>
               <radialGradient id={`${id}-halo`}>
                 <stop offset="0" style={{ stopColor: 'rgb(var(--sun))', stopOpacity: 0.36 }} />
@@ -225,20 +269,20 @@ export default function LandMemory() {
                   <path d="M3 -74C-3 -88 10 -100 6 -116C2 -130 15 -140 13 -154C21 -138 8 -130 13 -116C18 -100 5 -88 7 -74Z" opacity="0.5" />
                 </g>
               </g>
-              <g className={s.lamp}>
+              <g className={s.lamp} data-part="lamp">
                 <circle cy="-6" r="34" fill={`url(#${id}-halo)`} />
                 <ellipse cx="-2" cy="4" rx="9" ry="2.4" opacity="0.3" />
                 <path className={s.flame} d="M-3 0V-11H3V0ZM11 -5.5V-10H15.5V-5.5Z" />
               </g>
             </g>
           </svg>
-          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.near}`}>
+          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.near}`} data-part="near">
             <path d={NEAR_GROUND} />
             {NEAR_PALMS.map((tree) => <Palm key={tree.x} tree={tree} fan={fan} />)}
             <g transform={`translate(900 ${n(nearTop(900) + 6)})`}><Fans fronds={SAPLING} fan={fan} /></g>
             <Grass tufts={NEAR_GRASS} id={id} />
           </svg>
-          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.fore}`}>
+          <svg viewBox="0 0 2400 600" className={`${s.plane} ${s.fore}`} data-part="fore">
             <Grass tufts={FORE_GRASS} id={id} />
           </svg>
         </div>

@@ -1,6 +1,6 @@
 # À faire — La Veillée
 
-État au 14 novembre 2026. Rien de ce qui suit n'est commité : le travail de la session est dans l'arbre de travail.
+État au 15 novembre 2026. Trois branches sur GitHub : `main` (inchangée), `film` (performances, sources, mise en scène de film), `immersion` (les douze scènes, construite sur `film`). Rien n'a été fusionné dans `main`.
 
 ## Texte du récit : formulations à trancher
 
@@ -14,6 +14,20 @@ Aucune date ni aucun chiffre n'a été trouvé franchement faux. Ces sept formul
 - [ ] **Symboles** : pas de source institutionnelle pour le léopard et le coucal comme symboles de l'Eelam, ni pour la date « 1977 » du chapitre. Seuls la fleur (reportage) et le caractère endémique du léopard sont sourcés.
 - [ ] **Les disparus** : « les Mères du Nord » et les trois villes (Vavuniya, Kilinochchi, Mullaitivu) ne figurent pas dans les textes de l'ONU ou de HRW lus. Le début en 2017, la continuité et les décès, eux, sont sourcés.
 - [ ] **Jaffna, « pendant quatre siècles »** : approximatif ; le royaume a été conquis un temps par Kotte au XVᵉ siècle, et aucune source lue ne donne de date de fondation.
+
+## Version « immersion » (branche `immersion`)
+
+- [ ] **Regarder les douze scènes** et dire ce qui doit changer : le seuil, la terre, l'étau, le feu, la promesse, la valise de juillet, les dix plans de Mullivaikkal, les disparus, les lampes de Maaveerar, l'aube, l'épilogue et son générique, les coupes au noir. Liste et principes dans `DESIGN.md`.
+- [ ] **Texte ajouté, à relire (surtout le tamoul)** :
+  - `components/vigil/ChDisparus.tsx` : « {n} jours ont passé depuis le 18 mai 2009. » / « {n} days have passed since 18 May 2009. » / « 2009 மே 18 முதல் {n} நாட்கள் கடந்துவிட்டன. » (et la version sans nombre, affichée sans JavaScript). Décider aussi si le 18 mai 2009 est le bon point de départ pour ce chapitre.
+  - `components/vigil/ChMaaveerar.tsx` : « Aujourd’hui » / « Today » / « இன்று », affiché seulement le 26 novembre, le 27 novembre et le 18 mai.
+- [ ] **Mullivaikkal, plan 3 (« Sous les obus »)** : la mer WebGL (`gl/GlSea.tsx`, antérieure à cette version) dessine encore une traînée d'obus, une lueur, de la fumée et une marée rouge ; `.redVeil` teinte la scène. La nouvelle direction dit « évoquer, ne pas montrer » : garder, atténuer ou retirer.
+- [ ] **Objets de la valise** (horloge, cadre vide, marmite, radio, cahier, tissu, clés, parapluie) et **palmiers, maison et fumée de la terre** : vérifier qu'ils sonnent juste pour un foyer tamoul de 1983 et pour le Nord ; ce sont des évocations dessinées, pas des archives.
+- [ ] **Empreintes de pas** du plan 9 de Mullivaikkal (« La trace ») : à valider.
+- [ ] Mode papier : le plan 1 de Mullivaikkal (la bande de sable) est une lame blanche un peu dure.
+- [ ] Les rayonnages utilisent `color-mix()` : sur un très vieux navigateur, les étagères sont vides du début à la fin.
+- [ ] **Son** : aucune musique ni voix n'a été ajoutée. Une voix de narrateur ou une tanpura réelles seraient le plus fort levier d'émotion ; une synthèse n'a pas été tentée (impossible à juger sans oreille, et risquée sur ce sujet).
+- [ ] Non vérifié : Safari et Firefox pour toutes les scènes ; un vrai téléphone ; l'anglais dans plusieurs scènes ; l'impression.
 
 ## Sources
 
@@ -51,7 +65,7 @@ Ces phrases ont été écrites pendant la session, sans relecture par un locuteu
 
 ## Ménage
 
-- [ ] Commiter le travail (31 fichiers modifiés, plus les nouveaux : polices, images WebP, `Letterbox.tsx`, `Camera.module.css`, `gl/lazy.ts`, `gl/layer.ts`, `useAmbience.ts`, `fetch-fonts.cjs`, `icon.svg`).
+- [ ] Choisir la version à garder et la fusionner dans `main` (`git checkout main && git merge immersion && git push`, ou `film` pour la version sans les scènes).
 - [ ] `components/vigil/Kaarthigai.tsx` et `gl/GlKaarthigai.tsx` ne sont importés nulle part : les supprimer ou les remettre en service.
 - [ ] `tsconfig.json` contient une ligne `.next-dev-3002` ajoutée par un serveur de dev : la garder ou l'enlever.
 - [ ] `.env.example` mentionne un jeton Mapbox qu'aucun code n'utilise.

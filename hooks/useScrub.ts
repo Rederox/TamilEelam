@@ -22,12 +22,19 @@ const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n)
  * screen. In quiet reading and reduced motion it writes `rest` once and stops;
  * CSS should read `var(--p, <the same rest>)` so that the page without
  * JavaScript also shows the scene at rest.
+ *
+ * `variable: false` skips `--p` altogether and only calls `onChange`: for a
+ * scene of hundreds of elements, where an inherited custom property would
+ * restyle every one of them on every frame (measured: 9 ms a frame for 300
+ * book spines). Such a scene should instead touch only the few elements whose
+ * state actually changes at this scroll position.
  */
 export function useScrub<T extends HTMLElement>({
   pinned = false,
   rest = 1,
+  variable = true,
   onChange,
-}: { pinned?: boolean; rest?: number; /** for what CSS cannot read: a canvas, a sound */ onChange?: (p: number) => void } = {}) {
+}: { pinned?: boolean; rest?: number; variable?: boolean; /** for what CSS cannot read: a canvas, a sound, a large scene */ onChange?: (p: number) => void } = {}) {
   const ref = useRef<T | null>(null)
   const still = useReducedMotion()
   const listener = useRef(onChange)
@@ -37,7 +44,7 @@ export function useScrub<T extends HTMLElement>({
     const el = ref.current
     if (!el) return
     if (still) {
-      el.style.setProperty('--p', String(rest))
+      if (variable) el.style.setProperty('--p', String(rest))
       listener.current?.(rest)
       return
     }
@@ -52,7 +59,8 @@ export function useScrub<T extends HTMLElement>({
       const p = clamp01(pinned ? -r.top / Math.max(1, r.height - vh) : (vh - r.top) / (vh + r.height))
       const v = p.toFixed(4)
       if (v === written) return
-      el.style.setProperty('--p', (written = v))
+      written = v
+      if (variable) el.style.setProperty('--p', v)
       listener.current?.(p)
     }
     const onScroll = () => {
@@ -75,7 +83,7 @@ export function useScrub<T extends HTMLElement>({
       window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [pinned, rest, still])
+  }, [pinned, rest, still, variable])
 
   return ref
 }

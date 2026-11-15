@@ -1,5 +1,7 @@
 /* Chapter XI's field of lamps. The reader stands at the edge of a ground at
-   dusk; --p on the track lights it, from the lamp at their feet outward. */
+   dusk; their walk lights it, from the lamp at their feet outward. What is
+   written here is the ground fully lit: MaaveerarLamps.tsx puts out what the
+   reader has not reached yet (data-out) and sets the three washes. */
 .track {
   /* the gap between two lamps of the nearest row: every size hangs on it, so
      a narrow screen shows fewer columns of the same lamps, not smaller ones */
@@ -10,10 +12,6 @@
   --k: 1;
   /* a little red under the yellow: oil light is amber, and yellow alone goes green on black */
   --warm: 0.1;
-  /* passing by (no pin): the nearest row is the last to come into view, so
-     the lighting waits for it and is done before the horizon leaves. Without
-     scripting --p is never written and every lamp is lit. */
-  --q: clamp(0, calc((var(--p, 1) - 0.4) * 3.6), 1);
   position: relative;
   /* out of the chapter's column to both edges of the screen; html clips x */
   width: 100vw;
@@ -46,7 +44,7 @@
    scripting, not for a reader who asked for stillness, and not on a screen
    too short to stand in. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) {
-  :global(html:not([data-reading='quiet'])) .track { --q: var(--p, 1); height: 250svh; }
+  :global(html:not([data-reading='quiet'])) .track { height: 250svh; }
   :global(html:not([data-reading='quiet'])) .stage { position: sticky; top: 0; height: 100svh; }
   :global(html:not([data-reading='quiet'])) .label { padding-top: 88px; }
 }
@@ -59,7 +57,7 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, transparent calc(var(--hz) * 0.2), rgb(var(--c-bone) / 0.045) calc(var(--hz) * 0.7), rgb(var(--c-bone) / 0.14) var(--hz), rgb(var(--c-bone) / 0.07) var(--hz), transparent calc(var(--hz) + 34%));
-  opacity: calc(1 - var(--q) * 0.82);
+  opacity: 0.18;
   will-change: opacity;
 }
 /* what the lamps give back to the sky once the far rows are lit */
@@ -70,14 +68,14 @@
   background:
     radial-gradient(ellipse 72% 50% at 50% 59%, rgb(var(--c-ember) / calc(var(--warm) * 0.6)), transparent 80%),
     radial-gradient(ellipse 72% 50% at 50% 59%, rgb(var(--light) / calc(0.15 * var(--k))), rgb(var(--light) / calc(0.05 * var(--k))) 52%, transparent);
-  opacity: calc((var(--q) - 0.42) * 2.4);
   will-change: opacity;
 }
 :global(html[data-theme='paper']) .stage { background: none; }
 /* no dusk on paper: the horizon is a ruled line */
 :global(html[data-theme='paper']) .dusk {
   background: linear-gradient(rgb(var(--c-bone) / 0.3), rgb(var(--c-bone) / 0.3)) 0 var(--hz) / 100% 1px no-repeat;
-  opacity: 1;
+  /* over the script's own value */
+  opacity: 1 !important;
 }
 
 /* palmyras far off, cut out of the last light, then out of the lamps' */
@@ -94,40 +92,31 @@
 .ground {
   position: absolute;
   inset: var(--hz) 0 0;
-  /* the reader's last steps towards it: everything opens out from the horizon */
-  transform: scale(calc(0.94 + var(--q) * 0.06));
   transform-origin: 50% 0;
   will-change: transform;
 }
 
-/* The far rows: too many and too small to be told apart. One element per
-   stretch of a row, three runs of points out of step with one another. */
+/* The far rows: too many and too small to be told apart. One strip of
+   points per row, three runs out of step with one another, all painted once
+   into one band whose opacity is the only thing that changes. */
+.band { position: absolute; inset: 0; will-change: opacity; }
 .far {
   position: absolute;
+  left: -6%;
+  right: -6%;
   top: calc(var(--s) * var(--base));
   /* the row's own measure. Not an em: a browser's minimum font size would
      clamp the far rows */
   --e: calc(var(--u) * var(--s));
-  height: calc(var(--e) * 1.2);
-  margin-top: calc(var(--e) * -0.75);
-  /* never as bright as a lamp one can tell apart: the further, the fainter */
-  opacity: min(var(--dim), calc((var(--q) - var(--t)) * 14));
-  transition: opacity 0.9s var(--e-vigil);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-}
-.far::before {
   --r: max(calc(var(--e) * 0.03), 0.5px);
   --dot: rgb(var(--c-flame-hot)) 0, rgb(var(--c-flame) / 0.7) var(--r), transparent calc(var(--r) + 1.2px);
-  content: '';
-  position: absolute;
-  inset: 0;
+  height: calc(var(--e) * 1.2);
+  margin-top: calc(var(--e) * -0.75);
   background:
     radial-gradient(circle, var(--dot)) calc(var(--e) * var(--bx)) calc(var(--by) * 40%) / var(--e) 44% repeat-x,
     radial-gradient(circle, var(--dot)) calc(var(--e) * var(--bx) * -2.3) calc(38% + var(--by) * 30%) / calc(var(--e) * 1.37) 40% repeat-x,
     radial-gradient(circle, var(--dot)) calc(var(--e) * var(--bx) * 3.1) calc(100% - var(--by) * 28%) / calc(var(--e) * 0.83) 36% repeat-x,
     linear-gradient(transparent 8%, rgb(var(--light) / calc(0.13 * var(--k))) 50%, transparent 92%);
-  animation: breathe var(--d) ease-in-out var(--o) infinite;
 }
 
 /* One lamp: a point on the ground, drawn upwards from it in its row's measure. */
@@ -153,8 +142,7 @@
 /* the same dish in its own light */
 .lamp::after {
   background: linear-gradient(rgb(var(--c-flame) / 0.62), rgb(var(--c-ember) / 0.3) 55%, rgb(var(--c-ember) / 0.08));
-  opacity: calc((var(--q) - var(--t)) * var(--catch, 20));
-  transition: opacity 0.9s var(--e-vigil);
+  transition: opacity 1.1s var(--e-vigil);
 }
 .lamp > span {
   position: absolute;
@@ -162,9 +150,8 @@
   bottom: calc(var(--e) * 0.1);
   width: 0;
   height: 0;
-  /* opacity clamps itself: dark before --t, whole a twentieth of the way later */
-  opacity: calc((var(--q) - var(--t)) * var(--catch, 20));
-  transition: opacity 0.9s var(--e-vigil);
+  /* a flame takes a moment to catch, and to go out */
+  transition: opacity 1.1s var(--e-vigil);
 }
 /* the halo, and under it the light it lays on the ground */
 .lamp > span::before {
@@ -178,8 +165,9 @@
     radial-gradient(circle, rgb(var(--c-ember) / var(--warm)) 0, transparent 52%),
     radial-gradient(circle, rgb(var(--light) / calc(0.3 * var(--k))) 0, rgb(var(--light) / calc(0.13 * var(--k))) 11%, rgb(var(--light) / calc(0.05 * var(--k))) 28%, transparent 58%),
     radial-gradient(ellipse 32% 7% at 50% 57%, rgb(var(--light) / calc(0.2 * var(--k))), transparent);
-  animation: breathe var(--d) ease-in-out var(--o) infinite;
 }
+/* further off, light without detail */
+.small > span::before { background: radial-gradient(circle, rgb(var(--c-ember) / var(--warm)) 0, transparent 52%), radial-gradient(circle, rgb(var(--light) / calc(0.28 * var(--k))) 0, rgb(var(--light) / calc(0.09 * var(--k))) 20%, transparent 56%); }
 /* the flame itself */
 .lamp > span::after {
   --w: max(calc(var(--e) * 0.052), 1.6px);
@@ -193,10 +181,13 @@
   background: radial-gradient(ellipse 62% 56% at 50% 70%, rgb(var(--c-flame-core)), rgb(var(--c-flame-hot)) 46%, rgb(var(--c-flame)) 82%, rgb(var(--c-flame) / 0));
   transform-origin: 50% 100%;
 }
-/* only the near flames are large enough for their shape to be seen moving */
-.near > span::after { animation: waver var(--d) ease-in-out var(--o) infinite; }
+.lamp[data-out]::after, .lamp[data-out] > span { opacity: 0; }
 /* the reader's own: it takes longer to catch */
-.first { --catch: 11; }
+.first::after, .first > span { transition-duration: 2s; }
+/* Slow and slight, and only where it can be seen: the two nearest rows
+   breathe, the nearest one wavers. Lit lamps only, on the compositor. */
+.near:not([data-out]) > span::before { animation: breathe var(--d) ease-in-out var(--o) infinite; }
+.front:not([data-out]) > span::after { animation: waver var(--d) ease-in-out var(--o) infinite; }
 
 :global(html[data-theme='paper']) .lamp::before { background: rgb(var(--c-night)); border: 1px solid rgb(var(--c-bone) / 0.62); }
 :global(html[data-theme='paper']) .lamp::after { background: rgb(var(--light) / 0.5); }
@@ -217,9 +208,9 @@
   /* lying on the ground, seen from standing height */
   transform: scaleY(0.6);
   /* barely made out in the dusk, then seen by the lamp beside it */
-  opacity: max(0.2, calc(0.2 + (var(--q) - var(--t)) * 12));
-  transition: opacity 0.9s var(--e-vigil);
+  transition: opacity 1.1s var(--e-vigil);
 }
+.lily[data-out] { opacity: 0.2; }
 .petal { fill: rgb(var(--c-ember)); }
 .heart { fill: rgb(var(--c-flame)); }
 .stamen { fill: none; stroke: rgb(var(--c-flame-hot)); stroke-width: 1.3; stroke-linecap: round; }
@@ -240,14 +231,12 @@
   78% { transform: scale(0.97, 1.04) skewX(4deg); }
 }
 
-.track:not([data-running='true']) .far::before,
 .track:not([data-running='true']) .lamp > span::before,
 .track:not([data-running='true']) .lamp > span::after { animation-play-state: paused; }
-:global(html[data-reading='quiet']) .track .far::before,
 :global(html[data-reading='quiet']) .track .lamp > span::before,
 :global(html[data-reading='quiet']) .track .lamp > span::after { animation: none; }
 @media (prefers-reduced-motion: reduce) {
-  .far::before, .lamp > span::before, .lamp > span::after { animation: none; }
+  .lamp > span::before, .lamp > span::after { animation: none; }
 }
 
 /* the scene is hidden in print; a label over nothing would mean nothing */

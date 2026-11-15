@@ -1,16 +1,16 @@
 /* Chapter V's room. Everything in it is placed on a grid of --u (160 × 90 of
-   them in landscape, 76 × 120 upright) and moved by --p alone: 0 as the room
-   takes the screen, 1 when the lamp has gone. */
+   them in landscape, 76 × 120 upright). Nothing here depends on the scroll:
+   an inherited --p restyled every path of every object on every frame, so the
+   component moves the dozen parts that move and the stylesheet holds the last
+   image, which is also the page without scripting, in quiet reading, in
+   reduced motion and on a screen too short to hold the room. */
 .track {
-  /* the last image: what the page shows without scripting, in quiet reading,
-     in reduced motion and on a screen too short to hold the room */
-  --p: 1;
   --line: var(--c-bone) / 0.74;
   --body: var(--ch-ink);
   --light: var(--c-flame-hot);
   --light-a: 1;
   --shade: var(--c-night) / 0.7;
-  --dark: 0.46;
+  --dark: 0.22;
   position: relative;
   /* out to the edges of the column the chapter gives its prose */
   margin: 0 -24px 64px;
@@ -24,9 +24,8 @@
   --light: var(--flag-yellow);
   --light-a: 1.1;
   --shade: var(--c-shade) / 0.2;
-  --dark: 0.5;
+  --dark: 0.36;
 }
-.track[data-held='false'] .stage { --p: 1; }
 
 .stage {
   --u: min(0.56vw, 0.95svh, 8.2px);
@@ -41,7 +40,7 @@
 }
 .caption { position: absolute; z-index: 3; top: 28px; left: 24px; }
 @media (min-width: 640px) { .caption { left: 9vw; } }
-.room { position: absolute; inset: 0; pointer-events: none; --lit: clamp(0, calc((0.94 - var(--p)) / 0.12), 1); }
+.room { position: absolute; inset: 0; pointer-events: none; }
 .set {
   position: absolute;
   top: calc(50% + 12px);
@@ -80,8 +79,8 @@
   background:
     radial-gradient(ellipse 56% 48% at 45% 62%, rgb(var(--light) / calc(0.25 * var(--light-a))), rgb(var(--light) / calc(0.09 * var(--light-a))) 50%, transparent 100%);
   /* the lamp is carried out by the side it stood on */
-  opacity: var(--lit);
-  transform: translate3d(calc((var(--lit) - 1) * 16%), 0, 0);
+  opacity: 0;
+  transform: translate3d(-16%, 0, 0);
   transition: opacity 0.5s linear, transform 0.5s linear;
   will-change: opacity, transform;
 }
@@ -89,7 +88,7 @@
   position: absolute;
   inset: 0;
   background: rgb(var(--ch-ink));
-  opacity: calc((1 - var(--lit)) * var(--dark));
+  opacity: var(--dark);
   transition: opacity 0.5s linear;
   will-change: opacity;
 }
@@ -114,8 +113,9 @@
 .thick { stroke-width: calc(var(--sw) * 1.7); }
 .b { fill: rgb(var(--body)); }
 .dot { fill: rgb(var(--line)); stroke: none; }
-/* the side the lamp reaches: it goes when the lamp goes */
-.t { opacity: var(--lit); stroke: none; transition: opacity 0.5s linear; }
+/* the side the lamp reaches: when the lamp goes, a trace of it stays on what
+   was left (TRACE in JuilletExil.tsx is the same number) */
+.t { opacity: 0.4; stroke: none; transition: opacity 0.5s linear; }
 .g1 { fill: rgb(var(--c-gold) / 0.74); }
 .g2 { fill: rgb(var(--c-gold) / 0.17); }
 .e1 { fill: rgb(var(--c-ember) / 0.62); }
@@ -148,37 +148,11 @@
 .pot, .potShade, .hoverShade { --a: 0.34; --d: 0.25; }
 .keys, .keysShade { --a: 0.59; --d: 0.1; }
 .lid, .top { --a: 0.7; --d: 0.11; }
-.lifted, .held, .shade, .lid, .top {
-  --t: clamp(0, calc((var(--p) - var(--a)) / var(--d)), 1);
-}
-/* taken off the floor, carried, lowered: three movements that overlap, each
-   eased, so that nothing ever slides */
-.lifted, .bookShade, .clothShade, .keysShade {
-  --l: clamp(0, calc(var(--t) / 0.28), 1);
-  --m: clamp(0, calc((var(--t) - 0.18) / 0.62), 1);
-  --n: clamp(0, calc((var(--t) - 0.72) / 0.28), 1);
-  --go: calc(var(--m) * var(--m) * (3 - 2 * var(--m)));
-}
-/* the pot: up, across, a long while over the case, and back where it was */
-.held, .potShade, .hoverShade {
-  --l: clamp(0, calc(var(--t) / 0.18), 1);
-  --m: clamp(0, calc((var(--t) - 0.1) / 0.2), 1);
-  --back: clamp(0, calc((var(--t) - 0.64) / 0.22), 1);
-  --n: clamp(0, calc((var(--t) - 0.82) / 0.18), 1);
-  --go: calc(var(--m) * var(--m) * (3 - 2 * var(--m)) - var(--back) * var(--back) * (3 - 2 * var(--back)));
-}
-.lifted, .held, .potShade {
-  /* how far off the floor it is */
-  --up: calc(var(--l) * var(--l) * (3 - 2 * var(--l)) - var(--n) * var(--n) * (3 - 2 * var(--n)));
-}
-.lifted, .held {
-  transform:
-    translate3d(calc(var(--u) * var(--dx) * var(--go)), calc(var(--u) * (var(--dy) * var(--go) - var(--lift) * var(--up))), 0)
-    rotate(calc(var(--tilt) * var(--up)))
-    scale(calc(1 + var(--near, 0.07) * var(--up)));
-  transition: transform 0.6s var(--e-vigil);
-  will-change: transform;
-}
+/* What is written here is the last image: the three things in the case, the
+   lid down, the lamp gone. JuilletExil.tsx writes over it, on these few
+   elements and no others, as the reader scrolls. */
+.lifted, .held { transition: transform 0.6s var(--e-vigil); will-change: transform; }
+.lifted { transform: translate3d(calc(var(--u) * var(--dx)), calc(var(--u) * var(--dy)), 0); }
 .book { --x: 38; --y: 71; --w: 16; --dx: 24; --dy: -20; --lift: 7; --tilt: 5deg; }
 .cloth { --x: 94; --y: 69; --w: 20; --dx: -15.5; --dy: -18.5; --lift: 7; --tilt: -4deg; }
 .keys { --x: 72; --y: 78; --w: 13; --dx: 10; --dy: -25; --lift: 5; --tilt: 9deg; }
@@ -192,30 +166,24 @@
   height: calc(var(--u) * var(--h));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(var(--shade)) 55%, transparent);
-  opacity: calc(var(--lit) * (1 - var(--up, 0)));
+  opacity: 0;
   transition: opacity 0.5s linear;
 }
-/* once in the case a thing casts nothing on the floor */
-.bookShade, .clothShade, .keysShade { --up: calc(var(--l) * var(--l) * (3 - 2 * var(--l))); }
 .potShade { --x: 37; --y: 58.5; --w: 24; --h: 6; }
 /* held over the case, the pot darkens what is already in it */
-.hoverShade { --x: 62; --y: 53; --w: 24; --h: 9; --up: calc(1 - var(--go)); }
+.hoverShade { --x: 62; --y: 53; --w: 24; --h: 9; }
 .radioShade { --x: 125; --y: 58; --w: 22; --h: 5.5; }
 .caseShade { --x: 90; --y: 63; --w: 24; --h: 9; }
 .bookShade { --x: 46; --y: 79.5; --w: 14; --h: 4.5; }
 .clothShade { --x: 105; --y: 78; --w: 16; --h: 5.5; }
 .keysShade { --x: 79; --y: 84; --w: 10; --h: 3.5; }
 
-.lid, .top {
-  --c: clamp(0, calc((var(--t) - var(--from)) / 0.55), 1);
-  --ce: calc(var(--c) * var(--c) * (3 - 2 * var(--c)));
-  transition: transform 0.6s var(--e-vigil);
-}
 /* seen from above, a lid turning on its hinge is a rectangle growing shorter:
    the open lid folds down to nothing, then its outside comes forward over the
    case */
-.lid { --from: 0; transform-origin: 50% 100%; transform: scaleY(calc(1 - var(--ce))); }
-.top { --from: 0.45; transform-origin: 50% 0; transform: scaleY(var(--ce)); }
+.lid, .top { transition: transform 0.6s var(--e-vigil); }
+.lid { transform-origin: 50% 100%; transform: scaleY(0); }
+.top { transform-origin: 50% 0; }
 
 /* ————— upright: fewer things, closer together ————— */
 @media (max-aspect-ratio: 4/5) {
