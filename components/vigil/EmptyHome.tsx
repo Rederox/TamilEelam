@@ -25,6 +25,8 @@ export default function EmptyHome({ caption }: { caption: string }) {
       <div className={styles.imageWindow}>
         <Image data-opening-image src="/images/prologue/empty-home-landscape.webp" alt="" width={1672} height={941}
           priority sizes="(min-width: 1560px) 1280px, 90vw" className={styles.photograph} />
+        {/* the dark closing on the room, then on the doorway: see the walk in the stylesheet */}
+        <span aria-hidden="true" className={styles.wash} />
       </div>
       <figcaption className="mt-1 text-right font-mono text-[8px] uppercase leading-relaxed tracking-[0.16em] text-ash">{caption}</figcaption>
     </figure>

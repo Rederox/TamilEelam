@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { chapters } from '@/data/narrative'
 import { useScrollProgress } from '@/hooks/useSceneProgress'
-import { scrollBehavior } from '@/lib/motion'
+import { cutTo } from './Letterbox'
 
 /**
  * The thread of light.
@@ -95,7 +95,9 @@ export default function ProgressRail() {
 
   const jump = useCallback((id: string) => {
     setMenuOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: scrollBehavior() })
+    // a cut, not a scroll: the chapters in between are not dragged past
+    const el = document.getElementById(id)
+    if (el) cutTo(el)
   }, [])
 
   // Move chapter to chapter from the keyboard. J/K rather than the arrows:

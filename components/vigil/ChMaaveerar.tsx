@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { maaveerar as m } from '@/data/historyChapters'
 import { useReveal } from '@/hooks/useReveal'
@@ -8,10 +9,22 @@ import ChapterEnd from './ChapterEnd'
 import { ChBody } from './blocks'
 import KarthigaiFlower from './KarthigaiFlower'
 import HistoryPassages, { HistorySources } from './HistoryPassages'
+import MaaveerarLamps from './MaaveerarLamps'
+
+// The three dates, as day-month, and the one word a reader finds over a date
+// when they open this page on that very day.
+const DAYS: Record<string, string> = { '#prabhakaran': '26-11', '#maaveerar': '27-11', '#mullivaikkal': '18-5' }
+const TODAY = { fr: 'Aujourd’hui', en: 'Today', ta: 'இன்று' }
 
 export default function ChMaaveerar() {
   const { lang } = useLang()
   const ref = useReveal()
+  // the reader's own calendar, so only once the page is in their hands: the server cannot know the day
+  const [today, setToday] = useState('')
+  useEffect(() => {
+    const now = new Date()
+    setToday(`${now.getDate()}-${now.getMonth() + 1}`)
+  }, [])
 
   return (
     <section id="maaveerar" aria-labelledby="maaveerar-title" className="relative bg-night bg-[radial-gradient(ellipse_at_15%_45%,rgb(var(--c-blood)/0.09),transparent_55%)]">
@@ -34,10 +47,12 @@ export default function ChMaaveerar() {
               </div>
               <HistoryPassages passages={m.passages} lang={lang} />
             </div>
+            <MaaveerarLamps />
             <aside className="reveal mt-20 border-y border-bone/20 py-9" aria-labelledby="memorial-dates-title">
               <h3 id="memorial-dates-title" className="lang-title font-display text-3xl font-light">{m.datesTitle[lang]}</h3>
               <div className="mt-8 grid gap-8 md:grid-cols-3">
                 {m.dates.map((entry) => <a key={entry.href} href={entry.href} className="group block border-l border-gold/35 pl-5">
+                  {today === DAYS[entry.href] && <span className="mb-2 block font-mono text-[11px] uppercase tracking-[0.1em] text-gold">{TODAY[lang]}</span>}
                   <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-gold">{entry.date[lang]}</span>
                   <span className="mt-4 block max-w-[30ch] text-base leading-relaxed text-bone-dim group-hover:text-bone">{entry.text[lang]} <span aria-hidden="true">↗</span></span>
                 </a>)}

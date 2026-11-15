@@ -1,0 +1,245 @@
+/* Chapter XII — first light.
+   The reader has been awake all night; the day comes while they read. The sky
+   is the slow part and stays behind the text. What matters is the eight
+   windows: each lit alone, in its own room, and only afterwards joined. */
+
+/* ————— the sky ————— */
+/* --p is written here by useScrub (pinned: 0 as the chapter fills the screen,
+   1 as its last line arrives). Below the air (z-1) and the text (z-2). */
+.sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  --veil: 62svh;
+}
+
+/* Two washes the height of the chapter, cross-faded by opacity only: the
+   black lifts to grey first, then the grey takes a little gold. Each is also
+   a gradient down the chapter, so that without scripting (--p at rest) the
+   page still goes from night at its head to first light at its foot. */
+.grey,
+.gold {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+.grey {
+  background: linear-gradient(to bottom, rgb(var(--c-ash) / 0) 6%, rgb(var(--c-ash) / 0.14) 56%);
+  opacity: calc(var(--p, 1) * 1.5);
+}
+.gold {
+  background: linear-gradient(to bottom, rgb(var(--c-flame-hot) / 0) 26%, rgb(var(--c-flame-hot) / 0.06) 78%);
+  opacity: calc((var(--p, 1) - 0.25) * 1.8);
+}
+
+/* The view from where the reader sits: it stays in the window while the text
+   goes by, and the light gathers low in it. */
+.view {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100lvh;
+  overflow: hidden;
+  opacity: calc((var(--p, 1) - 0.06) * 1.7);
+  will-change: opacity;
+}
+.haze {
+  position: absolute;
+  inset-inline: 0;
+  top: 40svh;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgb(var(--c-flame-hot) / 0), rgb(var(--c-flame-hot) / 0.035) 26svh, rgb(var(--c-flame-hot) / 0.09) 48svh);
+}
+/* the sun is still under the land: only its glow climbs */
+.glow {
+  position: absolute;
+  left: 8%;
+  width: 110%;
+  top: 68svh;
+  height: 44svh;
+  background: radial-gradient(closest-side, rgb(var(--c-flame-hot) / 0.16), rgb(var(--c-ember) / 0.035) 62%, rgb(var(--c-ember) / 0));
+  opacity: calc((var(--p, 1) - 0.3) * 1.8);
+  transform: translate3d(0, calc((1 - var(--p, 1)) * 16svh), 0);
+  will-change: transform, opacity;
+}
+/* far land, still night: no line, the light simply stops above it */
+.ground {
+  position: absolute;
+  inset-inline: 0;
+  top: 84svh;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgb(var(--c-night) / 0), rgb(var(--c-night) / 0.7) 16svh);
+}
+
+/* Three birds, far off, once in a long while. The forest in the dawn sound,
+   given to the eye as sparsely. */
+.flock {
+  position: absolute;
+  left: 0;
+  top: 58svh;
+  width: 60px;
+  height: 30px;
+  opacity: calc((var(--p, 1) - 0.45) * 2.5);
+  transform: translate3d(66vw, -4svh, 0);
+  animation: cross 64s linear infinite;
+}
+.bird {
+  position: absolute;
+  width: 11px;
+  height: 6px;
+  overflow: visible;
+  fill: none;
+  stroke: rgb(var(--c-ash) / 0.42);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  transform-origin: 50% 70%;
+  animation: flap 0.66s ease-in-out infinite alternate;
+}
+@keyframes cross {
+  0% { transform: translate3d(-10vw, 5svh, 0); }
+  38%, 100% { transform: translate3d(108vw, -8svh, 0); }
+}
+@keyframes flap {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.2); }
+}
+/* off screen (written by the chapter's observer): nothing flies */
+.sky[data-run='false'] .flock,
+.sky[data-run='false'] .bird { animation-play-state: paused; }
+
+/* The epilogue is night again around one lamp: the day is left behind over
+   the last screen of the chapter, so the two grounds meet without a seam. */
+.dusk {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--veil);
+  background: linear-gradient(to bottom, rgb(var(--c-night) / 0), rgb(var(--c-night)) 82%);
+}
+
+/* On paper there is no night to end: the sheet only warms toward its foot,
+   with one pale rule low on the page. */
+:global([data-theme='paper']) .grey,
+:global([data-theme='paper']) .ground { background: none; }
+:global([data-theme='paper']) .gold {
+  background: linear-gradient(to bottom, rgb(var(--flag-yellow) / 0) 20%, rgb(var(--flag-yellow) / 0.08) 78%);
+}
+:global([data-theme='paper']) .haze {
+  background: linear-gradient(to bottom, rgb(var(--flag-yellow) / 0), rgb(var(--flag-yellow) / 0.07) 48svh);
+}
+:global([data-theme='paper']) .glow {
+  background: radial-gradient(closest-side, rgb(var(--flag-yellow) / 0.1), rgb(var(--flag-yellow) / 0));
+}
+
+/* At rest the view is not pinned: it lies at the foot of the chapter, under
+   the veil, where only the top of its haze still shows (no edge anywhere). The
+   birds go: held still behind a line of prose they would read as stray marks. */
+@media (prefers-reduced-motion: reduce) {
+  .view { position: absolute; inset-inline: 0; top: auto; bottom: 0; }
+  .flock { display: none; }
+}
+:global(html[data-reading='quiet']) .view { position: absolute; inset-inline: 0; top: auto; bottom: 0; }
+:global(html[data-reading='quiet']) .flock { display: none; }
+
+/* ————— the eight windows ————— */
+.cities { position: relative; }
+.city { position: relative; }
+/* the light a small flame throws on its own sill, and no further */
+.city::before {
+  content: '';
+  position: absolute;
+  inset: -24px 0 0;
+  background: radial-gradient(32% 100% at 30% 100%, rgb(var(--c-flame) / 0.12), rgb(var(--c-flame) / 0));
+  pointer-events: none;
+  transition: opacity 3s var(--e-vigil);
+}
+.city::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(to right, rgb(var(--c-flame) / 0.6), rgb(var(--c-flame) / 0.1) 75%);
+  transform-origin: left;
+  transition: transform 2.8s var(--e-vigil), opacity 1.4s var(--e-vigil);
+}
+.name {
+  position: relative;
+  transition: opacity 2.4s var(--e-vigil);
+}
+/* a dark window is still a name the reader can read */
+.city[data-lit='false'] .name { opacity: 0.45; }
+.city[data-lit='false']::before { opacity: 0; }
+.city[data-lit='false']::after { opacity: 0; transform: scaleX(0); }
+
+/* The thread. Its box runs from the first flame's axis to the last one's, so
+   in the drawing a column is one unit across and a row one unit down,
+   whatever the width. */
+.thread {
+  position: absolute;
+  pointer-events: none;
+  --tip: 34px;
+  left: 8px;
+  right: calc((100% - (var(--cols) - 1) * 2rem) / var(--cols) - 8px);
+  top: calc((100% - (var(--rows) - 1) * 3rem) / var(--rows) - var(--tip));
+  bottom: var(--tip);
+  opacity: 0.5;
+}
+.thread svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.thread path {
+  fill: none;
+  stroke: rgb(var(--c-flame));
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.tall { --cols: 2; --rows: 4; }
+.wide { --cols: 4; --rows: 2; display: none; }
+@media (min-width: 640px) {
+  .tall { display: none; }
+  .wide { display: block; }
+}
+/* Not before the last window is lit; then slowly, piece after piece, by
+   opacity alone (a dash offset would repaint, and behaves differently from
+   one browser to the next under a stretched viewBox). */
+.cities:not([data-lit='8']) .thread path { opacity: 0; }
+.cities[data-lit='8'] .thread path {
+  transition: opacity 0.9s linear;
+  transition-delay: calc(3s + var(--n) * 10s);
+}
+
+/* ————— the day's work ————— */
+/* --p is written on the list by its own useScrub (0 as it enters at the foot
+   of the screen). The rule draws with it; each date lights as the rule
+   reaches it. At rest, and without scripting, everything is there. */
+.days {
+  position: relative;
+  padding-left: 29px;
+}
+.days::before,
+.days::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.days::before { background: rgb(var(--c-gold) / 0.12); }
+.days::after {
+  background: rgb(var(--c-gold) / 0.45);
+  transform-origin: top;
+  transform: scaleY(clamp(0, calc((var(--p, 1) - 0.1) / 0.34), 1));
+}
+.day { --t: clamp(0, calc((var(--p, 1) - 0.12 - var(--i) * 0.085) / 0.06), 1); }
+.dot {
+  opacity: calc(0.2 + var(--t) * 0.8);
+  transform: scale(calc(0.5 + var(--t) * 0.5));
+}
+.arrive {
+  opacity: var(--t);
+  transform: translate3d(calc((1 - var(--t)) * -12px), 0, 0);
+}
+/* a citation reached by keyboard is never a dim one */
+.day:focus-within .arrive { opacity: 1; transform: none; }

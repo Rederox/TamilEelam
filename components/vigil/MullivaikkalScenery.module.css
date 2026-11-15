@@ -2,13 +2,102 @@
 .sequence { isolation: isolate; z-index: 2; }
 .seaFallback { position: absolute; inset: 0; background: linear-gradient(#192329 0%, #59605e 34%, #34484b 35%, #10282d 75%, #15282a); }
 .seaShade { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(var(--ch-void) / .05) 15%, rgb(var(--ch-void) / .35) 43%, rgb(var(--ch-void) / .9) 68%), linear-gradient(0deg, rgb(var(--ch-void) / .6), transparent 30%, transparent 80%, rgb(var(--ch-void) / .5)); }
-.world { position: absolute; inset: 0; color: rgb(var(--ch-sand)); }
-.haze { position: absolute; inset: 12% 30% 45% -10%; background: radial-gradient(ellipse, rgb(var(--ch-sand) / .055), transparent 65%); animation: drift 19s ease-in-out infinite alternate; }
-.memories { position: absolute; inset: 38% 57% 30% 10%; transition: opacity 2s ease; }
-.memory { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: rgb(var(--ch-sand)); animation: breathe var(--duration) ease-in-out var(--delay) infinite alternate; }
-.object { position: absolute; inset: 0 54% 0 8%; display: grid; place-items: center; padding-top: 16vh; transition: opacity 1.5s ease, transform 1.5s ease; }
-.place { position: absolute; left: 10%; bottom: 24%; font-family: 'Noto Serif Tamil', serif; font-size: clamp(16px, 2.1vw, 28px); color: rgb(var(--c-bone) / .5); }
-.world[data-scene="5"] .haze, .world[data-scene="5"] .memory { animation-play-state: paused; }
+/* ————— Ten shots of one film —————
+   The camera stands on the strip of sand. One nearly still image per passage,
+   a dissolve between them; the sea behind is the only thing that never stops.
+   Everything is drawn in a 2:1 set whose top 30 % line is the water's edge. */
+.world {
+  position: absolute; inset: 0;
+  --waterline: 56%; --cx: 26%; --set-w: min(44vw, 72svh);
+  --mv-ground: color-mix(in srgb, rgb(var(--ch-sand)) 5%, rgb(var(--ch-void)));
+  --mv-cloth: color-mix(in srgb, rgb(var(--ch-sand)) 24%, rgb(var(--ch-void)));
+  --mv-dark: rgb(var(--ch-void));
+  --mv-strand: color-mix(in srgb, rgb(var(--ch-sand)) 26%, rgb(var(--ch-void)));
+  --mv-strand-wet: color-mix(in srgb, rgb(var(--ch-sand)) 44%, rgb(var(--ch-void)));
+  --mv-light: 247 212 136;
+}
+/* On the sheet the sand is the pale thing and what stands on it is drawn in ink. */
+:global(html[data-theme="paper"]) .world {
+  --mv-ground: color-mix(in srgb, rgb(var(--ch-sand)) 9%, rgb(var(--ch-void)));
+  --mv-cloth: color-mix(in srgb, rgb(var(--ch-sand)) 34%, rgb(var(--ch-void)));
+  --mv-dark: color-mix(in srgb, rgb(var(--ch-clay-2)) 78%, rgb(var(--ch-void)));
+  --mv-strand: color-mix(in srgb, rgb(var(--ch-sand)) 14%, rgb(var(--ch-void)));
+  --mv-strand-wet: color-mix(in srgb, rgb(var(--ch-sand)) 4%, rgb(var(--ch-void)));
+  --mv-light: var(--c-flame);
+}
+.ground {
+  position: absolute; inset: var(--waterline) 0 0;
+  background:
+    linear-gradient(180deg, transparent, rgb(var(--ch-sand) / .09) 18px, rgb(var(--ch-sand) / .02) 45%, transparent 80%),
+    linear-gradient(180deg, transparent, var(--mv-ground) 12px);
+  transition: opacity 1.5s ease;
+}
+/* the wide shot and the horizon are filmed from where there is no sand underfoot */
+.world[data-shot="0"] .ground, .world[data-shot="7"] .ground { opacity: 0; }
+
+.shot { position: absolute; inset: 0; opacity: 1; transition: opacity 1.5s ease-out; }
+/* Without @starting-style the incoming shot simply cuts in under the outgoing one. */
+@starting-style { .shot { opacity: 0; } }
+.shot[data-leaving="true"] { opacity: 0; transition-timing-function: ease-in; }
+.shot[data-cut="true"] { transition: none; }
+
+.set { position: absolute; left: calc(var(--cx) - var(--set-w) / 2); top: calc(var(--waterline) - var(--set-w) * .15); width: var(--set-w); aspect-ratio: 2 / 1; }
+.set svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.drift { animation: shotDrift 46s ease-in-out infinite alternate; }
+@keyframes shotDrift { from { transform: translate3d(5px, 0, 0); } to { transform: translate3d(-5px, 0, 0); } }
+
+/* 1 — the land closes in: the reader's own scroll narrows it */
+.strand { position: absolute; left: 0; top: 58%; width: 72%; height: 12%; overflow: visible; will-change: transform; animation: closeIn 40s linear both; }
+.strandWet { stop-color: var(--mv-strand-wet); }
+.strandDry { stop-color: var(--mv-strand); }
+@keyframes closeIn { from { transform: scaleY(1); } to { transform: scaleY(.3); } }
+@supports (animation-timeline: view()) and (timeline-scope: --a) {
+  .sequence { timeline-scope: --mv-land; }
+  .sequence :global(.mv-passage[data-scene="0"]) { view-timeline-name: --mv-land; }
+  .strand { animation-duration: auto; animation-timeline: --mv-land; animation-range: cover 22% cover 72%; }
+}
+
+/* 2, 3 — the refuge, then the same camp with its fires out and a light from beyond the frame */
+.mouth { fill: var(--mv-dark); }
+.cloth { fill: var(--mv-cloth); }
+.stick { fill: none; stroke: var(--mv-dark); stroke-width: .9; }
+.fires, .underFire { position: absolute; inset: 0; transition: opacity 1.5s ease; }
+.shot[data-shot="2"] .fires, .shot[data-shot="1"] .underFire { opacity: 0; }
+.shot[data-shot="1"] .underFire * { animation-play-state: paused; }
+.fire { position: absolute; width: 5%; aspect-ratio: 1; margin: -2.5% 0 0 -2.5%; border-radius: 50%; background: radial-gradient(circle, rgb(var(--mv-light)) 0 5%, rgb(var(--mv-light) / .42) 11%, rgb(var(--mv-light) / .1) 34%, transparent 62%); animation: ember 3.8s ease-in-out var(--d, 0s) infinite alternate; }
+@keyframes ember { from { opacity: .6; transform: scale(.94); } to { opacity: 1; transform: scale(1.04); } }
+.lash { fill: rgb(var(--mv-light) / .5); animation: farFire 13s linear infinite; }
+.farGlow { position: absolute; left: 0; top: 12%; width: 40%; height: 36%; background: radial-gradient(ellipse 70% 50% at 0 60%, rgb(var(--mv-light) / .26), transparent 70%); animation: farFire 13s linear infinite; }
+/* Irregular, never faster than a breath: this is light on cloth, not a flash. */
+@keyframes farFire { 0%, 100% { opacity: .04; } 4% { opacity: .55; } 7% { opacity: .22; } 10% { opacity: .5; } 19% { opacity: .05; } 46% { opacity: .04; } 49% { opacity: .38; } 56% { opacity: .07; } 71% { opacity: .05; } 73% { opacity: .6; } 76% { opacity: .3; } 85% { opacity: .05; } }
+
+/* 4 — the lives: they come on one by one, then hold */
+.light { position: absolute; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%; background: radial-gradient(circle, rgb(var(--mv-light)) 0 6%, rgb(var(--mv-light) / .5) 12%, rgb(var(--mv-light) / .1) 36%, transparent 64%); animation: lightOn 2.8s ease-out var(--d, 0s) both; }
+@keyframes lightOn { from { opacity: 0; } }
+.farLights { opacity: .5; }
+.farLights .light { animation: none; }
+
+/* 5, 6 — the bowl; then the same bowl, cold */
+.bowlSpot { position: absolute; left: 29.3%; top: 0; width: 33.3%; }
+.warmth { position: absolute; left: -45%; right: -45%; top: 62%; height: 52%; border-radius: 50%; background: radial-gradient(ellipse, rgb(var(--mv-light) / .2), rgb(var(--mv-light) / .07) 45%, transparent 70%); animation: warm 5.5s ease-in-out infinite alternate; }
+.contact { position: absolute; left: 8%; right: 8%; top: 82%; height: 14%; border-radius: 50%; background: radial-gradient(ellipse, rgb(var(--ch-clay-2) / .85), transparent 68%); }
+@keyframes warm { from { opacity: .78; } to { opacity: 1; } }
+.shot[data-shot="5"] .warmth { display: none; }
+
+/* 8 — naming: the horizon, drawn once and held (GlSea's waterline rests at 34 %) */
+.horizon { position: absolute; left: 0; top: 34%; width: 58%; height: 1px; background: linear-gradient(90deg, transparent, rgb(var(--ch-sand) / .7) 14%, rgb(var(--ch-sand) / .7) 62%, transparent); transform-origin: 0 50%; animation: drawLine 3.4s var(--e-draw) .5s both; }
+@keyframes drawLine { from { transform: scaleX(0); } }
+
+/* 9 — the trace */
+.prints { fill: rgb(var(--ch-sand) / .3); }
+.wash { position: absolute; left: 0; top: calc(var(--waterline) - 1%); width: 100%; height: 7%; background: linear-gradient(180deg, transparent, rgb(var(--c-bone) / .04) 30%, rgb(var(--c-bone) / .08) 84%, rgb(var(--c-bone) / .15) 95%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent 62%); animation: wash 10s ease-in-out infinite; }
+@keyframes wash { 0%, 100% { transform: translateY(-70%); opacity: 0; } 42% { transform: translateY(-3%); opacity: 1; } 55% { transform: translateY(0); opacity: .9; } }
+
+/* 10 — remembrance: the bowl again, and one lamp */
+.bowlAgain { left: 25%; }
+.lampSpot { position: absolute; left: 56%; top: 25.5%; width: 19%; }
+.lampSpot svg { position: relative; height: auto; }
+.lampSpot .warmth { left: -80%; right: -80%; top: 58%; height: 60%; }
 .sceneCaption { position: absolute; top: 17%; left: 10%; width: 30%; display: flex; justify-content: space-between; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: rgb(var(--c-bone) / .7); }
 .controls { position: sticky; top: 0; height: 100svh; margin-bottom: -100svh; z-index: 2; pointer-events: none; }
 .navigation { position: absolute; left: 10%; bottom: 12%; width: 30%; pointer-events: auto; }
@@ -27,14 +116,14 @@
 .sequence :global(.mv-passage[data-active="true"]) > p:first-child { color: rgb(var(--ch-sand)); }
 .sequence[data-visible="false"] * { animation-play-state: paused !important; }
 @keyframes captionIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes drift { from { transform: translate3d(-3%, 1%, 0); opacity: .45; } to { transform: translate3d(3%, -2%, 0); opacity: 1; } }
-@keyframes breathe { from { opacity: .2; transform: translateY(3px); } to { opacity: .85; transform: translateY(-5px); } }
 @media (max-width: 1023px) {
   .sequence { --sea-height: 34svh; --sea-top: 76px; }
   .sequence :global(.mv-scenery), .controls { top: var(--sea-top); height: var(--sea-height); margin-bottom: calc(-1 * var(--sea-height)); }
   .sequence :global(.mv-scenery) { z-index: 1; background: rgb(var(--ch-void)); }
   .seaShade { background: linear-gradient(0deg, rgb(var(--ch-void) / .95), transparent 36%, transparent 85%, rgb(var(--ch-void) / .2)); }
-  .world { display: none; }
+  /* on a phone the film is the band above the text: the set fills its width */
+  .world { --cx: 50%; --set-w: min(100vw, var(--sea-height) * 1.36); }
+  .strand { width: 118%; }
   .sceneCaption { top: 18px; left: 22px; width: calc(100% - 44px); font-size: 9px; color: rgb(var(--c-bone-dim)); }
   .navigation { left: 20px; bottom: 0; width: calc(100% - 40px); }
   .steps, .currentScene { display: none; }

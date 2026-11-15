@@ -1,0 +1,232 @@
+/* Chapter III's shelves. The reader walks along a wall of books while they
+   are lost, then stands in front of the shelves rebuilt and empty: one
+   number, --p, compared by each spine with the moment it goes (--at). */
+.track {
+  /* where the scene rests without scripting, in quiet reading and in reduced
+     motion: rebuilt, empty. FeuShelves.tsx hands the same number to useScrub */
+  --p: 1;
+  /* the two repairs, one after the other: the boards are set true, then the
+     shelves come back new and lit */
+  --true: clamp(0, calc((var(--p) - 0.76) * 14), 1);
+  --lit: clamp(0, calc((var(--p) - 0.79) * 11), 1);
+  --row: clamp(84px, 13.2svh, 118px);
+  --board: 8px;
+  --walk: 220px;
+
+  /* cloth, leather, palm leaf and wood, mixed from the site's own colours */
+  /* worn: every tone is greyed with ash before it is sunk into the dark */
+  --ground: var(--c-night);
+  --oxblood: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-blood)), rgb(var(--c-gold)) 12%) 29%, rgb(var(--ground)));
+  --rust: color-mix(in srgb, color-mix(in srgb, color-mix(in srgb, rgb(var(--c-ember)), rgb(var(--c-gold)) 40%), rgb(var(--c-ash)) 22%) 29%, rgb(var(--ground)));
+  --ochre: color-mix(in srgb, color-mix(in srgb, color-mix(in srgb, rgb(var(--c-gold)), rgb(var(--c-ember)) 16%), rgb(var(--c-ash)) 34%) 30%, rgb(var(--ground)));
+  --straw: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-flame-hot)), rgb(var(--c-ash)) 30%) 38%, rgb(var(--ground)));
+  --cloth: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-bone)), rgb(var(--c-flame-hot)) 22%) 23%, rgb(var(--ground)));
+  --slate: color-mix(in srgb, rgb(var(--c-bone)) 11%, rgb(var(--ground)));
+  --gilt: rgb(var(--c-flame-hot) / 0.2);
+  --old: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-ember)), rgb(var(--c-gold)) 50%) 16%, rgb(var(--ground)));
+  --new: color-mix(in srgb, color-mix(in srgb, color-mix(in srgb, rgb(var(--c-gold)), rgb(var(--c-ember)) 22%), rgb(var(--c-bone)) 70%) 44%, rgb(var(--ground)));
+  --back: color-mix(in srgb, var(--old) 30%, rgb(var(--ground)));
+  --mark: rgb(var(--c-bone) / 0.07);
+  --mark-top: rgb(var(--c-bone) / 0.016);
+  /* the back of a rebuilt bay, laid half over the marks, and the light on it */
+  --clean: color-mix(in srgb, color-mix(in srgb, var(--new) 30%, rgb(var(--ground))) 55%, transparent);
+  --lamp: rgb(var(--c-bone) / 0.1);
+
+  position: relative;
+  margin-bottom: clamp(56px, 9vh, 96px);
+}
+/* on paper the ground is white: the tones are mixed further from it */
+:global(html[data-theme='paper']) .track {
+  --oxblood: color-mix(in srgb, rgb(var(--c-blood)) 60%, rgb(var(--c-bone)));
+  --rust: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-ember)), rgb(var(--c-gold)) 55%) 82%, rgb(var(--c-bone)));
+  --ochre: color-mix(in srgb, rgb(var(--c-gold)) 66%, rgb(var(--ground)));
+  --straw: color-mix(in srgb, rgb(var(--c-flame-hot)) 52%, rgb(var(--ground)));
+  --cloth: color-mix(in srgb, rgb(var(--c-bone)) 52%, rgb(var(--ground)));
+  --slate: color-mix(in srgb, rgb(var(--c-bone)) 82%, rgb(var(--ground)));
+  --old: color-mix(in srgb, color-mix(in srgb, rgb(var(--c-ember)), rgb(var(--c-gold)) 60%) 46%, rgb(var(--c-ash)));
+  --new: color-mix(in srgb, rgb(var(--c-gold)) 24%, rgb(var(--ground)));
+  --back: rgb(var(--c-soot));
+  --mark: rgb(var(--c-bone) / 0.16);
+  --mark-top: rgb(var(--c-bone) / 0.06);
+  --clean: rgb(var(--c-night) / 0.5);
+  --lamp: rgb(var(--c-night) / 0.5);
+}
+/* a screen that cannot hold the scene shows it at rest, whatever the scroll says */
+.track[data-held='false'] { --p: 1 !important; }
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 0 12px;
+}
+.label { position: relative; z-index: 1; }
+
+/* The scene holds the screen for the length of the loss. Not without
+   scripting and not for a reader who asked for stillness. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) {
+  :global(html:not([data-reading='quiet'])) .track { height: 380svh; }
+  :global(html:not([data-reading='quiet'])) .stage { position: sticky; top: 0; height: 100svh; padding: 76px 0 20px; }
+}
+
+/* ————— the wall: wider than the frame, it runs on past both edges ————— */
+.room {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, rgb(var(--c-night)) 7%, rgb(var(--c-night)) 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, rgb(var(--c-night)) 7%, rgb(var(--c-night)) 93%, transparent);
+}
+.defs { position: absolute; width: 0; height: 0; }
+.wall {
+  display: flex;
+  width: max-content;
+  margin-left: 50%;
+  /* the reader's own steps along the shelves; they have stopped by the time
+     the last manuscripts go, and nothing moves sideways after that */
+  transform: translate3d(calc(-50% + clamp(0, calc(0.63 - var(--p)), 0.63) * var(--walk)), 0, 0);
+  will-change: transform;
+}
+
+.bay {
+  position: relative;
+  flex: none;
+  width: calc(262px + 14px);
+  padding: 10px 7px 18px;
+  background: var(--back);
+}
+/* the carcass, twice: as it was, a little out of true, and as it is rebuilt */
+.bay::before,
+.bay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-style: solid;
+  border-width: 10px 7px 18px;
+}
+.bay::before {
+  border-color: var(--old);
+  border-top-color: color-mix(in srgb, var(--old) 80%, rgb(var(--ground)));
+  transform-origin: 50% 100%;
+  transform: rotate(calc(var(--tilt) * (1 - var(--true))));
+  opacity: calc(1 - var(--lit));
+}
+.bay::after {
+  border-color: var(--new);
+  /* the light comes back too, from above, on boards that hold nothing */
+  background: linear-gradient(var(--lamp), transparent 85%), var(--clean);
+  box-shadow: inset 1px 0 rgb(var(--c-bone) / 0.12), inset -1px 0 rgb(var(--c-shade) / 0.3);
+  opacity: var(--lit);
+}
+
+.bay + .bay { margin-left: 1px; }
+
+.shelf {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: calc(var(--row) + var(--board));
+  padding-bottom: var(--board);
+  /* each board throws its shadow on the back of the bay */
+  background: linear-gradient(rgb(var(--c-shade) / 0.5), transparent 24px);
+}
+.shelf::before,
+.shelf::after {
+  content: '';
+  position: absolute;
+  inset: auto -1px 0;
+  height: var(--board);
+}
+.shelf::before {
+  background: linear-gradient(color-mix(in srgb, var(--old) 82%, rgb(var(--c-bone))), var(--old) 2px);
+  transform: rotate(calc(var(--sag) * (1 - var(--true))));
+}
+.shelf::after {
+  background: linear-gradient(color-mix(in srgb, var(--new) 84%, rgb(var(--c-bone))), var(--new) 2px);
+  opacity: var(--lit);
+}
+
+/* ————— a book: the element is the mark it leaves, ::before the spine,
+   ::after the dark that takes it just before it is gone ————— */
+.spine,
+.ola {
+  position: relative;
+  flex: none;
+  background: linear-gradient(to top, var(--mark), var(--mark-top));
+}
+.spine {
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1%);
+  margin-right: 1px;
+}
+.lean { transform-origin: 100% 100%; transform: rotate(var(--lean)); }
+.spine::before,
+.spine::after,
+.ola::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1px 1px 0 0;
+}
+.spine::before,
+.ola > svg {
+  opacity: clamp(0, calc((var(--at) - var(--p)) * 60), 1);
+}
+.spine::before {
+  background:
+    var(--bands, none),
+    linear-gradient(90deg, rgb(var(--c-bone) / 0.13), transparent 30%, transparent 60%, rgb(var(--c-shade) / 0.4)),
+    var(--tone);
+}
+.spine::after,
+.ola::after {
+  background: rgb(var(--c-shade));
+  opacity: calc(clamp(0, calc((var(--p) - var(--at) + 0.05) * 30), 0.84) * clamp(0, calc((var(--at) - var(--p)) * 60), 1));
+}
+.t0 { --tone: var(--oxblood); }
+.t1 { --tone: var(--rust); }
+.t2 { --tone: var(--ochre); }
+.t3 { --tone: var(--straw); }
+.t4 { --tone: var(--cloth); }
+.t5 { --tone: var(--slate); }
+/* tooling, never lettering: two gilt lines, or the raised bands of a leather back */
+.b1 { --bands: linear-gradient(var(--gilt) 0 0) 0 13% / 100% 1px no-repeat, linear-gradient(var(--gilt) 0 0) 0 84% / 100% 1px no-repeat; }
+.b2 { --bands: repeating-linear-gradient(transparent 0 23%, rgb(var(--c-shade) / 0.3) 23% calc(23% + 1.5px)); }
+
+/* ————— the palm-leaf manuscripts, lying in a pile ————— */
+.pile {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 172px;
+  height: 100%;
+  margin-right: 6px;
+}
+.ola {
+  width: calc(var(--w) * 1%);
+  height: 21px;
+  margin: 1px 0 0 calc(var(--x) * 1%);
+}
+.ola > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.leaf, .leaf2, .cord { fill: none; }
+.leaf { stroke: var(--straw); stroke-width: 1.7; }
+.leaf2 { stroke: color-mix(in srgb, var(--straw) 84%, rgb(var(--c-shade))); stroke-width: 1.7; }
+.cover { fill: color-mix(in srgb, var(--rust) 62%, rgb(var(--c-shade))); }
+.cord { stroke: color-mix(in srgb, var(--cloth) 70%, rgb(var(--c-shade))); stroke-width: 0.8; }
+
+/* fewer bays on a narrow screen, never smaller books */
+@media (max-width: 639.98px) {
+  .bay:first-child, .bay:last-child { display: none; }
+}
+@media (min-width: 640px) {
+  .track { --walk: 150px; }
+}
+
+@media print {
+  .track { height: auto !important; }
+  .stage { position: static !important; height: auto !important; padding: 0; }
+}

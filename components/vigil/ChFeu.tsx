@@ -12,7 +12,9 @@ import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { ChBody, Caption, Prose } from './blocks'
+import { Spoken } from './Voice'
 import camera from './Camera.module.css'
+import FeuShelves from './FeuShelves'
 import { GlPyre } from './gl/lazy'
 
 /** A subtle heat shimmer over the lost-book count. */
@@ -98,13 +100,14 @@ export default function ChFeu() {
         <div ref={ref as React.RefObject<HTMLDivElement>}>
           <ChBody>
             <div className="mx-auto max-w-[1200px]">
+              <FeuShelves />
               <div className="grid grid-cols-1 items-start gap-x-[8vw] gap-y-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-y-9">
                 <header className="reveal min-w-0">
                   <p className="mb-6 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ember">
                     <span aria-hidden="true" className="h-px w-8 shrink-0 bg-ember/60" />
                     {experience.libraryDate[lang]}
                   </p>
-                  <h3 className="lang-title max-w-[19ch] font-display text-[clamp(32px,4.2vw,60px)] font-light leading-[1.12] tracking-[-0.02em]">{experience.library[lang]}</h3>
+                  <Spoken as="h3" text={experience.library[lang]} className="lang-title max-w-[19ch] font-display text-[clamp(32px,4.2vw,60px)] font-light leading-[1.12] tracking-[-0.02em]" />
                 </header>
 
                 <ArchivePhoto tag={v.feuArchiveTag} caption={v.feuArchiveCaption} credit={v.feuArchiveCredit} />
@@ -115,14 +118,14 @@ export default function ChFeu() {
                 </div>
               </div>
 
-              <div className="reveal mt-14 grid items-center gap-5 border-t border-bone/20 pt-8 sm:mt-20 sm:grid-cols-[auto_1fr] sm:gap-10 lg:gap-16">
+              <div className="mt-14 grid items-center gap-5 border-t border-bone/20 pt-8 sm:mt-20 sm:grid-cols-[auto_1fr] sm:gap-10 lg:gap-16">
                 <p
-                  className="whitespace-nowrap font-display text-[clamp(76px,12vw,168px)] font-light leading-none tracking-[-0.045em] text-ember tabular-nums"
+                  className="reveal fig-n whitespace-nowrap font-display text-[clamp(76px,12vw,168px)] font-light leading-none tracking-[-0.045em] text-ember tabular-nums"
                   style={still ? undefined : { filter: 'url(#heat-haze)' }}
                 >
                   {(97000).toLocaleString(locale)}
                 </p>
-                <p className="max-w-[30ch] font-display text-[clamp(20px,2.1vw,29px)] italic leading-[1.45] text-bone-dim">{v.feuBooksLabel}</p>
+                <p className="reveal fig-l max-w-[30ch] font-display text-[clamp(20px,2.1vw,29px)] italic leading-[1.45] text-bone-dim">{v.feuBooksLabel}</p>
               </div>
             </div>
           </ChBody>

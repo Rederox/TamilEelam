@@ -33,3 +33,35 @@
   .copy { padding-top: 117px; }
   .description { max-width: 19ch; }
 }
+
+/* ————— the three periods are walked, not listed ————— */
+/* The probe reaches 60svh above the list and 40svh below it, so that the
+   pinned reading of useScrub is exactly "how far down the list is the line
+   drawn at 60% of the screen": the rule is inked down to where the reader is. */
+.probe {
+  position: absolute;
+  left: 0;
+  top: -60svh;
+  bottom: -40svh;
+  width: 1px;
+  pointer-events: none;
+}
+.ink {
+  position: absolute;
+  inset: 60svh 0 40svh;
+  background: rgb(var(--c-gold));
+  transform: scaleY(var(--p, 1));
+  transform-origin: top;
+}
+/* lit unless the script has said the reader is not there yet */
+.marker::before,
+.marker::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  transition: opacity 0.9s var(--e-vigil), transform 0.9s var(--e-vigil);
+}
+.marker::before { inset: 0; background: rgb(var(--c-gold)); }
+.marker::after { inset: -7px; border: 1px solid rgb(var(--c-gold) / 0.4); }
+li[data-lit='false'] .marker::before { opacity: 0; transform: scale(0.2); }
+li[data-lit='false'] .marker::after { opacity: 0; transform: scale(0.45); }

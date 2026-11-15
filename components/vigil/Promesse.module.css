@@ -1,0 +1,156 @@
+/* Chapter IV — a text written down, then a vote. The one chapter by daylight:
+   no fire, nothing closing in. Two scrubbed scenes, each on its own element:
+   the sheet reads --w (the furthest point reached, see ChPromesse) and the
+   ballot box reads --p. Both fall back to 1 — written, cast — which is what
+   the page shows without JavaScript, in quiet reading and in reduced motion. */
+
+.room { background-image: radial-gradient(90% 60% at 18% 34%, rgb(var(--c-bone) / .06), transparent 62%); }
+:global([data-theme='paper']) .room { background-image: radial-gradient(90% 60% at 18% 34%, rgb(var(--c-gold) / .07), transparent 62%); }
+
+/* ————— the sheet ————— */
+.sheet:global(.resolution-sheet) {
+  overflow: hidden;
+  background: rgb(var(--c-night-2));
+}
+:global([data-theme='paper']) .sheet:global(.resolution-sheet) {
+  background: rgb(var(--c-night));
+  box-shadow: 0 22px 44px -30px rgb(var(--c-bone) / .45);
+}
+.sheet > * { position: relative; }
+
+/* light from a window, lying across the leaf; it moves a little while the
+   reader passes, the way a patch of sun does over an afternoon */
+.sheet > .daylight {
+  position: absolute;
+  inset: -10% -30%;
+  pointer-events: none;
+  background: linear-gradient(104deg, transparent 26%, rgb(var(--c-bone) / .05) 45%, rgb(var(--c-bone) / .05) 55%, transparent 74%);
+  transform: translateX(calc((var(--p, 1) - .5) * 16%));
+}
+:global([data-theme='paper']) .sheet > .daylight {
+  background: linear-gradient(104deg, transparent 26%, rgb(var(--c-gold) / .09) 45%, rgb(var(--c-gold) / .09) 55%, transparent 74%);
+}
+
+/* Ink: each figure and each word comes up at its own point of the scroll
+   (--a), then dries — a tone lower, a little after it was laid down. The
+   short transition only rounds off a wheel notch; its delay keeps the order
+   of writing when the reader arrives in one jump. */
+.ink {
+  opacity: min(
+    clamp(0, calc((var(--w, 1) - var(--a)) * 14), 1),
+    calc(1 - .16 * clamp(0, calc((var(--w, 1) - var(--a) - .13) * 7), 1))
+  );
+  transition: opacity .6s linear calc(var(--i) * var(--lag));
+}
+.date .ink { --a: calc(.17 + var(--i) * .011); --lag: 28ms; }
+.sentence .ink { --a: calc(.3 + var(--i) * .02); --lag: 70ms; }
+
+.rule, .signature, .lines span {
+  transform-origin: left;
+  transform: scaleX(clamp(0, calc((var(--w, 1) - var(--a)) * var(--k, 10)), 1));
+  transition: transform .7s var(--e-vigil);
+}
+.rule { --a: .27; }
+
+/* the ruled body: one rule per line of the sentence, and a few left blank */
+.ruled { position: relative; --pitch: 1.45em; font-size: clamp(27px, 3vw, 40px); padding-bottom: var(--pitch); }
+/* three classes: the Tamil title rule in globals.css sets its own leading */
+.ruled .sentence:global(.lang-title) { font-size: 1em; line-height: var(--pitch); }
+.lines { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.lines span {
+  position: absolute;
+  inset-inline: 0;
+  /* a little under the baseline, so descenders cross it as they do on ruled paper */
+  top: calc((var(--i) + 1) * var(--pitch) - var(--sink, .3em));
+  height: 1px;
+  background: rgb(var(--c-bone) / .16);
+  --a: calc(.11 + var(--i) * .02);
+  --k: 7;
+}
+/* Tamil words are long: set a little smaller and free of the 16ch measure,
+   the longest one still fits a 360px screen without being cut in two */
+:global(html[lang='ta']) .ruled { --sink: .22em; font-size: clamp(22px, 6.2vw, 36px); }
+:global(html[lang='ta']) .ruled .sentence { max-width: none; }
+
+/* the line a text is signed on — and nothing on it */
+.signature {
+  margin-top: 1.25rem;
+  width: min(100%, 15rem);
+  height: 2px;
+  background: rgb(var(--c-bone) / .85);
+  --a: .445;
+  --k: 14;
+}
+
+/* ————— the vote ————— */
+/* The box is pinned in a tall track: it comes to rest in the middle of the
+   screen, empty, and the reader's own scroll casts the slips one at a time;
+   then it stays, a while, with nothing moving. The track only exists where
+   something moves — otherwise the box is simply there, already voted in. */
+.room { --pin: max(5.5rem, calc(50svh - 235px)); }
+.poll { justify-self: center; width: min(100%, 300px); height: 220svh; }
+@media (prefers-reduced-motion: reduce) { .poll { height: auto; } }
+:global(html[data-reading='quiet']) .poll { height: auto; }
+.vote {
+  position: sticky;
+  top: var(--pin);
+  aspect-ratio: 4 / 5;
+  pointer-events: none;
+}
+/* beside it, the site's own sentence holds for as long as the box does */
+@media (min-width: 1024px) {
+  .aside {
+    position: sticky;
+    top: var(--pin);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 375px;
+  }
+}
+.box { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.box path {
+  fill: none;
+  stroke: rgb(var(--c-bone) / .6);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* opaque faces: a slip that has gone through the slot is gone, uncounted */
+.box .lid { fill: rgb(var(--c-soot-2)); }
+.box .front { fill: rgb(var(--c-soot)); }
+.box .slot { stroke: rgb(var(--c-bone)); stroke-width: 2.5; stroke-linecap: round; }
+
+/* A folded slip, one person's. At rest it lies just under the slot, behind
+   the front of the box. --t runs 0 → 1 over its own stretch of the scroll
+   (--a, --d: no two alike): the hand comes down from where it was (--x, --s,
+   --r), slowing (--u); holds the slip over the slot; then lets it go (--in).
+   The last one stops halfway in: that is the picture the scene keeps when
+   nothing moves. */
+.slip {
+  position: absolute;
+  left: 37.5%;
+  top: 51.67%;
+  width: 25%;
+  aspect-ratio: 3 / 2;
+  background: linear-gradient(rgb(var(--c-bone)) 50%, rgb(var(--c-bone-dim)) 50%);
+  --t: clamp(0, calc((var(--p, 1) - var(--a)) / var(--d)), 1);
+  --u: calc(1 - clamp(0, calc(var(--t) / .5), 1));
+  --in: clamp(0, calc((var(--t) - .64) / .36), 1);
+  --held: calc(1 - var(--in));
+  opacity: clamp(0, calc(var(--t) * 9), 1);
+  transform:
+    translate(
+      calc(var(--x) * (var(--u) * var(--u) * .92 + var(--held) * .08) * 100%),
+      calc((var(--e, 0) + (1.12 - var(--e, 0)) * var(--held) + (var(--s) - 1.12) * var(--u) * var(--u)) * -100%))
+    rotate(calc(var(--r) * (var(--u) * var(--u) * .82 + var(--held) * .18) * 1deg));
+  /* only rounds off a wheel notch; the reader's hand still does the casting */
+  transition: transform .4s ease-out, opacity .4s linear;
+  will-change: transform;
+}
+.slip:last-of-type { --e: .58; }
+:global([data-theme='paper']) .slip {
+  background: linear-gradient(rgb(var(--c-night)) 50%, rgb(var(--c-night-2)) 50%);
+  box-shadow: inset 0 0 0 1px rgb(var(--c-bone) / .55);
+}

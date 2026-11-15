@@ -1,9 +1,6 @@
-.opening {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background: radial-gradient(ellipse at 82% 40%, rgb(var(--c-blood) / .1), transparent 62%);
-}
+.opening { position: relative; isolation: isolate; overflow: hidden; }
+/* on the frame, not the section: the section grows by the length of the walk */
+.frame { background: radial-gradient(ellipse at 82% 40%, rgb(var(--c-blood) / .1), transparent 62%); }
 .scene { position: relative; width: 100%; max-width: none; margin-left: auto; }
 .imageWindow {
   position: relative;
@@ -65,7 +62,7 @@
     min-width: 0;
     padding: min(260px, 26svh) 24px 62px;
   }
-  .openingCopy > p { max-width: none; margin-bottom: 22px; font-size: 8px; letter-spacing: .13em; color: rgb(var(--c-bone-dim)); }
+  .letGo > p { max-width: none; margin-bottom: 22px; font-size: 8px; letter-spacing: .13em; color: rgb(var(--c-bone-dim)); }
   .panoramaImage { position: absolute; inset: 0; margin: 0; }
   .scene { height: 100%; }
   .imageWindow {
@@ -108,3 +105,85 @@
 .enterQuiet .entryArrow { height: auto; border: 0; color: rgb(var(--c-ash)); font-size: 15px; }
 .enterQuiet:hover .entryArrow { background: none; }
 @media (max-width: 767px) { .soundHint, .soundFailed { max-width: none; } }
+
+/* ————— The walk through the door —————
+   The opening holds at the top of the screen for the length of --pin while the
+   reader's scroll carries the camera to the doorway: `--p` (0 → 1 over the pin)
+   is written on .frame by useScrub. Everything here is the walk; without it —
+   no JavaScript, quiet reading, reduced motion, print — the rules above are the
+   whole opening, in normal flow. */
+.run, .ground, .wash { display: none; }
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (overflow: clip) and (height: 100svh) {
+    /* --reach: how far the camera goes. The picture is 1672 px wide and is never
+       shown at more than about two and a half screen pixels for one of its own:
+       past that it is no longer a garden, and the doorway is held before then. */
+    .opening { --pin: 125svh; --reach: 2.4; }
+    /* a short screen gives the picture a smaller window (max-height above): the same doorway needs a longer walk */
+    @media (max-height: 880px) { .opening { --reach: 3.6; } }
+    @media (max-height: 760px) { .opening { --reach: 5; } }
+    /* the ruler useScrub measures: one screen plus the pin, from the top of the section */
+    .run { display: block; position: absolute; top: 0; left: 0; width: 1px; height: calc(100svh + var(--pin)); visibility: hidden; pointer-events: none; }
+    /* clip, not hidden: hidden would make the section the frame's scroll container and it would never stick */
+    .opening[data-walk='true'] { overflow: clip; }
+    /* in the content box, where padding would not count: the distance the frame is held */
+    .opening[data-walk='true']::after { content: ''; display: block; height: var(--pin); }
+    .opening[data-walk='true'] .frame {
+      position: sticky; top: 0;
+      /* 0 → 1 while the camera travels; then it stands in the doorway for a quarter of the pin,
+         nothing moving but the reader, before the light goes */
+      --t: clamp(0, var(--p, 0) / .6, 1);
+      /* slow to leave, slow to arrive; the first term answers the very first scroll */
+      --push: calc(var(--t) * .12 + var(--t) * var(--t) * (3 - 2 * var(--t)) * .88);
+      --gone: clamp(0, (var(--p, 0) - .02) / .24, 1);
+    }
+    .opening[data-walk='true'] .imageWindow {
+      /* the doorway, measured in the picture: 955–1212 of 1672 across, eye level at 40% */
+      transform-origin: 64.8% 40%;
+      /* scaled, the last column of the masked picture is drawn unmasked: a hairline on paper */
+      clip-path: inset(1px);
+      /* forward, and across to the middle of the screen: the window does not always sit there */
+      transform: translate3d(calc(var(--push) * (50vw - (100vw - min(1280px, 82vw)) / 2)), 0, 0) translateX(calc(var(--push) * -64.8%)) scale(calc(1 + var(--push) * var(--reach)));
+    }
+    /* the title and the caption let go before the walls do */
+    .opening[data-walk='true'] .letGo {
+      opacity: calc(1 - var(--gone));
+      transform: translate3d(0, calc(var(--gone) * -20px), 0);
+    }
+    .opening[data-walk='true'] .scene figcaption { opacity: calc(1 - clamp(0, var(--p, 0) / .1, 1)); }
+    /* the shade the title was read against goes with it, and the room it hid is seen once, in passing */
+    .opening[data-walk='true'] .imageWindow::after { opacity: calc(1 - var(--gone)); }
+    /* the room goes dark around the doorway once the camera has passed what was left in it… */
+    .opening[data-walk='true'] .wash {
+      display: block; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to right, rgb(var(--c-night)) 54.5%, transparent 58%, transparent 71.6%, rgb(var(--c-night)) 75%);
+      opacity: clamp(0, (var(--p, 0) - .3) / .28, 1);
+    }
+    /* …the light holds, and only then gives way to the ground of the page */
+    .opening[data-walk='true'] .wash::after {
+      content: ''; position: absolute; inset: 0; background: rgb(var(--c-night));
+      opacity: clamp(0, (var(--p, 0) - .84) / .13, 1);
+    }
+    .opening[data-walk='true'] .ground {
+      display: block; position: absolute; z-index: 1; top: calc(100% - 76px); left: 50%; width: 100vw; height: 100vh; margin-left: -50vw; pointer-events: none;
+      background: linear-gradient(transparent, rgb(var(--c-night)) 68px);
+      opacity: clamp(0, var(--p, 0) / .1, 1);
+    }
+    /* the header keeps its own dark to be read against */
+    .opening[data-walk='true'] .frame::before {
+      content: ''; position: absolute; z-index: 1; inset: 0 0 auto; height: 132px; pointer-events: none;
+      background: linear-gradient(rgb(var(--c-night)) 30%, transparent);
+      opacity: clamp(0, var(--p, 0) / .1, 1);
+    }
+    .opening[data-walk='true'] .readingNote, .opening[data-walk='true'] .stages { position: relative; z-index: 2; }
+    @media (max-width: 767px) {
+      .opening { --pin: 95svh; --reach: 1.5; }
+      /* the phone's crop (object-position 64%) puts the doorway at 66% of the window */
+      .opening[data-walk='true'] .imageWindow {
+        transform-origin: 66% 40%;
+        transform: translate3d(calc(var(--push) * -16%), 0, 0) scale(calc(1 + var(--push) * var(--reach)));
+      }
+      .opening[data-walk='true'] .wash { background: linear-gradient(to right, rgb(var(--c-night)) 42%, transparent 50%, transparent 82%, rgb(var(--c-night)) 90%); }
+    }
+  }
+}

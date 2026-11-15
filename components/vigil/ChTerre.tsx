@@ -3,8 +3,11 @@
 import { useLang } from '@/context/LanguageContext'
 import { events } from '@/data/events'
 import { vigil } from '@/data/narrative'
+import { useEffect, useRef } from 'react'
 import { usePresence } from '@/hooks/usePresence'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useReveal } from '@/hooks/useReveal'
+import { useScrub } from '@/hooks/useScrub'
 import Air from './Air'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
@@ -24,6 +27,24 @@ export default function ChTerre() {
   const kingdom = events[1]
   const colonial = events[13] // 1505-1796 — three European colonisations
 
+  const still = useReducedMotion()
+  const ruleRef = useScrub<HTMLSpanElement>({ pinned: true })
+  const listRef = useRef<HTMLOListElement>(null)
+  // a marker lights as its entry crosses the line the rule is drawn to (60% of
+  // the screen) and goes out again if the reader walks back up
+  useEffect(() => {
+    const list = listRef.current
+    if (!list || still) return
+    const entries = Array.from(list.children) as HTMLElement[]
+    entries.forEach((li) => { li.dataset.lit = 'false' })
+    const observer = new IntersectionObserver(
+      (seen) => seen.forEach((e) => { (e.target as HTMLElement).dataset.lit = String(e.isIntersecting || e.boundingClientRect.top < 0) }),
+      { rootMargin: '0px 0px -40% 0px' }
+    )
+    entries.forEach((li) => observer.observe(li))
+    return () => { observer.disconnect(); entries.forEach((li) => { delete li.dataset.lit }) }
+  }, [still])
+
   return (
     <section
       id="terre"
@@ -38,8 +59,9 @@ export default function ChTerre() {
       <div className="relative z-[2]">
         <ChapterOpen id="terre" lede={v.terreLede} />
         <div ref={ref as React.RefObject<HTMLDivElement>}>
-          <ChBody>
+          {/* outside the padded body: the land runs from one edge of the screen to the other */}
           <LandMemory />
+          <ChBody>
           <div className="mx-auto grid max-w-[1200px] items-start gap-12 border-t border-gold/20 pt-10 sm:pt-14 lg:grid-cols-[0.8fr_1.2fr] lg:gap-[7vw]" data-land-history>
             <header className={`reveal ${styles.intro}`}>
               <div className={styles.plant}>
@@ -52,10 +74,13 @@ export default function ChTerre() {
               </div>
             </header>
 
-            <ol className="relative min-w-0 border-l border-gold/25 pl-6 sm:pl-9">
+            <div className="relative min-w-0">
+            {/* the rule draws itself down to where the reader is */}
+            <span ref={ruleRef} aria-hidden="true" className={styles.probe}><span className={styles.ink} /></span>
+            <ol ref={listRef} className="relative min-w-0 border-l border-gold/25 pl-6 sm:pl-9">
               {[presence, kingdom, colonial].map((event, i) => (
                 <li key={event.year} className={`reveal relative pb-11 last:pb-0 sm:pb-14 ${i === 1 ? 'd1' : i === 2 ? 'd2' : ''}`}>
-                  <span aria-hidden="true" className="absolute -left-[28.5px] top-1 h-2 w-2 rounded-full border border-gold/75 bg-night sm:-left-[40.5px]" />
+                  <span aria-hidden="true" className={`absolute -left-[28.5px] top-1 h-2 w-2 rounded-full border border-gold/75 bg-night sm:-left-[40.5px] ${styles.marker}`} />
                   <p className="font-mono text-[10px] uppercase leading-relaxed tracking-[0.18em] text-gold">{event.year}</p>
                   <h4 className="lang-title mb-4 mt-3 font-display text-[clamp(25px,2.5vw,33px)] font-light leading-[1.2] text-bone">{event.title[lang]}</h4>
                   <Prose className="max-w-[58ch]"><p>{event.detail[lang]}</p></Prose>
@@ -63,6 +88,7 @@ export default function ChTerre() {
                 </li>
               ))}
             </ol>
+            </div>
           </div>
           </ChBody>
         </div>

@@ -10,8 +10,10 @@ import { useReveal } from '@/hooks/useReveal'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { Caption, Prose, MemFigure } from './blocks'
+import { Spoken } from './Voice'
 import JuilletYear from './JuilletYear'
 import JuilletVeil from './JuilletVeil'
+import JuilletExil from './JuilletExil'
 import { GlJuillet, GlSmoke } from './gl/lazy'
 import NeighbourhoodTrees from './NeighbourhoodTrees'
 import styles from './Juillet.module.css'
@@ -54,7 +56,7 @@ export default function ChJuillet() {
         <Caption className="reveal mb-10">{blackJuly.year} — {blackJuly.title[lang]}</Caption>
         <div className="grid items-center gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-14">
           <JuilletYear />
-          <p className="reveal d1 max-w-[22ch] font-display text-[clamp(28px,3.2vw,44px)] font-light leading-[1.2] tracking-[-0.015em] text-bone">{experience.july[lang]}</p>
+          <Spoken text={experience.july[lang]} className="max-w-[22ch] font-display text-[clamp(28px,3.2vw,44px)] font-light leading-[1.2] tracking-[-0.015em] text-bone" />
         </div>
 
         <div className="mt-12 grid grid-cols-1 items-start gap-10 border-t border-bone/15 pt-9 lg:mt-16 lg:grid-cols-[1.25fr_1fr] lg:gap-14">
@@ -63,11 +65,12 @@ export default function ChJuillet() {
               <p>{blackJuly.detail[lang]}</p>
             </Prose>
           </div>
-          <MemFigure className={`reveal d2 ${styles.figure}`} value={v.juilletFigure} label={v.juilletFigureLabel} tone="ember" />
+          <MemFigure className={styles.figure} value={v.juilletFigure} label={v.juilletFigureLabel} tone="ember" />
         </div>
       </div>
       <div className={`relative z-[2] mx-auto max-w-[1440px] px-6 pb-20 sm:px-[9vw] ${styles.content}`}>
-        <p className="mb-16 max-w-[32ch] border-l border-ember/40 py-2 pl-6 font-display text-[clamp(25px,2.8vw,38px)] italic leading-[1.35] text-bone-dim">{experience.julySub[lang]}</p>
+        <JuilletExil />
+        <Spoken text={experience.julySub[lang]}className="mb-16 max-w-[32ch] border-l border-ember/40 py-2 pl-6 font-display text-[clamp(25px,2.8vw,38px)] italic leading-[1.35] text-bone-dim" />
         <h3 className="lang-title mb-8 font-display text-3xl font-light">{experience.war[lang]}</h3>
         <div className="grid gap-10 border-t border-bone/15 pt-8 lg:grid-cols-2 lg:gap-16">
           <div><Caption>{struggle.year}</Caption><Prose><p>{struggle.detail[lang]}</p></Prose></div>

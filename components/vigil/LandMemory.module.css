@@ -1,0 +1,203 @@
+/* Chapter I's landscape. The reader walks along a lagoon while the day ends:
+   five planes on one strip each, moved by --p alone. */
+.track {
+  /* where the walk rests without scripting, in quiet reading and in reduced
+     motion; LandMemory.tsx hands the same number to useScrub */
+  --p: 0.64;
+  /* the walk is over at three quarters of the scroll: for the last quarter
+     nothing travels any more, the sun is down and the light is held */
+  --q: min(1, var(--p) / 0.75);
+  --ink: var(--c-night);
+  --light: var(--c-gold);
+  --sun: var(--c-flame-hot);
+  --glint: var(--c-flame-hot);
+  --sun-a: 0.68;
+  --path: rgb(var(--c-gold) / 0.07);
+  --sun-x: 40%;
+  --from: 14vw;
+  position: relative;
+  margin-bottom: clamp(56px, 9vh, 96px);
+}
+:global(html[data-theme='paper']) .track {
+  /* on paper the land is drawn in ink and the light is the flag's own yellow */
+  --ink: var(--c-bone);
+  --light: var(--flag-yellow);
+  --sun: var(--flag-yellow);
+  --glint: var(--c-gold);
+  --sun-a: 0.55;
+  --path: rgb(var(--c-night) / 0.6);
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(rgb(var(--c-night)), rgb(var(--ch-dawn-1)) 34%);
+}
+.caption { position: relative; z-index: 2; padding: 88px 24px 14px; }
+/* portrait: the words take what they need, the land takes the rest, so no
+   crown can reach a line of text whatever the language */
+.land {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 46svh;
+  min-height: max(34svh, 230px);
+  max-height: 54svh;
+  margin-top: auto;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) and (min-aspect-ratio: 5/4) {
+  .track { --sun-x: 60%; --from: 48vw; }
+  .stage { display: block; height: clamp(460px, 82svh, 760px); }
+  /* 44%: the near palms never come further left than 48% of the frame */
+  .caption { position: absolute; top: 0; left: 0; width: min(720px, 44%); padding: clamp(92px, 15svh, 150px) 0 0 9vw; }
+  /* 34vw keeps every strip wider than the screen plus its own drift */
+  .land { position: absolute; inset: auto 0 0; height: max(66%, 34vw); min-height: 0; max-height: none; margin: 0; }
+  /* Tamil words are long: at the French size the line breaks four times and
+     comes down among the palms */
+  :global(html[lang='ta']) .caption :global(.lang-title) { max-width: none; font-size: clamp(28px, 3.3vw, 46px); }
+}
+
+/* The scene holds the screen for the length of the walk. Not without
+   scripting, not for a reader who asked for stillness, and not on a screen
+   too short to hold the words and the land together. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) {
+  :global(html:not([data-reading='quiet'])) .track { height: 260svh; }
+  :global(html:not([data-reading='quiet'])) .stage { position: sticky; top: 0; height: 100svh; }
+}
+
+/* ————— light: two fixed washes cross-faded, never an animated gradient ————— */
+.day, .dusk { position: absolute; inset: -70% 0 0; }
+/* the horizon sits 79.6% down this box */
+.day {
+  /* a little red under the yellow, or gold on black turns olive */
+  background:
+    linear-gradient(to bottom, transparent 46%, rgb(var(--c-ember) / 0.08) 79.6%, transparent),
+    linear-gradient(to bottom, transparent 18%, rgb(var(--light) / 0.04) 54%, rgb(var(--light) / 0.22) 79.6%, rgb(var(--light) / 0.13) 86%, rgb(var(--light) / 0.05));
+  opacity: calc(1 - var(--q) * 0.55);
+}
+.dusk {
+  /* the afterglow stays where the sun went down */
+  background:
+    radial-gradient(46% 30% at var(--sun-x) 79.6%, rgb(var(--light) / 0.2), transparent),
+    linear-gradient(to bottom, transparent 44%, rgb(var(--c-ember) / 0.06) 64%, rgb(var(--c-ember) / 0.2) 79.6%, rgb(var(--c-ember) / 0.1) 88%, transparent);
+  opacity: var(--q);
+}
+.well { position: absolute; inset: -70% 0 34.67%; overflow: hidden; }
+.sun {
+  position: absolute;
+  left: var(--sun-x);
+  bottom: 0;
+  width: clamp(76px, 20vw, 156px);
+  aspect-ratio: 1;
+  /* from high over the water to wholly under the horizon */
+  transform: translate3d(-50%, calc(var(--q) * 300% - 195%), 0);
+  will-change: transform;
+}
+.sun::before, .sun::after { content: ''; position: absolute; inset: 0; border-radius: 50%; }
+.sun::before { background: radial-gradient(circle at 50% 42%, rgb(var(--sun) / var(--sun-a)), rgb(var(--light) / calc(var(--sun-a) * 0.86))); }
+/* the disc reddens as it comes down */
+.sun::after { background: rgb(var(--c-ember) / 0.3); opacity: var(--q); }
+.glow { position: absolute; inset: -160%; border-radius: 50%; background: radial-gradient(circle, rgb(var(--sun) / 0.2), rgb(var(--light) / 0.06) 34%, transparent 64%); }
+:global(html[data-theme='paper']) .sun::before { border: 1px solid rgb(var(--c-gold) / 0.45); }
+
+.glitter {
+  position: absolute;
+  left: var(--sun-x);
+  top: 65.8%;
+  width: clamp(100px, 26vw, 240px);
+  height: 13.5%;
+  color: rgb(var(--glint));
+  transform: translateX(-50%);
+  /* at full strength for the first third, gone when the sun is */
+  opacity: calc(1.3 - var(--q) * 1.5);
+}
+.glint { animation: glint 4s ease-in-out infinite alternate; }
+
+/* ————— the planes ————— */
+.plane {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  aspect-ratio: 4 / 1;
+  fill: rgb(var(--ink));
+  /* walking: the nearer the plane, the further it travels, and it rises a
+     little as the reader comes down to the water */
+  transform: translate3d(calc(-50% + (0.5 - var(--q)) * var(--dx)), calc((1 - var(--q)) * var(--dy)), 0);
+  /* the land darkens with the light */
+  opacity: calc(var(--o) + var(--q) * var(--og));
+  will-change: transform;
+}
+.far { --dx: 2.4%; --dy: 0%; --o: 0.42; --og: 0.16; }
+.mid { --dx: 8%; --dy: 1.5%; --o: 0.72; --og: 0.12; --w: 3.6deg; }
+.near { --dx: 16%; --dy: 3%; --o: 0.94; --og: 0; --w: 2.4deg; }
+.fore { --dx: 24%; --dy: 6%; --o: 1; --og: 0; }
+:global(html[data-theme='paper']) .far { --o: 0.2; --og: 0.08; }
+:global(html[data-theme='paper']) .mid { --o: 0.4; --og: 0.08; }
+:global(html[data-theme='paper']) .near { --o: 0.68; --og: 0.06; }
+:global(html[data-theme='paper']) .fore { --o: 0.84; --og: 0.06; }
+/* evening mist lying on the spit: without it the bank and its grass are black on black */
+.mist { position: absolute; inset: 62% 0 0; background: linear-gradient(to bottom, transparent, rgb(var(--light) / 0.1) 46%, rgb(var(--light) / 0.05)); }
+.hearth { --dx: 8%; --dy: 1.5%; --o: 1; --og: 0; }
+/* someone lives here: a path worn to a door, a cooking fire, and a lamp that
+   is lit as the sun goes — full when the walk ends, and then it holds */
+.path { fill: var(--path); }
+.smoke { fill: rgb(var(--c-bone) / 0.2); animation: drift 12s ease-in-out infinite alternate; }
+.lamp { fill: rgb(var(--sun)); opacity: calc((var(--p) - 0.5) * 3.6); }
+.flame { animation: flicker 3.1s ease-in-out infinite alternate; }
+.water { fill: none; stroke: rgb(var(--light) / 0.3); stroke-width: 1; }
+
+/* ————— what moves when the reader stops ————— */
+.frond { transform: rotate(var(--a)) scale(var(--s)); animation: wind 7s ease-in-out infinite alternate; }
+.tuft { transform: translate(var(--x), var(--y)) scale(var(--s)); animation: breathe 5s ease-in-out infinite alternate; }
+.flock, .loner {
+  position: absolute;
+  left: 0;
+  top: 10%;
+  width: clamp(40px, 6vw, 78px);
+  height: auto;
+  overflow: visible;
+  color: rgb(var(--c-bone) / 0.5);
+  /* at rest they hang in the open sky to the right */
+  transform: translate3d(76vw, 0, 0);
+  animation: cross 76s linear infinite;
+}
+.loner { top: 22%; width: clamp(48px, 7vw, 92px); transform: translate3d(66vw, 0, 0) scale(0.6); animation-duration: 131s; animation-delay: -84s; }
+.wing { transform-box: fill-box; transform-origin: 50% 100%; animation: flap 1.15s ease-in-out infinite alternate; }
+
+@keyframes wind {
+  from { transform: rotate(calc(var(--a) - var(--w))) scale(var(--s)); }
+  to { transform: rotate(calc(var(--a) + var(--w) * 1.25)) scale(var(--s)); }
+}
+@keyframes breathe {
+  from { transform: translate(var(--x), var(--y)) scale(var(--s)) skewX(-3deg); }
+  to { transform: translate(var(--x), var(--y)) scale(var(--s)) skewX(5deg); }
+}
+@keyframes drift { from { transform: skewX(-3deg); } to { transform: skewX(9deg); } }
+@keyframes flicker { from { opacity: 0.76; } to { opacity: 1; } }
+@keyframes glint { from { opacity: 0.2; } to { opacity: 1; } }
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(0.3); } }
+/* they rise from the far shore, cross the open sky and are gone for a long while */
+@keyframes cross {
+  0% { transform: translate3d(var(--from), 13svh, 0) scale(0.45); opacity: 0; }
+  5%, 38% { opacity: 1; }
+  44%, 100% { transform: translate3d(108vw, 0, 0) scale(1); opacity: 0; }
+}
+
+.track:not([data-running='true']) * { animation-play-state: paused; }
+.track[data-still='true'] *,
+:global(html[data-reading='quiet']) .track * { animation: none; }
+@media (prefers-reduced-motion: reduce) { .track * { animation: none; } }
+/* a paused animation would hold the birds at their invisible first frame */
+@media (scripting: none) { .track * { animation: none; } }
+
+@media print {
+  .track { height: auto !important; }
+  .stage { position: static !important; display: block; height: auto !important; background: none; }
+  .caption { position: static; width: auto; padding: 0; }
+}

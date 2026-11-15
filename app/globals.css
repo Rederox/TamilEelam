@@ -241,6 +241,39 @@ html[data-loading="true"] #vigil-content *::after { animation-play-state: paused
   }
   .stagger.in .w { opacity: 1; transform: none; filter: blur(0); }
 
+  /* ————— the voice: a statement that is said, not shown (<Spoken>) ————— */
+  /* The inner .reveal is only the trigger: it never hides or moves the line,
+     the words do. Each word knows when it starts (--d, milliseconds: the
+     pauses at commas and full stops are already in it). A word is hidden
+     only between the moment useReveal arms the line and the moment it comes
+     in, so the server HTML, read without JavaScript, is the whole sentence.
+     The hiding itself has no transition: armed is instant, only the arrival
+     takes time, at the same pace as any other .reveal. Opacity and nothing
+     else, on purpose: the words stay plain inline text, so the sentence
+     wraps exactly as it would unsplit (an inline-block word that is wider
+     than a phone, as Tamil words can be, takes a line to itself and breaks
+     differently). :where() keeps these as light as `.spoken .w`, which the
+     stillness rules below override. */
+  .spoken > .reveal { opacity: 1; transform: none; transition: none; }
+  .spoken :where(.reveal-ready:not(.in)) .w { opacity: 0; }
+  .spoken :where(.in) .w {
+    transition: opacity calc(1.4s + var(--ordeal, 0) * 0.9s) var(--e-vigil);
+    transition-delay: calc(var(--d, 0) * 1ms);
+  }
+
+  /* ————— the memorial figures: a number of dead is not a score ————— */
+  /* Nothing counts up and nothing moves. The digits (.reveal.fig-n) are the
+     final ones from the first frame, dim, and come up as one block, slowly;
+     the line under them (.reveal.fig-l) follows once they are there; then
+     the figure holds. :where() again: these weigh no more than .reveal,
+     so every rule that shows a .reveal at rest shows the figure whole. The
+     pace is the exception, written at full weight: a chapter that retimes
+     its own .reveal blocks must not hurry a figure. */
+  .fig-n:where(.reveal) { opacity: 0.16; transform: none; transition: none; }
+  .reveal.fig-n.in { transition: opacity 3.2s var(--e-draw) 0.3s; }
+  .fig-l:where(.reveal) { transform: none; transition: none; }
+  .reveal.fig-l.in { transition: opacity 1.8s var(--e-vigil) 2.6s; }
+
   /* letter cascade (prologue) */
   .lt {
     display: inline-block;
@@ -476,7 +509,29 @@ html[data-loading="true"] #vigil-content *::after { animation-play-state: paused
     .letterbox::before,
     .letterbox::after { height: min(11svh, 96px); }
   }
-  /* paper is the reading, not the film: a sheet has no frame to narrow */
+  /* The cut. A jump to another chapter does not scroll there: the same frame
+     goes black (cutTo in Letterbox.tsx sets data-cut), the page moves at once
+     underneath, and the black lifts off the destination's title card. Down
+     fast, up slowly, opacity only. At rest the layer is not even visible to
+     the compositor. Same height as the bars: the header, the lamp and the
+     chapter pill stay lit over it, and it never takes a click. */
+  .letterbox-dip {
+    position: fixed;
+    inset: 0;
+    z-index: 79;
+    pointer-events: none;
+    background: rgb(var(--flag-black));
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.9s var(--e-draw), visibility 0s 0.9s;
+  }
+  .letterbox[data-cut] .letterbox-dip {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s linear, visibility 0s;
+  }
+  /* paper is the reading, not the film: a sheet has no frame to narrow, and
+     nothing to dip to (a jump there scrolls, as on any printed page's index) */
   [data-theme='paper'] .letterbox { display: none; }
 
   /* ————— violence effects (Black July / Mullivaikkal) ————— */
@@ -911,7 +966,7 @@ html[lang="ta"] .drop-cap::first-letter { float: none; font-size: 1em; margin: 0
     animation-delay: 0s !important;
     transition-delay: 0s !important;
   }
-  .reveal, .stagger .w, .lt { opacity: 1; transform: none; filter: none; }
+  .reveal, .stagger .w, .lt, .spoken .w { opacity: 1; transform: none; filter: none; }
   /* things that only exist as motion: hold them at their resting state */
   .coast { stroke-dashoffset: 0; }
   .zone-ink, .bullet, .seal, .light-up { opacity: 1; transform: none; }
@@ -951,6 +1006,7 @@ html[data-reading="quiet"] *, html[data-reading="quiet"] *::before, html[data-re
 }
 html[data-reading="quiet"] .reveal,
 html[data-reading="quiet"] .stagger .w,
+html[data-reading="quiet"] .spoken .w,
 html[data-reading="quiet"] .lt { opacity: 1; transform: none; filter: none; }
 html[data-reading="quiet"] .coast { stroke-dashoffset: 0; }
 html[data-reading="quiet"] .shell { display: none; }
@@ -968,7 +1024,7 @@ html[data-reading="quiet"] .shell { display: none; }
   html, body, main, section, footer, article { background: white !important; color: #222 !important; }
   * { color: #222 !important; text-shadow: none !important; box-shadow: none !important; animation: none !important; }
   section, [data-chapter-open], .mv-passage { min-height: 0 !important; padding-block: 24px !important; }
-  .reveal, .stagger .w, .lt { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .reveal, .stagger .w, .lt, .spoken .w { opacity: 1 !important; transform: none !important; filter: none !important; }
   .mv-passage { margin-left: 0 !important; break-inside: avoid; }
   .sticky, .fixed { position: static !important; }
 }

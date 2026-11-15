@@ -1,0 +1,464 @@
+/* The emptied room (chapter VIII). A wall of empty frames, a light that
+   crosses it and finds no one, dust in that light, and below, out of its
+   reach, the lamp the family keeps lit.
+
+   This sheet draws the room as a function of `--p`, and `--p` is never set
+   on the room: what it shows is the room at rest (0.46, the light held on the
+   middle of the wall), which is all there is without scripting or in quiet
+   reading. While the reader moves, ChDisparus.tsx `paint()` writes the same
+   formulas straight onto each part — keep the two in step. */
+
+.room,
+.sill {
+  --pad: 24px; /* ChBody's own gutter: the room runs to the edges of the screen */
+  --glow: min(46svh, 420px);
+  --warmth: 0.13;
+}
+
+.room {
+  /* the passing light is pale, the flame is the only warm thing in the room */
+  --lamp: var(--c-bone);
+  --lamp-a: 0.17;
+  --shade: var(--c-night);
+  --shade-a: 0.7;
+  --mote: var(--c-bone);
+  --veil: 0; /* by day, the shade the wall stands in */
+
+  /* The pin below runs from 0.286 to 0.714 of the passage (1 / 3.5 → 2.5 / 3.5).
+     The light takes the first four fifths of it; the rest is the wall after
+     the light has gone, held a little longer than is comfortable. Unpinned,
+     this is the stretch where the wall is in the middle of the screen. */
+  --t: clamp(0, (var(--p, 0.46) - 0.29) / 0.34, 1);
+  /* where the light stands, in widths of the wall: off its left, then off its right */
+  --l: calc(-0.5 + 2 * var(--t));
+  --walk: calc(var(--p, 0.46) - 0.5);
+  /* how far the slanted light leans from the top row to the bottom one */
+  --k: 0.27;
+  --reach: 0.4;
+  --throw: 5px;
+
+  position: relative;
+  margin-inline: calc(-1 * var(--pad));
+}
+
+/* what useScrub measures: the room's own extent, with nothing inside to restyle */
+.passage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  padding: 24px var(--pad) 44px;
+  /* the wall, and at its foot the warmth of a lamp that is not in the picture yet */
+  background:
+    radial-gradient(
+      circle var(--glow) at calc(var(--pad) + 25px) calc(100% + 54px),
+      rgb(var(--c-flame) / var(--warmth)),
+      rgb(var(--c-ember) / calc(var(--warmth) * 0.3)) 50%,
+      transparent 100%
+    ),
+    linear-gradient(to bottom, transparent, rgb(var(--c-bone) / var(--veil)) 16%, rgb(var(--c-bone) / var(--veil)) 84%, transparent),
+    linear-gradient(to bottom, transparent, rgb(var(--ch-void)) 16%, rgb(var(--ch-void)) 84%, transparent);
+}
+
+.wall {
+  --spare: 350px;
+  --fit: 0.75;
+  position: relative;
+  max-width: 1200px;
+}
+
+/* ————— the light ————— */
+.light {
+  position: absolute;
+  inset: -30% 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 30% 50% at 50% 50%,
+    rgb(var(--lamp) / var(--lamp-a)),
+    rgb(var(--lamp) / calc(var(--lamp-a) * 0.4)) 55%,
+    transparent 100%
+  );
+  transform: translate3d(calc((var(--l) - 0.5) * 100%), 0, 0) skewX(-12deg);
+  /* in ordinary flow the room is cut close above the frames: the light is
+     gone before it reaches that edge (the pinned room has a whole screen) */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 13%, #000 27%, #000 78%, transparent 96%);
+  mask-image: linear-gradient(to bottom, transparent 13%, #000 27%, #000 78%, transparent 96%);
+}
+
+/* dust: each speck rides a full-height strip, so that it can fall by a share
+   of the light's height rather than of its own two pixels */
+.light i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--mx);
+  width: 2px;
+  opacity: 0;
+  animation: settle var(--mt) linear var(--md) infinite;
+  animation-play-state: paused;
+}
+
+.light i::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: var(--ms);
+  height: var(--ms);
+  border-radius: 50%;
+  background: rgb(var(--mote) / 0.5);
+}
+
+.room[data-running='true'] .light i {
+  animation-play-state: running;
+}
+
+@keyframes settle {
+  from { transform: translate3d(0, -15%, 0); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  to { transform: translate3d(7px, 15%, 0); opacity: 0; }
+}
+
+/* ————— the frames ————— */
+.frames {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cell {
+  --x: var(--x4);
+  --y: var(--y4);
+  /* > 0: the light is still to its left */
+  --dx: calc(var(--x) - var(--l) + var(--k) * (var(--y) - 0.5));
+  --lit: clamp(0, 1 - max(var(--dx), -1 * var(--dx)) / var(--reach), 1);
+  /* the lamp is below and to the left: the nearest boards keep a little of it */
+  --warm: clamp(0, var(--y) * 1.2 - var(--x) * 1.6 + 0.1, 1);
+  position: relative;
+  aspect-ratio: 3 / 4;
+}
+
+/* a phone's wall holds sixteen: the note says it, this is not a count */
+.cell:nth-child(n + 17) {
+  display: none;
+}
+
+/* cast on the wall, away from the light; it travels further than the frame
+   does, which is what puts air between the two */
+.shadow {
+  position: absolute;
+  inset: 4%;
+  background: rgb(var(--shade) / var(--shade-a));
+  box-shadow: 0 0 12px 5px rgb(var(--shade) / var(--shade-a));
+  opacity: calc(0.15 + 0.85 * var(--lit));
+  transform: translate3d(
+    calc(clamp(-1, var(--dx) * 3, 1) * (var(--throw) + var(--d) * var(--throw)) + var(--walk) * var(--d) * -9px),
+    calc(3px + var(--d) * 4px + var(--hang) + var(--walk) * var(--d) * -4px),
+    0
+  );
+}
+
+/* the board behind the glass is opaque: nothing shows through an empty frame */
+.frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid rgb(var(--c-bone) / calc(0.14 + var(--d) * 0.12));
+  background:
+    linear-gradient(rgb(var(--c-ember) / calc(var(--warm) * 0.025)), rgb(var(--c-ember) / calc(var(--warm) * 0.025))),
+    linear-gradient(rgb(var(--c-flame) / calc(var(--warm) * 0.04)), rgb(var(--c-flame) / calc(var(--warm) * 0.04))),
+    linear-gradient(rgb(var(--c-bone) / calc(var(--veil) * 0.6)), rgb(var(--c-bone) / calc(var(--veil) * 0.6))),
+    rgb(var(--ch-void-2));
+  transform: translate3d(
+      calc(var(--walk) * var(--d) * -14px),
+      calc(var(--hang) + var(--walk) * var(--d) * -7px),
+      0
+    )
+    scale(calc(1 + var(--d) * 0.03));
+}
+
+/* the mount, and the small plate that was never engraved */
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 7%;
+  border: 1px solid rgb(var(--c-bone) / 0.09);
+}
+
+.frame::after {
+  content: '';
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  width: 14%;
+  height: 1px;
+  margin-left: -7%;
+  background: rgb(var(--c-bone) / 0.18);
+}
+
+/* what the light does to a frame while it is on it: the moulding comes out
+   of the dark, the glass pales, a sheen crosses it. Straight bands only —
+   never a shape that could be taken for someone. */
+.glass {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgb(var(--c-bone) / 0.5);
+  background: rgb(var(--lamp) / 0.05);
+  opacity: var(--lit);
+}
+
+.sheen {
+  position: absolute;
+  inset: -10% 0;
+  background: linear-gradient(
+    102deg,
+    transparent 22%,
+    rgb(var(--lamp) / 0.1) 40%,
+    rgb(var(--lamp) / 0.22) 50%,
+    rgb(var(--lamp) / 0.1) 60%,
+    transparent 78%
+  );
+  transform: translate3d(calc(var(--dx) / var(--reach) * -105%), 0, 0);
+}
+
+.note {
+  position: relative;
+  margin-top: 26px;
+  max-width: 46ch;
+}
+
+/* ————— the family's lamp ————— */
+.sill {
+  position: relative;
+}
+
+/* it stands on the line under the wall, where the words about the mothers begin */
+.lamp {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 72px;
+  padding: 0 0 5px 14px;
+  border-bottom: 1px solid rgb(var(--c-bone) / 0.15);
+}
+
+/* an earthen dish, the kind a wick is floated in: the flame is somebody's */
+.lamp::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 7px;
+  width: 36px;
+  height: 9px;
+  border-top: 1px solid rgb(var(--ch-clay) / 0.6);
+  border-radius: 0 0 18px 18px / 0 0 9px 9px;
+  /* lit by its own wick: the rim, then less and less of the bowl */
+  background: linear-gradient(to bottom, rgb(var(--ch-clay) / 0.42), rgb(var(--ch-clay) / 0.12)), rgb(var(--ch-clay-2));
+}
+
+/* the lower half of the pool the stage shows the upper half of: same centre,
+   same radius, so the two meet without a seam */
+.lamp::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--pad));
+  width: calc(var(--pad) + var(--glow));
+  height: calc(54px + var(--glow));
+  pointer-events: none;
+  background: radial-gradient(
+    circle var(--glow) at calc(var(--pad) + 25px) 54px,
+    rgb(var(--c-flame) / var(--warmth)),
+    rgb(var(--c-ember) / calc(var(--warmth) * 0.3)) 50%,
+    transparent 100%
+  );
+}
+
+.words {
+  position: relative;
+  padding-top: 40px;
+}
+
+/* ————— the statement ————— */
+/* three words, a silence the length of a breath, then the one that names it */
+.answer:global(.reveal) {
+  transition-delay: 2.5s;
+}
+
+/* without scripting the words never get their cue: they are simply there */
+.statement:not(:global(.reveal-ready)) :global(.w) {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ————— wider walls ————— */
+@media (min-width: 640px) {
+  .room,
+  .sill {
+    --pad: 9vw;
+  }
+
+  .room {
+    --k: 0.18;
+    --throw: 7px;
+  }
+
+  .wall {
+    --spare: 300px;
+    --fit: 1.12;
+  }
+
+  .frames {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  .cell {
+    --x: var(--x6);
+    --y: var(--y6);
+  }
+
+  .cell:nth-child(n + 17) {
+    display: block;
+  }
+
+  .words {
+    padding-left: 54px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .room {
+    --k: 0.1;
+    --reach: 0.3;
+    --throw: 9px;
+  }
+
+  .wall {
+    --spare: 250px;
+    --fit: 2;
+  }
+
+  .frames {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .cell {
+    --x: var(--x8);
+    --y: var(--y8);
+  }
+}
+
+/* ————— held in the room ————— */
+/* Only once scripting has said the reader wants movement (data-live), and
+   only on a screen tall enough to hold the wall and its note together: the
+   room stops under the reader for a screen and a half of scrolling, the time
+   the light takes to cross and to be missed. Otherwise it is an ordinary
+   stretch of page. */
+@media (min-height: 560px) {
+  .room[data-live] {
+    height: 250svh;
+  }
+
+  .room[data-live] .stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    min-height: 100svh;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 84px; /* the header */
+  }
+
+  /* below the desk layout the chapter's name is pinned to the foot of the screen: the note stays above it */
+  @media (max-width: 1023px) {
+    .room[data-live] .stage {
+      padding-bottom: 96px;
+    }
+  }
+
+  .room[data-live] .light {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* the wall gives way to the screen's height, never the note */
+  .room[data-live] .wall {
+    width: 100%;
+    max-width: min(1200px, calc((100svh - var(--spare)) * var(--fit)));
+  }
+}
+
+.room[data-live] .light,
+.room[data-live] .shadow,
+.room[data-live] .frame,
+.room[data-live] .sheen {
+  will-change: transform;
+}
+
+.room[data-live] .glass {
+  will-change: opacity;
+}
+
+/* ————— by daylight ————— */
+/* On paper the room is seen by day: what crosses the wall is a patch of sun
+   from a window, the wall in shade around it. The boards go white under it,
+   the shadows are ink and faint, and a lamp lit in daylight warms nothing. */
+:global([data-theme='paper']) .room {
+  --lamp: var(--c-night);
+  --lamp-a: 0.85;
+  --shade: var(--c-bone);
+  --shade-a: 0.13;
+  --mote: var(--c-ash);
+  --veil: 0.08;
+}
+
+:global([data-theme='paper']) .cell {
+  --warm: 0;
+}
+
+:global([data-theme='paper']) .room,
+:global([data-theme='paper']) .sill {
+  --warmth: 0.05;
+}
+
+:global([data-theme='paper']) .glass {
+  background: rgb(var(--lamp) / 0.7);
+}
+
+:global([data-theme='paper']) .sheen {
+  background: linear-gradient(
+    102deg,
+    transparent 22%,
+    rgb(var(--c-bone) / 0.03) 40%,
+    rgb(var(--c-bone) / 0.07) 50%,
+    rgb(var(--c-bone) / 0.03) 60%,
+    transparent 78%
+  );
+}
+
+@media print {
+  .room[data-live] {
+    height: auto;
+  }
+
+  .room[data-live] .stage {
+    position: static;
+    min-height: 0;
+  }
+
+  .stage,
+  .frame {
+    background: none;
+    transform: none !important;
+  }
+}

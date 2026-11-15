@@ -13,6 +13,7 @@ import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { GlEmbers } from './gl/lazy'
 import { ChBody, Caption, Prose } from './blocks'
+import { Spoken } from './Voice'
 import camera from './Camera.module.css'
 
 /**
@@ -104,7 +105,7 @@ export default function ChSymboles() {
         <ChapterOpen id="symboles" lede={s.lede} />
         <div ref={ref as React.RefObject<HTMLDivElement>}>
           <ChBody>
-          <h3 className="reveal lang-title mb-14 max-w-[20ch] font-display text-[clamp(30px,4vw,52px)] font-light leading-tight">{experience.symbols[lang]}</h3>
+          <Spoken as="h3" text={experience.symbols[lang]} className="lang-title mb-14 max-w-[20ch] font-display text-[clamp(30px,4vw,52px)] font-light leading-tight" />
           {/* the flag — wide, like a flag, and it unfurls like one */}
           <div className="grid max-w-[1200px] grid-cols-1 gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center lg:gap-[5vw]">
             <div className="reveal">

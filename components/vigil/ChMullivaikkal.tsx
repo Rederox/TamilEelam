@@ -14,6 +14,7 @@ import MullivaikkalScenery from './MullivaikkalScenery'
 import styles from './MullivaikkalScenery.module.css'
 import { GlSea } from './gl/lazy'
 import KanjiBowl from './KanjiBowl'
+import { Spoken, Weighed } from './Voice'
 
 const labels = {
   fr: ['La terre se referme', 'Le refuge', 'Sous les obus', 'Les vies', 'Le partage', 'Le silence', 'Le bilan inachevé', 'Nommer', 'La trace', 'Le souvenir'],
@@ -119,9 +120,9 @@ export default function ChMullivaikkal() {
           {passages.map((passage, i) => (
             <article key={i} id={`mv-scene-${i}`} data-scene={i} data-active={i === active} className="mv-passage relative grid min-h-[85svh] content-center py-20 lg:ml-[46%] lg:min-h-[90svh]">
               <p className="mb-7 flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.2em] text-ash"><span className="text-gold">{String(i + 1).padStart(2, '0')}</span><span className="h-px w-8 bg-bone/25" />{labels[lang][i]}</p>
-              {i === 6 && <div className="mb-6"><span className="block font-display text-[clamp(62px,8vw,112px)] font-light leading-none tracking-[-0.04em] text-ember">{new Intl.NumberFormat(locale).format(40000)}</span><p className="mt-3 text-base italic text-ash">{s.countSuffix}</p></div>}
+              {i === 6 && <Weighed className="mb-6"><span className="reveal fig-n block font-display text-[clamp(62px,8vw,112px)] font-light leading-none tracking-[-0.04em] text-ember">{new Intl.NumberFormat(locale).format(40000)}</span><p className="reveal fig-l mt-3 text-base italic text-ash">{s.countSuffix}</p></Weighed>}
               {i === 4 && <div className="mb-8 lg:hidden"><KanjiBowl size={150} /></div>}
-              <h3 className={`lang-title max-w-[25ch] font-display font-light leading-[1.4] ${i === 7 ? 'text-[clamp(29px,3.7vw,48px)] text-ember' : 'text-[clamp(25px,3vw,39px)] text-bone'}`}>{passage}</h3>
+              <Spoken as="h3" text={passage} className={`lang-title max-w-[25ch] font-display font-light leading-[1.4] ${i === 7 ? 'text-[clamp(29px,3.7vw,48px)] text-ember' : 'text-[clamp(25px,3vw,39px)] text-bone'}`} />
               {supporting[i] && <p className="mt-7 max-w-[48ch] text-[16px] leading-[1.8] text-bone-dim">{supporting[i]}</p>}
               {evidence[i] && <a href={sources[evidence[i]!].href} target="_blank" rel="noopener noreferrer" className="mt-6 w-fit border-b border-bone/25 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-ash hover:text-flame">{sources[evidence[i]!].institution} · {sources[evidence[i]!].year} ↗</a>}
               {i < passages.length - 1 && <a href={`#mv-scene-${i + 1}`} className={styles.continueLink}>

@@ -1,0 +1,252 @@
+/* Chapter V's room. Everything in it is placed on a grid of --u (160 × 90 of
+   them in landscape, 76 × 120 upright) and moved by --p alone: 0 as the room
+   takes the screen, 1 when the lamp has gone. */
+.track {
+  /* the last image: what the page shows without scripting, in quiet reading,
+     in reduced motion and on a screen too short to hold the room */
+  --p: 1;
+  --line: var(--c-bone) / 0.74;
+  --body: var(--ch-ink);
+  --light: var(--c-flame-hot);
+  --light-a: 1;
+  --shade: var(--c-night) / 0.7;
+  --dark: 0.46;
+  position: relative;
+  /* out to the edges of the column the chapter gives its prose */
+  margin: 0 -24px 64px;
+}
+@media (min-width: 640px) {
+  .track { margin-inline: -9vw; margin-bottom: 88px; }
+}
+:global(html[data-theme='paper']) .track {
+  /* on paper the room is a drawing in ink and the lamp a wash of yellow */
+  --line: var(--c-bone) / 0.82;
+  --light: var(--flag-yellow);
+  --light-a: 1.1;
+  --shade: var(--c-shade) / 0.2;
+  --dark: 0.5;
+}
+.track[data-held='false'] .stage { --p: 1; }
+
+.stage {
+  --u: min(0.56vw, 0.95svh, 8.2px);
+  --W: 160;
+  --H: 90;
+  --sw: 1.7px;
+  position: relative;
+  height: calc(var(--u) * var(--H) + 150px);
+  overflow: hidden;
+  /* the room comes out of the night and goes back into it: no edge */
+  background: linear-gradient(to bottom, transparent, rgb(var(--ch-ink)) 16%, rgb(var(--ch-ink)) 84%, transparent);
+}
+.caption { position: absolute; z-index: 3; top: 28px; left: 24px; }
+@media (min-width: 640px) { .caption { left: 9vw; } }
+.room { position: absolute; inset: 0; pointer-events: none; --lit: clamp(0, calc((0.94 - var(--p)) / 0.12), 1); }
+.set {
+  position: absolute;
+  top: calc(50% + 12px);
+  left: 50%;
+  width: calc(var(--u) * var(--W));
+  height: calc(var(--u) * var(--H));
+  margin: calc(var(--u) * var(--H) / -2) 0 0 calc(var(--u) * var(--W) / -2);
+  --fy: 40;
+}
+
+/* The room holds the screen for as long as the choosing takes. Not without
+   scripting, not for a reader who asked for stillness, and not on a screen
+   too short to hold it. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) {
+  :global(html:not([data-reading='quiet'])) .track { height: 360svh; }
+  :global(html:not([data-reading='quiet'])) .stage { position: sticky; top: 0; height: 100svh; }
+  :global(html:not([data-reading='quiet'])) .caption { top: clamp(76px, 11svh, 104px); }
+}
+
+/* ————— the room ————— */
+.floor {
+  position: absolute;
+  left: -100vw;
+  right: -100vw;
+  top: calc(var(--u) * var(--fy));
+  height: calc(var(--u) * 70);
+  border-top: 1px solid rgb(var(--c-bone) / 0.2);
+  background: linear-gradient(to bottom, rgb(var(--c-bone) / 0.035), transparent 70%);
+}
+.wash {
+  position: absolute;
+  left: calc(var(--u) * -70);
+  top: calc(var(--u) * -22);
+  width: calc(var(--u) * 200);
+  height: calc(var(--u) * 140);
+  background:
+    radial-gradient(ellipse 56% 48% at 45% 62%, rgb(var(--light) / calc(0.25 * var(--light-a))), rgb(var(--light) / calc(0.09 * var(--light-a))) 50%, transparent 100%);
+  /* the lamp is carried out by the side it stood on */
+  opacity: var(--lit);
+  transform: translate3d(calc((var(--lit) - 1) * 16%), 0, 0);
+  transition: opacity 0.5s linear, transform 0.5s linear;
+  will-change: opacity, transform;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--ch-ink));
+  opacity: calc((1 - var(--lit)) * var(--dark));
+  transition: opacity 0.5s linear;
+  will-change: opacity;
+}
+
+/* ————— the drawings ————— */
+.obj, .case {
+  position: absolute;
+  left: calc(var(--u) * var(--x));
+  top: calc(var(--u) * var(--y));
+  width: calc(var(--u) * var(--w));
+}
+.obj, .lid, .tray, .top {
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: rgb(var(--line));
+  stroke-width: var(--sw);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.obj *, .case * { vector-effect: non-scaling-stroke; }
+.thick { stroke-width: calc(var(--sw) * 1.7); }
+.b { fill: rgb(var(--body)); }
+.dot { fill: rgb(var(--line)); stroke: none; }
+/* the side the lamp reaches: it goes when the lamp goes */
+.t { opacity: var(--lit); stroke: none; transition: opacity 0.5s linear; }
+.g1 { fill: rgb(var(--c-gold) / 0.74); }
+.g2 { fill: rgb(var(--c-gold) / 0.17); }
+.e1 { fill: rgb(var(--c-ember) / 0.62); }
+.w1 { fill: rgb(var(--c-bone) / 0.07); }
+.w2 { fill: rgb(var(--c-bone) / 0.5); }
+.hi { fill: none; stroke: rgb(var(--c-flame-hot) / 0.85); }
+:global(html[data-theme='paper']) .g1 { fill: rgb(var(--flag-yellow) / 0.75); }
+:global(html[data-theme='paper']) .g2 { fill: rgb(var(--flag-yellow) / 0.2); }
+:global(html[data-theme='paper']) .e1 { fill: rgb(var(--c-ember) / 0.5); }
+:global(html[data-theme='paper']) .w2 { fill: rgb(var(--c-night) / 0.9); }
+:global(html[data-theme='paper']) .hi { stroke: rgb(var(--c-gold) / 0.6); }
+
+.clock { --x: 24; --y: 4; --w: 18; }
+.frame { --x: 112; --y: 7; --w: 15; }
+.umbrella { --x: 138; --y: 13; --w: 15; }
+.radio { --x: 113; --y: 46; --w: 23.2; }
+.case { --x: 58; --y: 26; --w: 44; height: calc(var(--u) * 47); }
+.lid, .tray, .top { position: absolute; left: 0; width: 100%; }
+.lid { top: 0; }
+.tray { top: calc(var(--u) * 20); }
+.top { top: calc(var(--u) * 16); }
+
+.pendulum { transform-origin: 90px 176px; animation: swing 1.9s ease-in-out infinite alternate; }
+@keyframes swing { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+
+/* ————— the hands nobody sees ————— */
+/* each thing has its own stretch of the scroll: it starts at --a, lasts --d */
+.book, .bookShade { --a: 0.06; --d: 0.14; }
+.cloth, .clothShade { --a: 0.2; --d: 0.14; }
+.pot, .potShade, .hoverShade { --a: 0.34; --d: 0.25; }
+.keys, .keysShade { --a: 0.59; --d: 0.1; }
+.lid, .top { --a: 0.7; --d: 0.11; }
+.lifted, .held, .shade, .lid, .top {
+  --t: clamp(0, calc((var(--p) - var(--a)) / var(--d)), 1);
+}
+/* taken off the floor, carried, lowered: three movements that overlap, each
+   eased, so that nothing ever slides */
+.lifted, .bookShade, .clothShade, .keysShade {
+  --l: clamp(0, calc(var(--t) / 0.28), 1);
+  --m: clamp(0, calc((var(--t) - 0.18) / 0.62), 1);
+  --n: clamp(0, calc((var(--t) - 0.72) / 0.28), 1);
+  --go: calc(var(--m) * var(--m) * (3 - 2 * var(--m)));
+}
+/* the pot: up, across, a long while over the case, and back where it was */
+.held, .potShade, .hoverShade {
+  --l: clamp(0, calc(var(--t) / 0.18), 1);
+  --m: clamp(0, calc((var(--t) - 0.1) / 0.2), 1);
+  --back: clamp(0, calc((var(--t) - 0.64) / 0.22), 1);
+  --n: clamp(0, calc((var(--t) - 0.82) / 0.18), 1);
+  --go: calc(var(--m) * var(--m) * (3 - 2 * var(--m)) - var(--back) * var(--back) * (3 - 2 * var(--back)));
+}
+.lifted, .held, .potShade {
+  /* how far off the floor it is */
+  --up: calc(var(--l) * var(--l) * (3 - 2 * var(--l)) - var(--n) * var(--n) * (3 - 2 * var(--n)));
+}
+.lifted, .held {
+  transform:
+    translate3d(calc(var(--u) * var(--dx) * var(--go)), calc(var(--u) * (var(--dy) * var(--go) - var(--lift) * var(--up))), 0)
+    rotate(calc(var(--tilt) * var(--up)))
+    scale(calc(1 + var(--near, 0.07) * var(--up)));
+  transition: transform 0.6s var(--e-vigil);
+  will-change: transform;
+}
+.book { --x: 38; --y: 71; --w: 16; --dx: 24; --dy: -20; --lift: 7; --tilt: 5deg; }
+.cloth { --x: 94; --y: 69; --w: 20; --dx: -15.5; --dy: -18.5; --lift: 7; --tilt: -4deg; }
+.keys { --x: 72; --y: 78; --w: 13; --dx: 10; --dy: -25; --lift: 5; --tilt: 9deg; }
+.pot { --x: 26; --y: 44; --w: 20; --dx: 36; --dy: -2; --lift: 11.5; --tilt: 3deg; --near: 0.12; }
+
+.shade {
+  position: absolute;
+  left: calc(var(--u) * var(--x));
+  top: calc(var(--u) * var(--y));
+  width: calc(var(--u) * var(--w));
+  height: calc(var(--u) * var(--h));
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--shade)) 55%, transparent);
+  opacity: calc(var(--lit) * (1 - var(--up, 0)));
+  transition: opacity 0.5s linear;
+}
+/* once in the case a thing casts nothing on the floor */
+.bookShade, .clothShade, .keysShade { --up: calc(var(--l) * var(--l) * (3 - 2 * var(--l))); }
+.potShade { --x: 37; --y: 58.5; --w: 24; --h: 6; }
+/* held over the case, the pot darkens what is already in it */
+.hoverShade { --x: 62; --y: 53; --w: 24; --h: 9; --up: calc(1 - var(--go)); }
+.radioShade { --x: 125; --y: 58; --w: 22; --h: 5.5; }
+.caseShade { --x: 90; --y: 63; --w: 24; --h: 9; }
+.bookShade { --x: 46; --y: 79.5; --w: 14; --h: 4.5; }
+.clothShade { --x: 105; --y: 78; --w: 16; --h: 5.5; }
+.keysShade { --x: 79; --y: 84; --w: 10; --h: 3.5; }
+
+.lid, .top {
+  --c: clamp(0, calc((var(--t) - var(--from)) / 0.55), 1);
+  --ce: calc(var(--c) * var(--c) * (3 - 2 * var(--c)));
+  transition: transform 0.6s var(--e-vigil);
+}
+/* seen from above, a lid turning on its hinge is a rectangle growing shorter:
+   the open lid folds down to nothing, then its outside comes forward over the
+   case */
+.lid { --from: 0; transform-origin: 50% 100%; transform: scaleY(calc(1 - var(--ce))); }
+.top { --from: 0.45; transform-origin: 50% 0; transform: scaleY(var(--ce)); }
+
+/* ————— upright: fewer things, closer together ————— */
+@media (max-aspect-ratio: 4/5) {
+  .stage { --u: min(1.3vw, 0.7svh); --W: 76; --H: 120; --sw: 1.5px; }
+  .set { --fy: 36; top: calc(50% + 8px); }
+  .umbrella, .keys, .keysShade { display: none; }
+  .clock { --x: 6; --y: 4; --w: 17; }
+  .frame { --x: 50; --y: 5; --w: 15; }
+  .radio { --x: 51; --y: 43; --w: 22; }
+  .case { --x: 16; --y: 62; }
+  .book { --x: 5; --y: 106; --dx: 15; --dy: -19; }
+  .cloth { --x: 49; --y: 104; --dx: -12; --dy: -17.5; }
+  .pot { --x: 3; --y: 40; --dx: 17; --dy: 37; --lift: 10.6; }
+  .potShade { --x: 13; --y: 54.5; --w: 22; }
+  .hoverShade { --x: 20; --y: 89; }
+  .radioShade { --x: 61; --y: 54.5; --w: 18; }
+  .caseShade { --x: 48; --y: 99; --w: 22; }
+  .bookShade { --x: 12; --y: 114.5; --w: 13; }
+  .clothShade { --x: 59; --y: 113; --w: 15; }
+  /* no keys: the pot is held that much longer */
+  .pot, .potShade, .hoverShade { --d: 0.33; }
+}
+
+.track:not([data-running='true']) .pendulum { animation-play-state: paused; }
+.track[data-still='true'] .pendulum,
+:global(html[data-reading='quiet']) .track .pendulum { animation: none; }
+@media (prefers-reduced-motion: reduce) { .pendulum { animation: none; } }
+@media (scripting: none) { .pendulum { animation: none; } }
+
+@media print {
+  .track { height: auto !important; margin: 0; }
+  .stage { position: static !important; height: auto !important; background: none; }
+  .caption { position: static; }
+}

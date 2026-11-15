@@ -1,0 +1,106 @@
+/* Epilogue — the last lamp, then the credits.
+
+   The lamp is the one thing the reader is asked to do, so it is given time:
+   the room settles into the dark when the lamp arrives (data-near), the
+   gesture is answered by a held second (data-lamp='held'), and only then does
+   light go out from the wick, then the words, one at a time, then the motto.
+   Every beat is a transition delay hanging from that one attribute: with no
+   JavaScript nothing here applies and the section reads whole; in quiet
+   reading and reduced motion the global rules null the delays and the click
+   lights at once; a returning reader ('kept') gets the settled room with no
+   transition at all. */
+
+.room { --ly: 60%; /* the wick's height in the section, measured in Epilogue.tsx */ }
+
+.dark,
+.light {
+  position: absolute;
+  inset: 0;
+  /* the house order: air at z-1, words at z-2. Coming after the canvases,
+     these lie over the embers, the field and the page's own dust. */
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* the room at its quietest: night closes in, and leaves the clay a last light */
+.dark {
+  background:
+    radial-gradient(circle clamp(130px, 20vw, 260px) at 50% var(--ly), rgb(var(--c-flame) / .08), transparent),
+    radial-gradient(circle clamp(210px, 34vw, 440px) at 50% var(--ly), transparent 18%, rgb(var(--c-night) / .94));
+  opacity: 0;
+  transition: opacity 2.8s var(--e-vigil);
+}
+.room[data-near='true'][data-lamp='unlit'] .dark,
+.room[data-lamp='held'] .dark { opacity: 1; }
+
+/* the light going out from the wick: one soft disc, scaled, never repainted.
+   Wider than a narrow screen, so that on a phone it is a disc and not a
+   column; its box is exactly the disc, so no edge shows while it is small. */
+.light {
+  inset: 0 calc(50% - max(60vw, 50svh));
+  background:
+    radial-gradient(ellipse 50% 45% at 50% var(--ly), rgb(var(--c-ember) / .09), transparent 80%),
+    radial-gradient(ellipse 50% 45% at 50% var(--ly), rgb(var(--c-flame) / .17), transparent);
+  transform-origin: 50% var(--ly);
+  transform: scale(.05);
+  opacity: 0;
+}
+.room[data-lamp='lit'] .light,
+.room[data-lamp='kept'] .light { opacity: 1; transform: scale(1.3); }
+.room[data-lamp='lit'] .light { transition: opacity 1.4s ease-out, transform 3s var(--e-vigil); }
+/* on paper the light is a warm wash in the leaf, not an emission */
+:global([data-theme='paper']) .light {
+  background: radial-gradient(ellipse 50% 45% at 50% var(--ly), rgb(var(--c-flame-hot) / .16), rgb(var(--c-flame-hot) / .05) 58%, transparent);
+}
+
+/* button and message share one cell, so nothing moves when one gives way to
+   the other; .sizer is the message's own height, kept from the start */
+.cell { display: grid; place-items: center; }
+.cell > * { grid-area: 1 / 1; }
+.sizer { visibility: hidden; }
+
+.button { transition: background-color .3s var(--e-vigil), box-shadow .3s var(--e-vigil), opacity .9s ease; }
+/* it stays under the pointer while it goes: the second click of a double
+   click must land on it, not select a word of the message beneath */
+.room[data-lamp='held'] .button { opacity: 0; }
+
+/* each line on its own beat, once the light has settled (delays count from
+   the wick taking, a second after the gesture) */
+.line { display: block; opacity: 0; transform: translateY(.5em); }
+.line:nth-child(1) { --at: 2.4s; }
+.line:nth-child(2) { --at: 3.9s; }
+.line:nth-child(3) { --at: 5.4s; }
+.room[data-lamp='lit'] .line,
+.room[data-lamp='kept'] .line { opacity: 1; transform: none; }
+.room[data-lamp='lit'] .line { transition: opacity 1.6s var(--e-vigil) var(--at), transform 1.6s var(--e-vigil) var(--at); }
+
+/* the field behind is bright once it answers: a little night under the words */
+.cell::before {
+  content: '';
+  position: absolute;
+  inset: -1.5rem -3rem;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(var(--c-night) / .62), transparent);
+  opacity: 0;
+}
+.room[data-lamp='lit'] .cell::before,
+.room[data-lamp='kept'] .cell::before { opacity: 1; }
+.room[data-lamp='lit'] .cell::before { transition: opacity 2s ease 1.6s; }
+
+/* the motto leaves with the button, and is the last thing given back */
+.motto { transition: opacity .9s ease; }
+.room[data-lamp='held'] .motto { opacity: 0; }
+.room[data-lamp='lit'] .motto { transition: opacity 2.6s var(--e-vigil) 7.2s; }
+
+/* ————— the credits ————— */
+/* names pass on the page's own .reveal; a link reached by keyboard before it
+   was scrolled to is never an invisible one */
+.credit:global(.reveal):focus-within { opacity: 1; transform: none; }
+
+/* the last frame holds the whole screen: when the page can go no further,
+   there is one line and the way back, and nothing else in view */
+.last { min-height: 100svh; }
+
+@media print {
+  .last { min-height: 0; padding-block: 24px; }
+}

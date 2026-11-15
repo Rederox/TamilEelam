@@ -1,10 +1,12 @@
 'use client'
 
+import { useEffect, useRef, useState, type FocusEvent } from 'react'
 import { useLang } from '@/context/LanguageContext'
 import { prologue } from '@/data/narrative'
 import { ambienceCopy, useAmbience } from '@/hooks/useAmbience'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { scrollBehavior } from '@/lib/motion'
+import { useScrub } from '@/hooks/useScrub'
+import { prefersReducedMotion, scrollBehavior } from '@/lib/motion'
 import { isOrdealAudioRunning } from '@/lib/ordealAudio'
 import EmptyHome from './EmptyHome'
 import styles from './Prologue.module.css'
@@ -28,6 +30,26 @@ export default function Prologue() {
   const { failed, toggle } = useAmbience()
   // no sound in quiet reading or reduced motion: the door with sound is not offered at all
   const still = useReducedMotion()
+  // The walk through the door needs JavaScript and a reader who has not asked
+  // for stillness: the server, and the first render, send the plain screen.
+  const [walk, setWalk] = useState(false)
+  useEffect(() => setWalk(!prefersReducedMotion()), [still])
+  const frame = useRef<HTMLDivElement>(null)
+  // Measured on a ruler as long as the pin, written on the frame: the frame is
+  // taller than the screen on a phone, so its own track would not end with the pin.
+  const run = useScrub<HTMLDivElement>({ pinned: true, rest: 0, onChange: (at) => frame.current?.style.setProperty('--p', at.toFixed(4)) })
+
+  // Held at the top of the screen, the frame does not move when the browser
+  // scrolls a focused link into view: take the keyboard past the pin instead.
+  const reveal = (e: FocusEvent<HTMLDivElement>) => {
+    const held = e.currentTarget
+    const track = held.parentElement
+    const target = e.target.getBoundingClientRect()
+    if (!walk || !track || target.bottom <= window.innerHeight || !e.target.matches(':focus-visible')) return
+    const pin = track.offsetHeight - held.offsetHeight
+    const top = track.getBoundingClientRect().top + window.scrollY + pin + target.bottom - held.getBoundingClientRect().top - window.innerHeight + 24
+    window.scrollTo({ top, behavior: scrollBehavior() })
+  }
 
   const enterWithSound = () => {
     // Asked of the audio itself, not of React state: on a double click the state
@@ -40,10 +62,14 @@ export default function Prologue() {
   }
 
   return (
-    <section id="prologue" className={`${styles.opening} min-h-[100dvh] px-6 pb-10 pt-28 sm:px-[9vw] lg:flex lg:flex-col lg:justify-center lg:pt-32`}>
+    <section id="prologue" className={styles.opening} data-walk={walk}>
+      <div ref={run} aria-hidden="true" className={styles.run} />
+      <div ref={frame} onFocus={reveal} className={`${styles.frame} min-h-[100dvh] px-6 pb-10 pt-28 sm:px-[9vw] lg:flex lg:flex-col lg:justify-center lg:pt-32`}>
       <div className="mx-auto w-full max-w-[1280px]">
         <div className={styles.panorama}>
           <div className={`${styles.openingCopy} ${styles.arrival}`}>
+            {/* its own element: the arrival above holds the transform of the one it is on */}
+            <div className={styles.letGo}>
             <p className="mb-7 flex items-center gap-3 font-mono text-[9px] uppercase leading-relaxed tracking-[0.2em] text-ash sm:text-[10px]">
               <span aria-hidden="true" className="h-px w-7 shrink-0 bg-blood" />{p.whisper}
             </p>
@@ -54,10 +80,13 @@ export default function Prologue() {
                 <em className={styles.absence}>{p.line2}</em>
               </h1>
             </div>
+            </div>
           </div>
           <div className={`${styles.panoramaImage} ${styles.arrival}`} style={{ animationDelay: '180ms' }}>
             <EmptyHome caption={p.scene} />
           </div>
+          {/* the ground the text stands on while the picture grows past its window */}
+          <span aria-hidden="true" className={styles.ground} />
         </div>
             <div className={styles.readingNote}>
               <p className="max-w-[42ch] text-[15px] leading-[1.85] text-bone-dim sm:text-[16px]">{p.sub}</p>
@@ -81,7 +110,7 @@ export default function Prologue() {
               <a href="#sources" className="inline-flex min-h-11 items-center text-[13px] italic text-ash underline decoration-bone/20 underline-offset-4 transition-colors hover:text-bone">{p.sources}</a>
             </div>
 
-        <nav aria-label={p.enter} className="mt-10 grid grid-cols-1 border-t border-bone/15 sm:grid-cols-3 lg:mt-12">
+        <nav aria-label={p.enter} className={`${styles.stages} mt-10 grid grid-cols-1 border-t border-bone/15 sm:grid-cols-3 lg:mt-12`}>
           {STAGES.map((stage, i) => (
             <a key={stage.year} href={stage.href} className="group flex min-h-20 items-center justify-between gap-4 border-b border-bone/10 py-5 sm:border-b-0 sm:pr-6 sm:pl-6 sm:first:pl-0 sm:last:pr-0">
               <span><span className="block font-mono text-[10px] tracking-[0.16em] text-gold">{stage.year}</span><span className="mt-2 block font-display text-[20px] text-bone-dim transition-colors group-hover:text-bone">{p.stages[i]}</span></span>
@@ -89,6 +118,7 @@ export default function Prologue() {
             </a>
           ))}
         </nav>
+      </div>
       </div>
     </section>
   )

@@ -46,7 +46,7 @@ function KanjiIllustration({ size = 96 }: { size?: number }) {
 }
 
 /** Photographic material with animated steam; vector fallback stays available offline. */
-export default function KanjiBowl({ size = 96 }: { size?: number }) {
+export default function KanjiBowl({ size = 96, steam = true }: { size?: number; /** false: the bowl has gone cold */ steam?: boolean }) {
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
   if (failed) return <div className={styles.photoBowl} style={{ width: size }} aria-hidden="true"><KanjiIllustration size={size} /></div>
@@ -54,13 +54,13 @@ export default function KanjiBowl({ size = 96 }: { size?: number }) {
     <div className={styles.photoBowl} style={{ width: size }} aria-hidden="true" data-loaded={loaded}>
       {!loaded && <div className={styles.bowlLoading} />}
       <Image src="/images/kanji-bowl-realistic.webp" alt="" fill sizes={`${size}px`} className={styles.bowlImage} onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
-      <svg viewBox="0 0 240 240" className={styles.photoSteam} fill="none">
+      {steam && <svg viewBox="0 0 240 240" className={styles.photoSteam} fill="none">
         <g className={styles.steam} strokeLinecap="round">
           <path d="M92 114 C70 90 110 67 95 35" />
           <path d="M123 107 C143 87 109 60 126 15" />
           <path d="M151 115 C170 92 143 80 157 51" />
         </g>
-      </svg>
+      </svg>}
     </div>
   )
 }
