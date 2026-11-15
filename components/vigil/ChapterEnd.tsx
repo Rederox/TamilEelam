@@ -28,7 +28,9 @@ export default function ChapterEnd({ id }: { id: string }) {
       <a href={next ? `#${next.id}` : '#epilogue'} className="group mt-12 flex min-h-16 max-w-[900px] items-center justify-between gap-6 text-bone-dim hover:text-bone">
         <span>
           <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-ash">{next ? researchCopy.next[lang] : researchCopy.end[lang]}</span>
-          <span className="lang-title mt-3 block font-display text-[clamp(21px,2.8vw,32px)] font-light">{next ? <>{next.title[lang]} <em>{next.titleAccent[lang]}</em></> : 'தமிழீழம்'}</span>
+          {/* the next chapter's own opening line, said here first: a reason to go on */}
+          {next && <span className="mt-4 block text-[clamp(15px,1.7vw,18px)] italic leading-snug text-ash transition-colors duration-500 group-hover:text-bone-dim">{next.kicker[lang]}</span>}
+          <span className={`lang-title block font-display text-[clamp(21px,2.8vw,32px)] font-light ${next ? 'mt-1.5' : 'mt-3'}`}>{next ? <>{next.title[lang]} <em>{next.titleAccent[lang]}</em></> : 'தமிழீழம்'}</span>
         </span>
         <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-bone/25 text-xl transition-transform duration-500 group-hover:translate-y-1">↓</span>
       </a>

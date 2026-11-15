@@ -51,7 +51,10 @@ Le défilement est le pas du lecteur dans un lieu. Quatre appuis, dans cet ordre
 - **Le feu** (`FeuShelves`) : les rayonnages se vident livre par livre, puis reviennent, neufs et vides.
 - **La promesse** (`ChPromesse`) : la feuille qui s’écrit, les bulletins dans l’urne.
 - **Juillet noir** (`JuilletExil`) : la valise, les objets d’une maison, la lumière qui quitte la pièce.
-- **Mullivaikkal** (`MullivaikkalScenery`) : dix plans presque immobiles, montés une fois, fondus par opacité.
+- **Prabhakaran** (`ChPrabhakaran`, `Prabhakaran.module.css`) : le défilement est le calendrier. Une grande année, verticale dans la marge, avance de 1954 à 2009 et s’arrête aux quatre dates ; une ligne se trace. Registre strictement factuel : rien n’est ajouté au portrait, ni emblème ni effet. Les repères et les trois textes sont entrelacés dans l’ordre chronologique.
+- **Mullivaikkal** (`ChMullivaikkal`, `MullivaikkalScenery`) : un film qu’on avance de la main. Un seul passage pleinement présent à la fois ; une lente avancée vers l’horizon sur toute la séquence ; les lumières de « Chaque vie avait un nom » sont allumées par le défilement, puis s’éteignent une à une pendant le bilan, sauf la première, qui demeure jusqu’au souvenir ; au « silence », tout se fige et le texte attend.
+- **La patrie** (`ChPatrie`, `PatrieMap.module.css`) : un voyage. L’atlas est épinglé, le défilement mène de lieu en lieu (Jaffna, Kilinochchi, Mullivaikkal, Mullaitivu, Trincomalee, Batticaloa, Amparai, Vavuniya, Mannar, Puttalam), une lumière suit la route, la carte se penche vers le voyageur. La carte reste manipulable ; la note et les crédits suivent la scène.
+- **Les symboles** (`ChSymboles`, `Symboles.module.css`) : quatre rencontres, une par écran, le nom tamoul d’abord : le drapeau qu’on déplie, le léopard qu’on finit par voir, le coucal qui se pose, la fleur qui sort de l’ombre.
 - **Les disparus** (`ChDisparus`) : la lumière passe sur les cadres vides ; la ligne des jours écoulés depuis le 18 mai 2009.
 - **Maaveerar Naal** (`MaaveerarLamps`) : le champ de lampes allumé de proche en proche ; « Aujourd’hui » les 26 et 27 novembre et le 18 mai.
 - **L’aube** (`ChAube`) : le ciel s’éclaircit, les huit villes s’allument une à une, un fil les relie.
@@ -59,10 +62,13 @@ Le défilement est le pas du lecteur dans un lieu. Quatre appuis, dans cet ordre
 - **La voix** (`Voice.tsx`, `Spoken`) : les grandes phrases arrivent par membres, avec un temps aux ponctuations ; les chiffres mémoriels arrivent d’un bloc et tiennent, sans jamais compter.
 - **Les coupes** (`Letterbox`, `ProgressRail`) : un saut de chapitre passe par le noir au lieu de traverser les autres chapitres.
 
+Donner envie d’avancer, sans flèche ni consigne : chaque geste du pouce se voit dans l’image ; le cadre tient toujours quelque chose d’inachevé (une lumière pas encore allumée, un lieu pas encore atteint) ; une seule pensée à la fois. À la fin de chaque chapitre, `ChapterEnd` donne déjà la phrase d’ouverture du suivant.
+
 Règles techniques, toutes issues de mesures :
 - `hooks/useScrub.ts` donne la progression d’une scène. Sur une petite scène, il écrit `--p` sur l’élément ; sur une scène de centaines d’éléments, `variable: false` et `onChange` : on ne touche que les éléments dont l’état change (une variable héritée restylait 300 éléments par image).
 - `transform` et `opacity` seulement ; rien n’anime hors écran ; un plan qui bouge est son propre élément, pas un `<g>` dans un grand SVG.
 - L’état au repos est celui du HTML servi : sans JavaScript, en lecture calme et en mouvement réduit, chaque scène est complète, immobile, dans le flux (pas d’épinglage).
+- Pour vérifier un build sans toucher à un `next start` qui tourne : `VIGIL_DIST_DIR=.next-dev-verify npx next build`, puis `next start -p 3123` avec la même variable.
 - Les figures portent la mention « Évocation visuelle », numérotées dans l’ordre de lecture (01 la terre, 02 le feu, 03 juillet, 04 Maaveerar).
 
 ## WebGL layer (couche immersive)

@@ -21,6 +21,12 @@ Aucune date ni aucun chiffre n'a été trouvé franchement faux. Ces sept formul
 - [ ] **Texte ajouté, à relire (surtout le tamoul)** :
   - `components/vigil/ChDisparus.tsx` : « {n} jours ont passé depuis le 18 mai 2009. » / « {n} days have passed since 18 May 2009. » / « 2009 மே 18 முதல் {n} நாட்கள் கடந்துவிட்டன. » (et la version sans nombre, affichée sans JavaScript). Décider aussi si le 18 mai 2009 est le bon point de départ pour ce chapitre.
   - `components/vigil/ChMaaveerar.tsx` : « Aujourd’hui » / « Today » / « இன்று », affiché seulement le 26 novembre, le 27 novembre et le 18 mai.
+- [ ] **Troisième passe (Mullivaikkal, la patrie, Prabhakaran, les symboles)**, à regarder et valider :
+  - Prabhakaran : l'ordre de lecture a changé. Les quatre dates et les trois textes sont maintenant entrelacés dans l'ordre chronologique (mêmes phrases). À accepter ou refuser.
+  - La patrie : la route choisie est Jaffna, Kilinochchi, Mullivaikkal, Mullaitivu, Trincomalee, Batticaloa, Amparai, Vavuniya, Mannar, Puttalam. Le segment Kilinochchi → Mullivaikkal suit la direction des déplacements de 2009 ; c'est un trait fin sans flèche, à juger.
+  - Mullivaikkal : les lumières qui s'éteignent pendant le bilan. C'est le moment le plus fort et le plus délicat du site : à valider en le regardant. Sur téléphone, le passage suivant reste très estompé (une valeur d'opacité dans `MullivaikkalScenery.module.css` si c'est trop).
+  - Les symboles : le léopard, une fois révélé, continue de défiler avec la page (pas d'arrêt sur image).
+  - Ménage possible : `.unfurl`, `.iris`, `flag-sway` (`app/globals.css`) et les prises `.flag`, `.leopard`, `.coucal`, `.flower` (`Camera.module.css`) ne servent plus.
 - [ ] **Mullivaikkal, plan 3 (« Sous les obus »)** : la mer WebGL (`gl/GlSea.tsx`, antérieure à cette version) dessine encore une traînée d'obus, une lueur, de la fumée et une marée rouge ; `.redVeil` teinte la scène. La nouvelle direction dit « évoquer, ne pas montrer » : garder, atténuer ou retirer.
 - [ ] **Objets de la valise** (horloge, cadre vide, marmite, radio, cahier, tissu, clés, parapluie) et **palmiers, maison et fumée de la terre** : vérifier qu'ils sonnent juste pour un foyer tamoul de 1983 et pour le Nord ; ce sont des évocations dessinées, pas des archives.
 - [ ] **Empreintes de pas** du plan 9 de Mullivaikkal (« La trace ») : à valider.

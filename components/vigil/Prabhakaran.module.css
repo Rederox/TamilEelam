@@ -1,0 +1,119 @@
+/* A life in years. The chapter's reading column is a calendar: the four
+   milestones and the three passages in the order of the years, a thin line
+   down their left that is the span of the life, and beside it, in a gutter
+   nothing else enters, the year the reader has reached. What is staged is
+   time and nothing else: no light, no emblem, and the portrait is untouched.
+
+   As served, this is the rest state: every milestone present, the line whole,
+   the year shown as the span. ChPrabhakaran then takes away, for the reader
+   who has not reached them, only what lies ahead. */
+
+.column {
+  --g: 3.75rem;       /* the gutter: the year and the line, never the text */
+  --line: 0.875rem;   /* from the text back to the line */
+  --clear: 0.625rem;  /* from the line back to the year */
+  --fs: 4rem;
+}
+@media (min-width: 640px) {
+  .column { --g: 6rem; --line: 1.5rem; --clear: 1rem; --fs: 6rem; }
+}
+@media (min-width: 1024px) {
+  .column { --g: clamp(6.5rem, 10vw, 9rem); --line: 2rem; --clear: 1.25rem; --fs: clamp(6.5rem, 10.5vw, 9.5rem); }
+}
+
+/* The room under the last mark is the year's: it is still held on 2009, in
+   the middle of the screen, when the line ends. */
+.track {
+  position: relative;
+  padding: 0 0 4rem var(--g);
+}
+
+/* The closing sentence comes after the line, not on it. On a phone it takes
+   the whole width back: its longest Tamil word does not fit beside a gutter. */
+@media (min-width: 640px) {
+  .closing { margin-left: var(--g); }
+}
+
+/* The year's own column: it grows leftwards from the line, into the page
+   margin on a phone, so however wide the figure is it cannot reach the text. */
+.gutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(100% - var(--g) + var(--line) + var(--clear));
+  pointer-events: none;
+}
+
+/* Set down the page, the way the line runs. It keeps to the middle of the
+   screen, where the line is being drawn, and is let go a little after the last
+   mark, to stay on the page beside it. At rest it is the span, smaller, so that nine characters take
+   the room of four. */
+.year {
+  position: sticky;
+  top: calc(50vh - var(--fs) * 0.95);
+  top: calc(50svh - var(--fs) * 0.95);
+  display: block;
+  writing-mode: vertical-rl;
+  font-size: calc(var(--fs) * 0.45);
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+  color: rgb(var(--c-bone) / 0.16);
+  user-select: none;
+}
+.track[data-live] .year { font-size: var(--fs); }
+:global([data-theme='paper']) .year { color: rgb(var(--c-bone) / 0.13); }
+
+.stop { position: relative; }
+.stop:not(:last-child) { padding-bottom: 5rem; }
+
+/* The line, one length per interval, from a mark to the next. The faint one
+   is where it will go; the other is drawn by the scroll (scaleY, written by
+   ChPrabhakaran) and is whole when nothing writes it. It ends at the last
+   mark: there is no length after 2009. */
+.stop:not(:last-child)::before,
+.seg {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--line));
+  top: 8px;
+  width: 1px;
+  height: 100%;
+  background: rgb(var(--c-bone) / 0.12);
+}
+.seg {
+  background: rgb(var(--c-bone) / 0.55);
+  transform-origin: top;
+}
+
+/* A mark is a ring until its year is reached. Only opacity and scale move. */
+.mark {
+  position: absolute;
+  left: calc(-1 * var(--line) - 4px);
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgb(var(--c-bone) / 0.6);
+  border-radius: 50%;
+  background: rgb(var(--c-night));
+}
+.mark::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: rgb(var(--c-bone));
+  transition: opacity 0.9s var(--e-vigil), transform 0.9s var(--e-vigil);
+}
+.stop[data-reached='false'] .mark::after { opacity: 0; transform: scale(0.3); }
+
+/* a milestone not yet reached is there, and legible, but not yet present */
+.entry { transition: opacity 1.2s var(--e-vigil); }
+.stop[data-reached='false'] .entry { opacity: 0.45; }
+
+/* on paper the gutter would only be an unexplained indent */
+@media print {
+  .track { padding-left: 0; }
+  .closing { margin-left: 0; }
+}

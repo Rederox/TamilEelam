@@ -45,3 +45,74 @@
 .mapSelection { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; padding: 16px 4px 0; border-top: 1px solid rgb(var(--c-bone) / .15); }
 .mapSelection span { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .06em; color: rgb(var(--c-ash)); }
 .mapSelection strong { font-weight: 400; font-size: 19px; color: rgb(var(--c-flame)); }
+
+/* ——— The journey ———
+   At rest (no JavaScript, reduced motion, quiet reading, a screen under 600px
+   high, print) none of this applies: the atlas above is the whole chapter.
+   Otherwise the two boxes dissolve into one grid whose first row is the road:
+   the map and the place's line stick inside it, the instrument's controls and
+   the map's caveats follow in the rows after. */
+.track, .trail, .traveller { display: none; }
+@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) {
+  :global(html:not([data-reading='quiet'])) .journey { --leg: 64svh; --top: 76px; --map-h: 42svh; --cam-h: 124svh; position: relative; grid-template-rows: calc(100svh + 11 * var(--leg)); row-gap: 0; }
+  :global(html:not([data-reading='quiet'])) .journey .track { display: block; grid-area: 1 / 1 / 2 / -1; pointer-events: none; }
+  :global(html:not([data-reading='quiet'])) .journey .atlas,
+  :global(html:not([data-reading='quiet'])) .journey .panel { display: contents; }
+  :global(html:not([data-reading='quiet'])) .journey .mapTrack { grid-area: 1 / 1; }
+  /* the bottom margin makes the map let go at the same moment as the line under it: when the road ends at the foot of the screen */
+  :global(html:not([data-reading='quiet'])) .journey .mapFrame { position: sticky; top: var(--top); z-index: 2; height: var(--map-h); margin-bottom: calc(100svh - var(--top) - var(--map-h)); overflow: hidden; overflow: clip; border: 1px solid rgb(var(--c-bone) / .2); }
+  /* (overflow: clip, not hidden: a hidden box still scrolls itself to a focused marker, and the camera would no longer be where the scroll put it) */
+  /* drawn once at the size of the road, then only ever scaled down: the whole island is a smaller view of the same layer */
+  :global(html:not([data-reading='quiet'])) .journey .camera { position: absolute; left: 0; top: 0; height: var(--cam-h); aspect-ratio: 440 / 700; transform-origin: 0 0; will-change: transform; }
+  :global(html:not([data-reading='quiet'])) .journey .camera > svg:first-child { width: 100%; height: 100%; max-height: none; }
+  :global(html:not([data-reading='quiet'])) .journey .mapLabel text { font-size: 11px; }
+  /* only as large as the route, so drawing the trail never touches the districts */
+  :global(html:not([data-reading='quiet'])) .journey .trail { display: block; position: absolute; z-index: 3; left: calc(60 / 440 * 100%); top: calc(50 / 700 * 100%); width: calc(335 / 440 * 100%); height: calc(420 / 700 * 100%); pointer-events: none; will-change: transform; }
+  :global(html:not([data-reading='quiet'])) .journey .trail path { stroke: rgb(var(--c-gold) / .85); stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; }
+  :global(html:not([data-reading='quiet'])) .journey .traveller { display: block; position: absolute; z-index: 4; left: 0; top: 0; width: 0; height: 0; pointer-events: none; will-change: transform; }
+  :global(html:not([data-reading='quiet'])) .journey .traveller::before { content: ''; position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, rgb(var(--c-flame-hot)) 0 16%, rgb(var(--c-gold) / .5) 28%, rgb(var(--c-gold) / 0) 70%); }
+
+  /* the place, given like a line in a film */
+  :global(html:not([data-reading='quiet'])) .journey .line { grid-area: 1 / 1; pointer-events: none; }
+  :global(html:not([data-reading='quiet'])) .journey .lineStick { position: sticky; top: calc(var(--top) + var(--map-h) + 14px); z-index: 2; min-height: calc(100svh - var(--top) - var(--map-h) - 14px); pointer-events: auto; will-change: opacity; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; align-items: center; padding: 0 2px; border: 0; background: none; animation: placeArrive .95s var(--e-vigil) both; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel > * { grid-column: 1 / -1; }
+  :global(html:not([data-reading='quiet'])) .journey .detailKind { margin-bottom: 6px; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel h3 { font-size: clamp(34px, 10vw, 44px); line-height: 1.08; overflow-wrap: anywhere; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel h3 + p { margin: 4px 0 0; }
+  :global(html:not([data-reading='quiet'])) .journey .desc { order: 1; margin-top: 8px; font-size: 15.5px; line-height: 1.62; }
+  :global(html:not([data-reading='quiet'])) .journey .districtLink { order: 2; grid-column: 1; justify-self: start; margin-top: 4px; }
+  :global(html:not([data-reading='quiet'])) .journey .coords { order: 2; grid-column: 2; margin-top: 4px; text-align: right; white-space: nowrap; }
+
+  /* after the road: the instrument and what keeps the map honest */
+  :global(html:not([data-reading='quiet'])) .journey .mapSelection { margin-top: 28px; }
+  :global(html:not([data-reading='quiet'])) .journey .panel > :not(.line) { margin-top: 20px; }
+}
+@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) and (min-width: 1024px) {
+  :global(html:not([data-reading='quiet'])) .journey { --top: 96px; --map-h: calc(100svh - 132px); --cam-h: 140svh; grid-auto-flow: row dense; }
+  :global(html:not([data-reading='quiet'])) .journey .mapSelection,
+  :global(html:not([data-reading='quiet'])) .journey .legend,
+  :global(html:not([data-reading='quiet'])) .journey .atlas > p { grid-column: 1; }
+  :global(html:not([data-reading='quiet'])) .journey .panel > :not(.line) { grid-column: 2; }
+  /* the tallest of the rows after the road: let it span two, so the credits stay under the note */
+  :global(html:not([data-reading='quiet'])) .journey .choices { grid-row: span 2; }
+  :global(html:not([data-reading='quiet'])) .journey .line { grid-area: 1 / 2; }
+  :global(html:not([data-reading='quiet'])) .journey .lineStick { top: 0; display: flex; flex-direction: column; justify-content: center; height: 100svh; min-height: 0; padding-top: 60px; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel { display: block; padding: 0; }
+  :global(html:not([data-reading='quiet'])) .journey .detailKind { margin-bottom: 18px; }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel h3 { font-size: clamp(48px, 4.6vw, 76px); }
+  :global(html:not([data-reading='quiet'])) .journey .detailPanel h3 + p { margin: 10px 0 14px; font-size: 16px; }
+  :global(html:not([data-reading='quiet'])) .journey .desc { max-width: 30em; margin-top: 24px; font-size: 19px; line-height: 1.75; }
+  :global(html:not([data-reading='quiet'])) .journey .coords { margin-top: 26px; text-align: left; }
+}
+/* a short phone: a smaller window on the map, so the longest sentence (Tamil) still ends above the chapter pill */
+@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference) and (min-height: 600px) and (max-height: 780px) and (max-width: 1023.98px) {
+  :global(html:not([data-reading='quiet'])) .journey { --map-h: 34svh; }
+  :global(html:not([data-reading='quiet'])) .journey .desc { font-size: 14.5px; line-height: 1.55; }
+}
+@keyframes placeArrive { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+/* whatever the scroll last wrote, the atlas at rest is whole and unmoved */
+@media not screen and (min-height: 600px) { .camera { transform: none !important; } .lineStick { opacity: 1 !important; } }
+@media (prefers-reduced-motion: reduce) { .camera { transform: none !important; } .lineStick { opacity: 1 !important; } }
+:global(html[data-reading="quiet"]) .camera { transform: none !important; }
+:global(html[data-reading="quiet"]) .lineStick { opacity: 1 !important; }

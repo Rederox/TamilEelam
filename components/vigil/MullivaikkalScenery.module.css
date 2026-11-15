@@ -5,9 +5,11 @@
 /* ————— Ten shots of one film —————
    The camera stands on the strip of sand. One nearly still image per passage,
    a dissolve between them; the sea behind is the only thing that never stops.
-   Everything is drawn in a 2:1 set whose top 30 % line is the water's edge. */
+   Everything is drawn in a 2:1 set whose top 30 % line is the water's edge.
+   The reader's scroll pushes the whole set toward the sea's horizon (34 %),
+   which is the one line that does not move: an inline scale, from the chapter. */
 .world {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; transform-origin: var(--cx) 34%; will-change: transform;
   --waterline: 56%; --cx: 26%; --set-w: min(44vw, 72svh);
   --mv-ground: color-mix(in srgb, rgb(var(--ch-sand)) 5%, rgb(var(--ch-void)));
   --mv-cloth: color-mix(in srgb, rgb(var(--ch-sand)) 24%, rgb(var(--ch-void)));
@@ -32,8 +34,8 @@
     linear-gradient(180deg, transparent, var(--mv-ground) 12px);
   transition: opacity 1.5s ease;
 }
-/* the wide shot and the horizon are filmed from where there is no sand underfoot */
-.world[data-shot="0"] .ground, .world[data-shot="7"] .ground { opacity: 0; }
+/* the wide shot is filmed from where there is no sand underfoot */
+.world[data-shot="0"] .ground { opacity: 0; }
 
 /* Every shot stays in the tree, in a box that never changes size; a shot change
    is `data-on` moving from one to another. Off shots are `visibility: hidden`
@@ -49,15 +51,9 @@
 @keyframes shotDrift { from { transform: translate3d(5px, 0, 0); } to { transform: translate3d(-5px, 0, 0); } }
 
 /* 1 — the land closes in: the reader's own scroll narrows it */
-.strand { position: absolute; left: 0; top: 58%; width: 72%; height: 12%; overflow: visible; will-change: transform; animation: closeIn 40s linear both; }
+.strand { position: absolute; left: 0; top: 58%; width: 72%; height: 12%; overflow: visible; will-change: transform; transform: scaleY(.3); }
 .strandWet { stop-color: var(--mv-strand-wet); }
 .strandDry { stop-color: var(--mv-strand); }
-@keyframes closeIn { from { transform: scaleY(1); } to { transform: scaleY(.3); } }
-@supports (animation-timeline: view()) and (timeline-scope: --a) {
-  .sequence { timeline-scope: --mv-land; }
-  .sequence :global(.mv-passage[data-scene="0"]) { view-timeline-name: --mv-land; }
-  .strand { animation-duration: auto; animation-timeline: --mv-land; animation-range: cover 22% cover 72%; }
-}
 
 /* 2, 3 — the refuge, then the same camp with its fires out and a light from beyond the frame */
 .mouth { fill: var(--mv-dark); }
@@ -73,11 +69,16 @@
 /* Irregular, never faster than a breath: this is light on cloth, not a flash. */
 @keyframes farFire { 0%, 100% { opacity: .04; } 4% { opacity: .55; } 7% { opacity: .22; } 10% { opacity: .5; } 19% { opacity: .05; } 46% { opacity: .04; } 49% { opacity: .38; } 56% { opacity: .07; } 71% { opacity: .05; } 73% { opacity: .6; } 76% { opacity: .3; } 85% { opacity: .05; } }
 
-/* 4 — the lives: they come on one by one, then hold */
-.light { position: absolute; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%; background: radial-gradient(circle, rgb(var(--mv-light)) 0 6%, rgb(var(--mv-light) / .5) 12%, rgb(var(--mv-light) / .1) 36%, transparent 64%); animation: lightOn 2.8s ease-out var(--d, 0s) both; }
-@keyframes lightOn { from { opacity: 0; } }
-.farLights { opacity: .5; }
-.farLights .light { animation: none; }
+/* 4 — the lives: each further step of the reader lights one more, and it holds.
+   7 — the count: the same ones, and each step puts one out. It only ceases: a
+   short fade to the dark, nothing brighter first, nothing that falls. */
+.light { position: absolute; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%; scale: var(--mv-light-scale, 1); background: radial-gradient(circle, rgb(var(--mv-light)) 0 6%, rgb(var(--mv-light) / .5) 12%, rgb(var(--mv-light) / .1) 36%, transparent 64%); transition: opacity 1.8s ease-out; }
+.light[data-lit="false"] { opacity: 0; transition: opacity .9s ease-in; }
+/* 10 — years later, from further back: the one that stayed, and the others faint */
+.farLights .light:not(:first-child) { opacity: .42; }
+.farLights .light[data-lit="false"] { opacity: 0; }
+/* 6 — the silence: nothing of ours moves */
+.world[data-shot="5"] * { animation-play-state: paused; }
 
 /* 5, 6 — the bowl; then the same bowl, cold */
 .bowlSpot { position: absolute; left: 29.3%; top: 0; width: 33.3%; }
@@ -93,8 +94,7 @@
 
 /* 9 — the trace */
 .prints { fill: rgb(var(--ch-sand) / .3); }
-.wash { position: absolute; left: 0; top: calc(var(--waterline) - 1%); width: 100%; height: 7%; background: linear-gradient(180deg, transparent, rgb(var(--c-bone) / .04) 30%, rgb(var(--c-bone) / .08) 84%, rgb(var(--c-bone) / .15) 95%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent 62%); animation: wash 10s ease-in-out infinite; }
-@keyframes wash { 0%, 100% { transform: translateY(-70%); opacity: 0; } 42% { transform: translateY(-3%); opacity: 1; } 55% { transform: translateY(0); opacity: .9; } }
+.wash { position: absolute; left: 0; top: calc(var(--waterline) - 1%); width: 100%; height: 7%; background: linear-gradient(180deg, transparent, rgb(var(--c-bone) / .04) 30%, rgb(var(--c-bone) / .08) 84%, rgb(var(--c-bone) / .15) 95%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent 62%); will-change: transform, opacity; }
 
 /* 10 — remembrance: the bowl again, and one lamp */
 .bowlAgain { left: 25%; }
@@ -125,7 +125,7 @@
   .sequence :global(.mv-scenery) { z-index: 1; background: rgb(var(--ch-void)); }
   .seaShade { background: linear-gradient(0deg, rgb(var(--ch-void) / .95), transparent 36%, transparent 85%, rgb(var(--ch-void) / .2)); }
   /* on a phone the film is the band above the text: the set fills its width */
-  .world { --cx: 50%; --set-w: min(100vw, var(--sea-height) * 1.36); }
+  .world { --cx: 50%; --set-w: min(100vw, var(--sea-height) * 1.36); --mv-light-scale: 1.5; }
   .strand { width: 118%; }
   .sceneCaption { top: 18px; left: 22px; width: calc(100% - 44px); font-size: 9px; color: rgb(var(--c-bone-dim)); }
   .navigation { left: 20px; bottom: 0; width: calc(100% - 40px); }
@@ -171,10 +171,18 @@
 .sequence[data-chapter-scene="2"] .redVeil { opacity: 1; }
 .sequence[data-chapter-scene="3"] .redVeil { opacity: .12; }
 .sequence[data-chapter-scene="2"] .step[aria-current="step"] span { background: rgb(var(--c-ember)); }
-.sequence[data-quiet="false"] :global(.mv-passage[data-active="true"]) > h3 { animation: passageArrive 1.2s cubic-bezier(.22, 1, .36, 1) both; }
-.sequence[data-quiet="false"] :global(.mv-passage[data-active="true"]) > p:not(:first-child) { animation: passageArrive 1.2s .15s cubic-bezier(.22, 1, .36, 1) both; }
-.sequence[data-quiet="false"] :global(.mv-passage[data-active="true"]) > a { animation: passageArrive 1.2s .25s cubic-bezier(.22, 1, .36, 1) both; }
-@keyframes passageArrive { from { opacity: .72; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+/* One thought at a time, as a line is spoken over a film: the passage at reading
+   height is there, the one leaving and the one coming are barely there. Dimmed,
+   never hidden: the words stay in the page, and a link that takes the keyboard
+   brings its passage back. Only once the sequence has been seen by a script
+   (`data-visible`): without JavaScript every passage is simply readable. */
+.sequence[data-quiet="false"][data-visible="true"] :global(.mv-passage) { opacity: .12; transition: opacity .7s ease; }
+.sequence[data-quiet="false"][data-visible="true"] :global(.mv-passage[data-active="true"]),
+.sequence[data-quiet="false"][data-visible="true"] :global(.mv-passage:focus-within) { opacity: 1; transition: opacity 1.3s ease .15s; }
+/* The silence is a length of time: a beat and a half of nothing before it is said. */
+.sequence[data-quiet="false"][data-visible="true"] :global(.mv-passage[data-scene="5"][data-active="true"]:not(:focus-within)) { transition-delay: 1.5s; }
+@media (prefers-reduced-motion: reduce), print { .sequence :global(.mv-passage) { opacity: 1 !important; transition: none !important; } }
+:global(html[data-reading="quiet"]) .sequence :global(.mv-passage) { opacity: 1 !important; }
 .sequence :global(.mv-passage) > .continueLink { display: flex; align-items: center; gap: 16px; width: fit-content; max-width: 100%; min-height: 44px; margin-top: 32px; padding: 12px 0; font-family: 'JetBrains Mono', monospace; font-size: 9px; line-height: 1.6; letter-spacing: .08em; color: rgb(var(--c-bone) / .65); border-top: 1px solid rgb(var(--c-bone) / .15); }
 .continueLink > span:first-child { color: rgb(var(--ch-sand)); }
 .continueLink svg { flex-shrink: 0; transition: transform .35s ease; }
@@ -198,7 +206,8 @@
 /* No transition on colour or text-shadow here: both run on the main thread and restyled every word of the
    heading for 1.8 s at each scene (measured: a third of the chapter's style time on a phone). The colour
    arrives under the passage's own fade instead. */
-.sequence :global(.mv-passage) h3 { position: relative; }
+/* a spoken line breaks where the breath does, not where the column ends */
+.sequence :global(.mv-passage) h3 { position: relative; text-wrap: balance; }
 .sequence[data-quiet="false"] :global(.mv-passage[data-scene="2"][data-active="true"]) h3 {
   color: rgb(var(--c-ember));
   text-shadow: 0 2px 18px rgb(var(--c-blood) / .24);

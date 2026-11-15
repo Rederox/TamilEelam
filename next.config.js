@@ -21,5 +21,7 @@ module.exports = (phase) => ({
   // Next sets PORT to the actual listening port before loading this config.
   distDir: phase === 'phase-development-server'
     ? `.next-dev-${process.env.PORT || '3000'}`
-    : '.next',
+    // a second production build (a check before pushing) must not rewrite the
+    // chunks under a `next start` that is already serving `.next`
+    : process.env.VIGIL_DIST_DIR || '.next',
 })

@@ -5,12 +5,13 @@ import { useLang } from '@/context/LanguageContext'
 import { mvScenes } from '@/data/narrative'
 import { researchCopy, sources, type SourceId } from '@/data/research'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useScrub } from '@/hooks/useScrub'
 import { clearOrdeal, setOrdeal } from '@/lib/ordeal'
 import { clearPresence, setPresence } from '@/lib/presence'
 import { proximity } from '@/hooks/usePresence'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
-import MullivaikkalScenery from './MullivaikkalScenery'
+import MullivaikkalScenery, { type SceneryHandle } from './MullivaikkalScenery'
 import styles from './MullivaikkalScenery.module.css'
 import { GlSea } from './gl/lazy'
 import KanjiBowl from './KanjiBowl'
@@ -26,13 +27,42 @@ const evidence: (SourceId | null)[] = ['panel', 'remembrance', 'oisl', null, 'ka
 /** What the reader hears in each scene, 0..1: the sea all the way through, drawn almost to nothing for the silence; the guns only under the shells. */
 const seaByScene = [0.5, 0.45, 0.8, 0.4, 0.4, 0.08, 0.4, 0.35, 0.4, 0.55]
 const shellsByScene = [0, 0.2, 1, 0.3, 0, 0, 0, 0, 0, 0]
+/** Reading height, as a share of the screen: the line the observer below watches. */
+const READ = 0.55
+const clamp = (n: number, max = 1) => (n < 0 ? 0 : n > max ? max : n)
 
 /** Every scene is real document content. A sticky sea accompanies it; scrolling never hides the text. */
 export default function ChMullivaikkal() {
   const { lang, locale, t } = useLang()
   const s = mvScenes[lang]
   const reduced = useReducedMotion()
-  const track = useRef<HTMLDivElement>(null)
+  const scenery = useRef<SceneryHandle>(null)
+  // where each passage starts in the sequence: read on the first scroll frame and again after a resize, never per frame
+  const measured = useRef<{ reach: number; height: number; tops: number[] } | null>(null)
+  // The reader's hand on the film. From how far the sequence has travelled and where the passages lie in it:
+  // the passage at reading height, how far through it the reader is, and how far the camera has come.
+  const track = useScrub<HTMLDivElement>({
+    pinned: true,
+    variable: false,
+    onChange: (p) => {
+      const el = track.current
+      if (!el || !scenery.current) return
+      const m = (measured.current ??= (() => {
+        const top = el.getBoundingClientRect().top
+        return { reach: READ * window.innerHeight, height: el.offsetHeight, tops: Array.from(el.querySelectorAll('article[data-scene]'), (a) => a.getBoundingClientRect().top - top) }
+      })())
+      // reading height can only ever cross this much of the sequence
+      const lo = m.reach, hi = Math.max(lo + 1, m.height - window.innerHeight + m.reach)
+      const y = lo + p * (hi - lo)
+      let i = 0
+      while (i < m.tops.length - 1 && m.tops[i + 1] <= y) i++
+      const from = Math.max(m.tops[i], lo), to = Math.min(m.tops[i + 1] ?? m.height, hi)
+      // the camera does not move through the silence
+      const hush = clamp(Math.min(m.tops[6], hi) - Math.max(m.tops[5], lo), hi - lo - 1)
+      const push = (y - lo - clamp(y - Math.max(m.tops[5], lo), hush)) / (hi - lo - hush)
+      scenery.current.scrub(clamp(push), i, to > from ? clamp((y - from) / (to - from)) : 1)
+    },
+  })
   const agitation = useRef(0)
   const chapterScene = useRef(0)
   const [active, setActive] = useState(0)
@@ -71,10 +101,15 @@ export default function ChMullivaikkal() {
       else { clearOrdeal(key); clearPresence('sea', key); clearPresence('shells', key); agitation.current = 0 }
     })
     bounds.observe(el)
+    const remeasure = () => { measured.current = null }
+    const sized = new ResizeObserver(remeasure)
+    sized.observe(el)
+    window.addEventListener('resize', remeasure)
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     return () => {
-      observer.disconnect(); bounds.disconnect()
+      observer.disconnect(); bounds.disconnect(); sized.disconnect()
+      window.removeEventListener('resize', remeasure)
       window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
       clearOrdeal(key); clearPresence('sea', key); clearPresence('shells', key)
@@ -93,7 +128,7 @@ export default function ChMullivaikkal() {
           <GlSea agitation={agitation} chapterScene={chapterScene} alpha={1} />
           <div className={styles.redVeil} aria-hidden="true" />
           <div className={styles.seaShade} aria-hidden="true" />
-          {!reduced && <MullivaikkalScenery active={active} />}
+          {!reduced && <MullivaikkalScenery ref={scenery} active={active} />}
 
           <div className={styles.sceneCaption} aria-hidden="true">
             <span>Mullivaikkal</span><span>2009 · 18.05</span>
@@ -123,7 +158,7 @@ export default function ChMullivaikkal() {
               {i === 6 && <Weighed className="mb-6"><span className="reveal fig-n block font-display text-[clamp(62px,8vw,112px)] font-light leading-none tracking-[-0.04em] text-ember">{new Intl.NumberFormat(locale).format(40000)}</span><p className="reveal fig-l mt-3 text-base italic text-ash">{s.countSuffix}</p></Weighed>}
               {/* the scene behind the text now shows the bowl; this one is for readers who have the scene switched off */}
               {i === 4 && reduced && <div className="mb-8 lg:hidden"><KanjiBowl size={150} /></div>}
-              <Spoken as="h3" text={passage} className={`lang-title max-w-[25ch] font-display font-light leading-[1.4] ${i === 7 ? 'text-[clamp(29px,3.7vw,48px)] text-ember' : 'text-[clamp(25px,3vw,39px)] text-bone'}`} />
+              <Spoken as="h3" text={passage} className={`lang-title max-w-[30ch] font-display font-light leading-[1.42] ${i === 7 ? 'text-[clamp(27px,3vw,42px)] text-ember' : 'text-[clamp(25px,2.5vw,35px)] text-bone'}`} />
               {supporting[i] && <p className="mt-7 max-w-[48ch] text-[16px] leading-[1.8] text-bone-dim">{supporting[i]}</p>}
               {evidence[i] && <a href={sources[evidence[i]!].href} target="_blank" rel="noopener noreferrer" className="mt-6 w-fit border-b border-bone/25 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-ash hover:text-flame">{sources[evidence[i]!].institution} · {sources[evidence[i]!].year} ↗</a>}
               {i < passages.length - 1 && <a href={`#mv-scene-${i + 1}`} className={styles.continueLink}>

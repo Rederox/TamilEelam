@@ -10,6 +10,7 @@ import { experience } from '@/data/experience'
 import { vigil } from '@/data/narrative'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useReveal } from '@/hooks/useReveal'
+import { useScrub } from '@/hooks/useScrub'
 import Air from './Air'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
@@ -36,6 +37,22 @@ const mapCopy = {
   ta: { zones: 'நிறமிடப்பட்ட மாவட்டங்கள்', other: 'பிற மாவட்டங்கள்', district: 'மாவட்டம்', source: 'மாவட்ட எல்லைகள்', places: 'நகரங்களும் இடங்களும்', districts: 'மாவட்டங்கள்', place: 'கதையின் இடம்', within: 'இந்த மாவட்டத்தில் உள்ள இடங்கள்', hint: 'நிறப்பகுதி ஒரு மாவட்டம். புள்ளி ஒரு நகரம் அல்லது இடம்.', coordinates: 'இடத்தின் ஆயத்தொலைவுகள்', districtHint: 'வரலாற்றை அறிய கீழே ஓர் இடத்தைத் தேர்ந்தெடுக்கவும்.', belonging: 'மாவட்டம்' },
 }
 
+// ————— The journey —————
+// Down the peninsula and the east coast in the order the road meets them
+// (Mullivaikkal lies north of Mullaitivu), then back across the interior to
+// the gate of the North and out to the west coast. A traveller's path between
+// named places: not a front, not a border.
+const ROUTE: LocationKey[] = ['jaffna', 'kilinochchi', 'mullivaikkal', 'mullaitivu', 'trincomalee', 'batticaloa', 'amparai', 'vavuniya', 'mannar', 'puttalam']
+const ROUTE_XY = ROUTE.map(key => project(locations[key].coords[0], locations[key].coords[1]))
+const LEGS = ROUTE_XY.slice(1).map(([x, y], i) => Math.round(Math.hypot(x - ROUTE_XY[i][0], y - ROUTE_XY[i][1]) * 10) / 10)
+const TRAVELLED = LEGS.reduce((sum, leg) => [...sum, sum[sum.length - 1] + leg], [0])
+const ROUTE_LENGTH = TRAVELLED[TRAVELLED.length - 1].toFixed(1)
+const ROUTE_PATH = `M${ROUTE_XY.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L')}`
+const LAST = ROUTE.length - 1
+const smooth = (t: number) => { const c = t < 0 ? 0 : t > 1 ? 1 : t; return c * c * (3 - 2 * c) }
+/** where a map of `size` sits in a window of `view` so that `focus` is centred, without showing past its edge */
+const frame = (view: number, size: number, focus: number) => size <= view ? (view - size) / 2 : Math.min(0, Math.max(view - size, view / 2 - focus))
+
 // Chapter VII — the homeland: a hand-drawn night atlas of Tamil Eelam.
 export default function ChPatrie() {
   const { lang } = useLang()
@@ -44,9 +61,65 @@ export default function ChPatrie() {
   const stillness = useReducedMotion()
   const [selection, setSelection] = useState<Selection>({ kind: 'place', key: 'jaffna' })
   const [mode, setMode] = useState<'place' | 'district'>('place')
-  const selectPlace = (key: LocationKey) => { setSelection({ kind: 'place', key }); setMode('place') }
-  const selectDistrict = (id: string) => { setSelection({ kind: 'district', id }); setMode('district') }
+  // how far the journey has come: -1 at rest (the atlas as an instrument), then the index in ROUTE, then ROUTE.length for the held ending
+  const [step, setStep] = useState(-1)
+  const journey = useRef({ index: -1, held: false, p: 0, leave: 0, from: 0, look: null as [number, number] | null })
+  const frameRef = useRef<HTMLDivElement>(null)
+  const cameraRef = useRef<HTMLDivElement>(null)
+  const lightRef = useRef<HTMLDivElement>(null)
+  const trailRef = useRef<SVGPathElement>(null)
+  const lineRef = useRef<HTMLDivElement>(null)
+  // The reader takes the wheel (a click, or the keyboard reaching a marker the
+  // window does not show): the map glides to what they chose and its line stays
+  // fully lit; scrolling on carries the view from there to the next place.
+  const take = (key: LocationKey) => {
+    const j = journey.current, camera = cameraRef.current
+    if (j.index < 0 || !camera) return
+    j.held = true; j.from = j.leave; j.look = project(locations[key].coords[0], locations[key].coords[1])
+    if (lineRef.current) lineRef.current.style.opacity = ''
+    camera.style.transition = 'transform .9s cubic-bezier(.22, 1, .36, 1)'
+    walk(j.p, true)
+  }
+  const selectPlace = (key: LocationKey) => { take(key); setSelection({ kind: 'place', key }); setMode('place') }
+  const selectDistrict = (id: string) => { take(districtPlaces[id]); setSelection({ kind: 'district', id }); setMode('district') }
   const coastRef = useRef<SVGPathElement>(null)
+
+  // The scroll is the road. React hears of it ten times in the whole chapter
+  // (an arrival); every frame in between moves three elements and nothing else.
+  const walk = (p: number, glide = false) => {
+    const track = trackRef.current, view = frameRef.current, camera = cameraRef.current, light = lightRef.current, trail = trailRef.current, line = lineRef.current
+    if (!track || !view || !camera || !light || !trail || !line) return
+    const j = journey.current
+    if (!track.offsetHeight) {
+      // not pinned (quiet reading, reduced motion, a short screen): today's atlas, untouched
+      if (j.index !== -1) { j.index = -1; j.look = null; setStep(-1); camera.style.transform = camera.style.transition = ''; line.style.opacity = '' }
+      return
+    }
+    if (!glide) camera.style.transition = ''
+    const u = p * (ROUTE.length + 1)
+    const i = Math.min(ROUTE.length, Math.floor(u)), f = u - i
+    const at = Math.min(i, LAST)
+    if (i !== j.index) { j.index = i; j.held = false; j.look = null; setSelection({ kind: 'place', key: ROUTE[at] }); setMode('place'); setStep(i) }
+    // each stretch of scroll: stay with the place, then leave for the next
+    const leave = smooth((f - 0.4) / 0.6)
+    j.p = p; j.leave = leave
+    const t = i < LAST ? leave : 0
+    const [ax, ay] = ROUTE_XY[at], [bx, by] = ROUTE_XY[Math.min(at + 1, LAST)]
+    const x = ax + (bx - ax) * t, y = ay + (by - ay) * t
+    // the whole island at both ends, the road in between
+    const lean = i === 0 ? smooth(f / 0.35) : i === ROUTE.length ? 1 - smooth(f / 0.6) : 1
+    const W = view.clientWidth, H = view.clientHeight, mw = camera.offsetWidth, mh = camera.offsetHeight
+    const whole = Math.min(W / mw, H / mh)
+    const s = whole + (1 - whole) * lean
+    // what the reader chose, handed back to the road over what is left of this stretch
+    const back = j.look ? (j.from < 1 ? Math.max(0, (leave - j.from) / (1 - j.from)) : 1) : 1
+    const cx = j.look ? j.look[0] + (x - j.look[0]) * back : x, cy = j.look ? j.look[1] + (y - j.look[1]) * back : y
+    camera.style.transform = `translate3d(${frame(W, mw * s, cx / 440 * mw * s).toFixed(1)}px,${frame(H, mh * s, cy / 700 * mh * s).toFixed(1)}px,0) scale(${s.toFixed(4)})`
+    light.style.transform = `translate3d(${(x / 440 * mw).toFixed(1)}px,${(y / 700 * mh).toFixed(1)}px,0)`
+    trail.style.strokeDashoffset = (Number(ROUTE_LENGTH) - TRAVELLED[at] - (LEGS[at] ?? 0) * t).toFixed(1)
+    if (!j.held) line.style.opacity = (1 - 0.6 * (i < LAST ? smooth((f - 0.55) / 0.45) : 0)).toFixed(3)
+  }
+  const trackRef = useScrub<HTMLDivElement>({ pinned: true, variable: false, onChange: walk })
 
   // the dash length is the path's own length, whatever the coastline becomes
   useEffect(() => {
@@ -68,15 +141,26 @@ export default function ChPatrie() {
       <ChapterOpen id="patrie" lede={v.patrieLede} />
       <div
         ref={ref as React.RefObject<HTMLDivElement>}
-        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 pb-24 sm:px-[9vw] lg:grid-cols-[1.2fr_1fr] lg:gap-[4vw] lg:pb-28"
+        className={`mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 pb-24 sm:px-[9vw] lg:grid-cols-[1.2fr_1fr] lg:gap-[4vw] lg:pb-28 ${styles.journey}`}
       >
+        {/* the length of the road: nothing to read, only something to measure */}
+        <div ref={trackRef} className={styles.track} aria-hidden="true" />
         {/* ——— the atlas ——— */}
         <div className={`reveal relative border border-bone/20 bg-[rgb(var(--c-night-2))] px-3 py-4 sm:px-6 sm:py-6 ${styles.atlas}`}>
+          {/* the frame sticks inside its own track: a sticky grid item is held by the whole grid, not by its row */}
+          <div className={styles.mapTrack}>
+          <div ref={frameRef} className={styles.mapFrame}>
           {/* relief under the drawing: a map is a claim about ground */}
           <Air kind="ground" intensity={0.55} warmth={0.35} />
           <div className="pointer-events-none absolute left-4 top-4 z-[2] font-mono text-[9px] uppercase tracking-[0.28em] text-ash-dim sm:left-6 sm:top-5">
             79°E — 82°E · 6°N — 10°N
           </div>
+          {/* the camera: an HTML box, so that leaning toward a place moves a layer instead of repainting 25 districts */}
+          <div
+            ref={cameraRef}
+            className={styles.camera}
+            onFocus={(e) => { const key = e.target.closest('[data-place]')?.getAttribute('data-place'); if (key) take(key as LocationKey) }}
+          >
           <svg
             viewBox="0 0 440 700"
             className="relative z-[2] mx-auto block h-auto max-h-[74svh] w-full"
@@ -112,7 +196,7 @@ export default function ChPatrie() {
                 const place = districtPlaces[district.id]
                 const active = district.id === selectedDistrict
                 return <path key={district.id} d={district.path} fillRule="evenodd"
-                  className={styles.district} data-highlighted={Boolean(place)} data-active={active} data-tone={i % 3}
+                  className={styles.district} data-place={place} data-highlighted={Boolean(place)} data-active={active} data-tone={i % 3}
                   vectorEffect="non-scaling-stroke"
                   role={place ? 'button' : undefined} tabIndex={place ? 0 : undefined}
                   aria-label={place ? `${c.district} · ${locations[place].name[lang]}` : undefined}
@@ -147,6 +231,8 @@ export default function ChPatrie() {
               const [x, y] = project(l.coords[0], l.coords[1])
               const r = l.type === 'capital' ? 6 : l.type === 'major' ? 4.5 : 3.5
               const active = selection.kind === 'place' && key === selection.key
+              // a place the journey has reached keeps its lamp; at the end they all burn
+              const reached = step >= 0 && ROUTE.indexOf(key) <= step
               return (
                 <g
                   key={key}
@@ -154,6 +240,7 @@ export default function ChPatrie() {
                      it answers to the keyboard and says its own name */
                   role="button"
                   tabIndex={0}
+                  data-place={key}
                   aria-label={`${c.place} · ${l.name[lang]}`}
                   aria-pressed={active}
                   className="cursor-pointer"
@@ -172,7 +259,7 @@ export default function ChPatrie() {
                       tracks this group's box — one ring, no bespoke variant */}
                   <circle
                     cx={x} cy={y} r={r}
-                    fill={active ? 'rgb(var(--c-flame-hot))' : 'rgb(var(--c-bone))'}
+                    fill={active || step === ROUTE.length ? 'rgb(var(--c-flame-hot))' : reached ? 'rgb(var(--c-gold))' : 'rgb(var(--c-bone))'}
                     stroke={active ? 'rgb(var(--c-flame-hot))' : 'rgb(var(--c-night)/0.85)'}
                     strokeWidth={l.type === 'capital' ? 2.4 : 1}
                     className="transition-[r,stroke] duration-300 ease-vigil"
@@ -202,6 +289,14 @@ export default function ChPatrie() {
               </text>
             </g>}
           </svg>
+          {/* the way already travelled, and the traveller: their own layers */}
+          <svg className={styles.trail} viewBox="60 50 335 420" aria-hidden="true">
+            <path ref={trailRef} d={ROUTE_PATH} fill="none" strokeDasharray={ROUTE_LENGTH} strokeDashoffset={ROUTE_LENGTH} />
+          </svg>
+          <div ref={lightRef} className={styles.traveller} aria-hidden="true" />
+          </div>
+          </div>
+          </div>
           <div className={styles.mapSelection}>
             <span>{loc ? c.place : c.district}</span>
             <strong>{loc ? loc.name[lang] : districtName}</strong>
@@ -217,7 +312,7 @@ export default function ChPatrie() {
         </div>
 
         {/* ——— side panel ——— */}
-        <div className="flex flex-col gap-5 lg:sticky lg:top-28 lg:self-start">
+        <div className={`flex flex-col gap-5 lg:sticky lg:top-28 lg:self-start ${styles.panel}`}>
           <p className="reveal text-sm leading-relaxed text-bone-dim">{c.hint}</p>
           <div className={styles.modeSwitch} role="group" aria-label={experience.map[lang]}>
             <button type="button" onClick={() => selectDistrict(selectedDistrict)} aria-pressed={mode === 'district'}>{c.districts}</button>
@@ -230,20 +325,22 @@ export default function ChPatrie() {
               <button key={key} type="button" onClick={() => selectPlace(key)} aria-pressed={selection.kind === 'place' && selection.key === key}>{locations[key].name[lang]}</button>
             ))}
           </div>
-          <div aria-live="polite" aria-atomic="true">
+          <div className={styles.line} aria-live="polite" aria-atomic="true">
+            <div ref={lineRef} className={styles.lineStick}>
             <div key={`${selectionKey}-${lang}`} className={styles.detailPanel} data-quiet={stillness}>
               <p className={styles.detailKind}>{loc ? c.place : c.district}</p>
               <h3 className="lang-title font-display text-[32px] italic leading-tight text-flame">{loc ? loc.name[lang] : districtName}</h3>
               {loc ? <>
                 <p className="mb-3 mt-1 font-tamil text-sm text-ash">{loc.tamil}</p>
                 <button type="button" className={styles.districtLink} onClick={() => selectDistrict(selectedDistrict)}>{c.belonging} · {districtName} <span aria-hidden="true">↗</span></button>
-                <p className="mt-5 text-[17px] leading-[1.8] text-bone-dim">{loc.desc[lang]}</p>
-                <p className="mt-6 font-mono text-[10px] leading-relaxed tracking-wide text-ash"><span className="mb-2 block">{c.coordinates}</span>{loc.coords[1].toFixed(4)}° N · {loc.coords[0].toFixed(4)}° E</p>
+                <p className={`mt-5 text-[17px] leading-[1.8] text-bone-dim ${styles.desc}`}>{loc.desc[lang]}</p>
+                <p className={`mt-6 font-mono text-[10px] leading-relaxed tracking-wide text-ash ${styles.coords}`}><span className="mb-2 block">{c.coordinates}</span>{loc.coords[1].toFixed(4)}° N · {loc.coords[0].toFixed(4)}° E</p>
               </> : <>
                 <p className="mt-4 text-base leading-relaxed text-bone-dim">{c.districtHint}</p>
                 <p className="mb-3 mt-7 font-mono text-[10px] uppercase tracking-[0.1em] text-ash">{c.within}</p>
                 <div className={styles.districtLocations}>{districtLocations.map(key => <button key={key} type="button" onClick={() => selectPlace(key)}><span>{locations[key].name[lang]}</span><span aria-hidden="true">↗</span></button>)}</div>
               </>}
+            </div>
             </div>
           </div>
         </div>

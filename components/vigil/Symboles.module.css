@@ -1,0 +1,50 @@
+/* The symbols: four presences met one at a time. Each has a screen to itself,
+   and the reader's scroll is what brings it about (ChSymboles.tsx writes the
+   gesture inline on the one or two elements that move). Nothing here hides
+   anything: the served page is the rest state, every picture whole. */
+
+.moment {
+  align-content: center;
+  min-height: 100svh;
+  padding-block: 10svh;
+}
+@media (min-width: 1024px) {
+  /* beside each other the pair is shorter than the screen: a little more
+     room, so that the next one is not yet in view while this one is held */
+  .moment { min-height: 115svh; }
+}
+
+/* the word first, the way a parent says it before the thing is in sight */
+.name {
+  margin-bottom: 1.25rem;
+  font-size: clamp(32px, 4.4vw, 58px);
+  line-height: 1.4;
+  color: rgb(var(--c-bone));
+  overflow-wrap: anywhere;
+}
+
+.scene { position: relative; }
+
+/* the flag, once the reader has drawn it out: the faintest movement of air,
+   never a flap. Only while it is on screen, and never at rest (the attribute
+   is not set in reduced motion or quiet reading). */
+.scene[data-near] .air[data-out] { animation: air 9s ease-in-out infinite; }
+@keyframes air {
+  0%, 100% { transform: none; }
+  50% { transform: skewY(0.35deg) scaleY(1.004); }
+}
+
+/* the flower: the warmth its petals give off, behind the frame, where the
+   embers rise. Same box as the embers so that one opacity brings both. */
+.warm {
+  background: radial-gradient(ellipse at 50% 55%, rgb(var(--c-gold) / 0.2), rgb(var(--c-ember) / 0.07) 60%, transparent 78%);
+}
+
+/* at rest the chapter is a page again: no screen-high pauses to cross */
+@media (prefers-reduced-motion: reduce) {
+  .moment { min-height: 0; padding-block: 2rem; }
+}
+:global(html[data-reading="quiet"]) .moment { min-height: 0; padding-block: 2rem; }
+@media print {
+  .moment { min-height: 0; padding-block: 2rem; }
+}

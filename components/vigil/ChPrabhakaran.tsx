@@ -1,18 +1,98 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useLang } from '@/context/LanguageContext'
 import { prabhakaran as p } from '@/data/historyChapters'
 import { useReveal } from '@/hooks/useReveal'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useScrub } from '@/hooks/useScrub'
 import ChapterOpen from './ChapterOpen'
 import ChapterEnd from './ChapterEnd'
 import { ChBody, Caption } from './blocks'
 import camera from './Camera.module.css'
+import scene from './Prabhakaran.module.css'
 import HistoryPassages, { HistorySources } from './HistoryPassages'
+
+// The calendar is the data's own: the year each milestone is dated, and
+// nothing in between but the integers.
+const YEARS = p.timeline.map((entry) => Number(entry.date.slice(-4)))
+const SPAN = `${YEARS[0]}–${YEARS[YEARS.length - 1]}`
+
+const READ = 0.5 // the reading line, as a share of the screen: where the year sits
+const HOLD = 0.3 // of a screen: how long the count stays on a milestone before the years resume
+const MARK = 8 // px from the top of a milestone to the middle of its mark (Prabhakaran.module.css)
+
+const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n)
 
 export default function ChPrabhakaran() {
   const { lang } = useLang()
   const ref = useReveal()
+  const still = useReducedMotion()
+  const year = useRef<HTMLSpanElement>(null)
+  const geo = useRef<{ stops: HTMLElement[]; segs: Array<HTMLElement | null>; marks: number[] } | null>(null)
+  const shown = useRef({ live: false, year: '', reached: -1, segs: [] as string[] })
+
+  // Writes the year into one text node when the integer changes, one scaleY on
+  // the length of line being drawn, one attribute when a mark is crossed. No
+  // state: fifty-five renders of the chapter would be the cost of a number.
+  const paint = () => {
+    const el = track.current
+    const figure = year.current
+    if (!el || !figure) return
+    const was = shown.current
+    if (still) {
+      if (!was.live) return
+      // back to what the server sent: everything present, the span
+      delete el.dataset.live
+      figure.textContent = SPAN
+      el.querySelectorAll<HTMLElement>('[data-stop]').forEach((stop) => stop.removeAttribute('data-reached'))
+      el.querySelectorAll<HTMLElement>('[data-seg]').forEach((seg) => { seg.style.transform = '' })
+      shown.current = { live: false, year: '', reached: -1, segs: [] }
+      return
+    }
+    if (!geo.current) {
+      const stops = Array.from(el.querySelectorAll<HTMLElement>('[data-stop]'))
+      geo.current = { stops, segs: stops.map((stop) => stop.querySelector<HTMLElement>('[data-seg]')), marks: stops.map((stop) => stop.offsetTop + MARK) }
+    }
+    const { stops, segs, marks } = geo.current
+    const vh = window.innerHeight
+    const y = READ * vh - el.getBoundingClientRect().top // the reading line, measured down the track
+    let now = YEARS[0]
+    let reached = 0
+    for (let i = 0; i < marks.length; i++) {
+      const from = marks[i]
+      const to = marks[i + 1]
+      if (y >= from) { reached = i + 1; now = YEARS[i] }
+      if (to === undefined) break
+      const len = to - from
+      const drawn = clamp01((y - from) / len).toFixed(4)
+      if (drawn !== was.segs[i]) { was.segs[i] = drawn; const seg = segs[i]; if (seg) seg.style.transform = `scaleY(${drawn})` }
+      if (y >= from && y < to) {
+        const hold = Math.min(HOLD * vh, len / 2)
+        now = Math.floor(YEARS[i] + clamp01((y - from - hold) / (len - hold)) * (YEARS[i + 1] - YEARS[i]))
+      }
+    }
+    if (!was.live) { was.live = true; el.dataset.live = '' }
+    const text = String(now)
+    if (text !== was.year) { was.year = text; figure.textContent = text }
+    if (reached !== was.reached) {
+      was.reached = reached
+      stops.forEach((stop, i) => (i < reached ? stop.removeAttribute('data-reached') : stop.setAttribute('data-reached', 'false')))
+    }
+  }
+  const track = useScrub<HTMLDivElement>({ variable: false, onChange: paint })
+  const latest = useRef(paint)
+  latest.current = paint
+
+  // the marks move when the text reflows (fonts, language, width)
+  useEffect(() => {
+    const el = track.current
+    if (!el || still) return
+    const observer = new ResizeObserver(() => { geo.current = null; latest.current() })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [track, still])
 
   return (
     <section id="prabhakaran" aria-labelledby="prabhakaran-title" className="relative bg-night">
@@ -48,17 +128,29 @@ export default function ChPrabhakaran() {
                 <p className="lang-title mt-5 font-display text-[clamp(30px,4vw,48px)] font-light leading-[1.15]">{p.name[lang]}</p>
                 <p className="mt-5 max-w-[32ch] text-sm leading-relaxed text-ash">{p.acronym[lang]}</p>
               </div>
-              <ol aria-label={p.timelineLabel[lang]} className="mt-12 space-y-6">
-                {p.timeline.map((entry) => <li key={entry.date} className="reveal border-t border-bone/15 pt-5">
-                  <p className="font-mono text-[11px] tracking-[0.12em] text-gold">{entry.date}</p>
-                  <p className="mt-3 text-base leading-relaxed text-bone-dim">{entry.text[lang]}</p>
-                  <HistorySources ids={[entry.source]} />
-                </li>)}
-              </ol>
             </div>
-            <div>
-              <HistoryPassages passages={p.passages} lang={lang} />
-              <p className="reveal mt-12 border-l border-gold/40 pl-6 text-lg italic leading-relaxed text-bone-dim">{p.closing[lang]}</p>
+            <div className={`min-w-0 ${scene.column}`}>
+              <div ref={track} className={scene.track}>
+                <div aria-hidden="true" className={scene.gutter}>
+                  <span ref={year} className={`font-display font-light ${scene.year}`}>{SPAN}</span>
+                </div>
+                {/* each milestone, then the passage that belongs to the years after it */}
+                <ol aria-label={p.timelineLabel[lang]}>
+                  {p.timeline.map((entry, i) => <li key={entry.date} data-stop className={scene.stop}>
+                    {i < p.timeline.length - 1 && <span aria-hidden="true" data-seg className={scene.seg} />}
+                    <span aria-hidden="true" className={scene.mark} />
+                    <div className={scene.entry}>
+                      <p className="font-mono text-[11px] tracking-[0.12em] text-gold">{entry.date}</p>
+                      <p className="mt-3 text-base leading-relaxed text-bone-dim">{entry.text[lang]}</p>
+                      <HistorySources ids={[entry.source]} />
+                    </div>
+                    {p.passages[i] && <div className="mt-10">
+                      <HistoryPassages passages={[p.passages[i]]} lang={lang} />
+                    </div>}
+                  </li>)}
+                </ol>
+              </div>
+              <p className={`reveal ${scene.closing} border-l border-gold/40 pl-6 text-lg italic leading-relaxed text-bone-dim break-words`}>{p.closing[lang]}</p>
             </div>
           </div>
         </ChBody>
