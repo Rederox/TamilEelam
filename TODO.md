@@ -27,7 +27,8 @@ Aucune date ni aucun chiffre n'a été trouvé franchement faux. Ces sept formul
 - [ ] Mode papier : le plan 1 de Mullivaikkal (la bande de sable) est une lame blanche un peu dure.
 - [ ] Les rayonnages utilisent `color-mix()` : sur un très vieux navigateur, les étagères sont vides du début à la fin.
 - [ ] **Son** : aucune musique ni voix n'a été ajoutée. Une voix de narrateur ou une tanpura réelles seraient le plus fort levier d'émotion ; une synthèse n'a pas été tentée (impossible à juger sans oreille, et risquée sur ce sujet).
-- [ ] Non vérifié : Safari et Firefox pour toutes les scènes ; un vrai téléphone ; l'anglais dans plusieurs scènes ; l'impression.
+- [x] Vérifié le 15 novembre dans WebKit (le moteur de Safari ; tailles 390×844, 360×740 et ordinateur) et dans Firefox : les douze scènes s'affichent, aucune erreur, aucun débordement horizontal en français, anglais et tamoul.
+- [ ] Reste à voir sur de vrais appareils : la fluidité sur un téléphone (le coût GPU n'est pas mesurable en émulation) ; un iPhone qui n'est pas à jour (les versions de Safari antérieures à 26 n'ont pas le fondu lié au défilement : le site doit rester lisible, simplement sans ce fondu) ; l'impression.
 
 ## Sources
 
